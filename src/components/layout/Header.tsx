@@ -1,49 +1,103 @@
 
 import React from "react";
-import { Bell, Search, MenuIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Menu, Bell, Sun, Moon, LogOut, User } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   toggleSidebar: () => void;
 }
 
 const Header = ({ toggleSidebar }: HeaderProps) => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   return (
-    <header className="h-16 px-4 flex items-center justify-between border-b border-border bg-white">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="md:hidden"
-        onClick={toggleSidebar}
-      >
-        <MenuIcon className="h-5 w-5" />
-      </Button>
-      
-      <div className="flex-1 flex items-center mx-4 max-w-lg">
-        <div className="relative w-full">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="w-full pl-9 bg-secondary border-none focus-visible:ring-1"
-          />
-        </div>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+    <header className="h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="md:hidden"
+        >
+          <Menu className="h-5 w-5" />
         </Button>
-        <div className="h-8 w-px bg-border mx-2 hidden sm:block"></div>
-        <div className="text-sm text-right mr-2 hidden sm:block">
-          <div className="font-medium">John Doe</div>
-          <div className="text-xs text-muted-foreground">Administrator</div>
-        </div>
-        <div className="h-9 w-9 rounded-full bg-salescraft-600 flex items-center justify-center text-white font-medium">
-          JD
-        </div>
+        <h1 className="text-xl font-bold text-primary hidden md:block">Zenith Vault</h1>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
+        >
+          {theme === "dark" ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Notifications"
+        >
+          <Bell className="h-5 w-5" />
+        </Button>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full"
+              aria-label="User menu"
+            >
+              <User className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {user && (
+              <>
+                <DropdownMenuItem className="text-sm">
+                  <span className="truncate">{user.email}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  Profile Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            <DropdownMenuItem onClick={handleSignOut} className="text-red-500 focus:text-red-500">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sign out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

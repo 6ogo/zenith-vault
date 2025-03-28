@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,14 @@ const ForgotPassword = () => {
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { resetPassword, user } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,9 +39,11 @@ const ForgotPassword = () => {
     setIsLoading(true);
     
     try {
-      // Supabase password reset will be implemented here
-      // This is a placeholder for now
-      console.log("Password reset for:", email);
+      const { error } = await resetPassword(email);
+      
+      if (error) {
+        throw error;
+      }
       
       setSubmitted(true);
       toast({
@@ -40,11 +51,11 @@ const ForgotPassword = () => {
         description: "Password reset instructions sent to your email",
       });
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Password reset error:", error);
       toast({
         title: "Error",
-        description: "Failed to send reset instructions. Please try again.",
+        description: error.message || "Failed to send reset instructions. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -115,6 +126,14 @@ const ForgotPassword = () => {
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Sign In
+            </Link>
+          </div>
+          <div className="text-center text-sm">
+            <Link 
+              to="/" 
+              className="text-muted-foreground hover:underline"
+            >
+              Back to Home
             </Link>
           </div>
         </CardFooter>

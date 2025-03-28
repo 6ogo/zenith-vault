@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, EyeOff, Eye } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,6 +16,14 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn, user } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,25 +40,23 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Supabase authentication will be implemented here
-      // This is a placeholder for now
-      console.log("Login with:", { email, password });
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Success",
         description: "Login successful! Redirecting to dashboard...",
       });
       
-      // Redirect to dashboard after successful login
-      setTimeout(() => {
-        navigate("/");
-      }, 1500);
-      
-    } catch (error) {
+      navigate("/dashboard");
+    } catch (error: any) {
       console.error("Login error:", error);
       toast({
         title: "Error",
-        description: "Failed to login. Please check your credentials.",
+        description: error.message || "Failed to login. Please check your credentials.",
         variant: "destructive",
       });
     } finally {
@@ -132,6 +139,14 @@ const Login = () => {
               className="text-secondary font-medium hover:underline"
             >
               Sign up
+            </Link>
+          </div>
+          <div className="text-center text-sm">
+            <Link 
+              to="/" 
+              className="text-muted-foreground hover:underline"
+            >
+              Back to Home
             </Link>
           </div>
         </CardFooter>

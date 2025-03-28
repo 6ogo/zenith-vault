@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, User, Lock, EyeOff, Eye, Check } from "lucide-react";
+import { Mail, User, Lock, EyeOff, Eye } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
@@ -18,6 +19,14 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signUp, user } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,13 +43,15 @@ const SignUp = () => {
     setIsLoading(true);
     
     try {
-      // Supabase signup will be implemented here
-      // This is a placeholder for now
-      console.log("Sign up with:", { fullName, email, password, role });
+      const { error } = await signUp(email, password, fullName, role);
+      
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Success",
-        description: "Account created successfully! Redirecting to login...",
+        description: "Account created successfully! Please check your email for verification.",
       });
       
       // Redirect to login after successful signup
@@ -48,11 +59,11 @@ const SignUp = () => {
         navigate("/auth/login");
       }, 1500);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Signup error:", error);
       toast({
         title: "Error",
-        description: "Failed to create account. Please try again.",
+        description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -163,6 +174,14 @@ const SignUp = () => {
               className="text-secondary font-medium hover:underline"
             >
               Sign in
+            </Link>
+          </div>
+          <div className="text-center text-sm">
+            <Link 
+              to="/" 
+              className="text-muted-foreground hover:underline"
+            >
+              Back to Home
             </Link>
           </div>
         </CardFooter>
