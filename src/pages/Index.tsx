@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import ZenithLogo from "@/components/common/ZenithLogo";
+import Footer from "@/components/layout/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -42,11 +44,45 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen dark:bg-gray-950">
+    <div className="min-h-screen dark:bg-gray-950 flex flex-col">
+      {/* Header for landing page */}
+      <header className="py-4 px-4 md:px-8 lg:px-12 border-b">
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <ZenithLogo width={40} height={40} />
+            <h1 className="text-xl font-bold text-primary">Zenith Vault</h1>
+          </div>
+          <div className="flex gap-4">
+            {!user ? (
+              <>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigate("/auth/login")}
+                >
+                  Log in
+                </Button>
+                <Button 
+                  onClick={() => navigate("/auth/signup")}
+                >
+                  Sign up
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => navigate("/dashboard")}>
+                Dashboard
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section */}
-      <section className="py-20 px-4 md:px-8">
+      <section className="py-16 md:py-20 px-4 md:px-8 flex-1">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col items-center text-center animate-fade-in">
+            <div className="mb-6">
+              <ZenithLogo width={80} height={80} className="mx-auto" />
+            </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-primary dark:text-primary">Welcome to Zenith Vault</h1>
             <p className="text-xl md:text-2xl font-medium text-secondary mb-6 dark:text-secondary">Secure, Streamline, Succeed</p>
             <p className="text-lg md:text-xl max-w-3xl mb-10 text-muted-foreground dark:text-muted-foreground">
@@ -147,6 +183,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

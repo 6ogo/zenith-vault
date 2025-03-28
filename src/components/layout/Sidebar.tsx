@@ -1,7 +1,9 @@
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import ZenithLogo from "../common/ZenithLogo";
 import { 
   LayoutDashboard, 
   Users, 
@@ -23,7 +25,7 @@ type NavItem = {
 const mainNavItems: NavItem[] = [
   {
     label: "Dashboard",
-    href: "/",
+    href: "/dashboard",
     icon: <LayoutDashboard className="h-5 w-5" />,
   },
   {
@@ -68,23 +70,47 @@ const secondaryNavItems: NavItem[] = [
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   
   const isActiveRoute = (path: string) => {
-    if (path === "/") {
-      return location.pathname === "/";
+    if (path === "/dashboard" && location.pathname === "/dashboard") {
+      return true;
     }
-    return location.pathname.startsWith(path);
+    return location.pathname.startsWith(path) && path !== "/dashboard";
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user) return "ZV";
+    
+    const name = user.user_metadata?.full_name || user.email || "";
+    if (!name) return "ZV";
+    
+    if (name.includes('@')) {
+      return name.substring(0, 2).toUpperCase();
+    }
+    
+    const parts = name.split(' ');
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    
+    return name.substring(0, 2).toUpperCase();
   };
 
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
       <div className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
-          <div className="bg-sidebar-primary rounded-md p-1">
-            <div className="font-bold text-sidebar-primary-foreground text-xl">SC</div>
-          </div>
-          <div className="font-semibold text-sidebar-foreground">SalesCraft Hub</div>
-        </div>
+        <Link to="/dashboard" className="flex items-center gap-2">
+          <ZenithLogo width={32} height={32} className="text-sidebar-primary-foreground" />
+          <div className="font-semibold text-sidebar-foreground">Zenith Vault</div>
+        </Link>
       </div>
       
       <div className="flex-1 py-4 flex flex-col">
@@ -129,15 +155,18 @@ const Sidebar = () => {
       <div className="p-3 border-t border-sidebar-border">
         <div className="flex items-center justify-between px-2 py-2">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-salescraft-600 flex items-center justify-center text-white font-medium">
-              JD
+            <div className="h-8 w-8 rounded-full bg-sidebar-primary flex items-center justify-center text-white font-medium">
+              {getUserInitials()}
             </div>
             <div>
-              <div className="text-sm font-medium">John Doe</div>
-              <div className="text-xs text-sidebar-foreground/70">Admin</div>
+              <div className="text-sm font-medium">{user?.user_metadata?.full_name || "User"}</div>
+              <div className="text-xs text-sidebar-foreground/70">{user?.user_metadata?.role || "User"}</div>
             </div>
           </div>
-          <button className="text-sidebar-foreground/70 hover:text-sidebar-foreground">
+          <button 
+            className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
+            onClick={handleSignOut}
+          >
             <LogOut className="h-4 w-4" />
           </button>
         </div>

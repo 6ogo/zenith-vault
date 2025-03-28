@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Menu, Bell, Sun, Moon, LogOut, User } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
+import ZenithLogo from "../common/ZenithLogo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +44,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-bold text-primary hidden md:block">Zenith Vault</h1>
+        <div className="flex items-center space-x-2">
+          <ZenithLogo width={28} height={28} />
+          <h1 className="text-xl font-bold text-primary hidden md:block">Zenith Vault</h1>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <Button
