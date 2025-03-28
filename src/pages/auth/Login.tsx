@@ -8,15 +8,17 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, EyeOff, Eye } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Separator } from "@/components/ui/separator";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, user } = useAuth();
+  const { signIn, signInWithGoogle, user } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -61,6 +63,27 @@ const Login = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    
+    try {
+      const { error } = await signInWithGoogle();
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      console.error("Google login error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to login with Google. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -130,6 +153,25 @@ const Login = () => {
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+            </div>
+          </div>
+
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full" 
+            onClick={handleGoogleLogin}
+            disabled={googleLoading}
+          >
+            {googleLoading ? "Connecting..." : "Sign in with Google"}
+          </Button>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm">

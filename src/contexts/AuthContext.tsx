@@ -9,6 +9,7 @@ type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
+  signInWithGoogle: () => Promise<{ error: any | null }>;
   signUp: (email: string, password: string, fullName: string, role: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any | null }>;
@@ -30,7 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(currentSession?.user ?? null);
         
         if (event === 'SIGNED_IN') {
-          navigate('/');
+          navigate('/dashboard');
         } else if (event === 'SIGNED_OUT') {
           navigate('/');
         }
@@ -52,6 +53,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
       return { error };
     } catch (error) {
       return { error };
@@ -98,6 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         isLoading,
         signIn,
+        signInWithGoogle,
         signUp,
         signOut,
         resetPassword,

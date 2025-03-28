@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Mail, User, Lock, EyeOff, Eye } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Separator } from "@/components/ui/separator";
 
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
@@ -16,10 +17,11 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signUp, user } = useAuth();
+  const { signUp, signInWithGoogle, user } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -68,6 +70,27 @@ const SignUp = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setGoogleLoading(true);
+    
+    try {
+      const { error } = await signInWithGoogle();
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      console.error("Google signup error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to sign up with Google. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -165,6 +188,25 @@ const SignUp = () => {
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+            </div>
+          </div>
+
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full" 
+            onClick={handleGoogleSignUp}
+            disabled={googleLoading}
+          >
+            {googleLoading ? "Connecting..." : "Sign up with Google"}
+          </Button>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm">
