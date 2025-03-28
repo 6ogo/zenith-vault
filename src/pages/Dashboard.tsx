@@ -39,34 +39,42 @@ const Dashboard = () => {
         <StatCard 
           title="Total Leads" 
           value="152" 
-          trend="+12.5%" 
-          trendDirection="up"
-          description="Last 30 days" 
-          icon="user" 
+          trend={{
+            value: 12.5,
+            isPositive: true
+          }}
+          className="bg-card"
+          icon={<div className="h-4 w-4">👤</div>}
         />
         <StatCard 
           title="Total Sales" 
           value="$24,320" 
-          trend="+8.2%" 
-          trendDirection="up"
-          description="Last 30 days" 
-          icon="dollar" 
+          trend={{
+            value: 8.2,
+            isPositive: true
+          }}
+          className="bg-card"
+          icon={<div className="h-4 w-4">💵</div>}
         />
         <StatCard 
           title="Customer Satisfaction" 
           value="94.2%" 
-          trend="+1.2%" 
-          trendDirection="up"
-          description="Last 30 days" 
-          icon="heart" 
+          trend={{
+            value: 1.2,
+            isPositive: true
+          }}
+          className="bg-card"
+          icon={<div className="h-4 w-4">❤️</div>}
         />
         <StatCard 
           title="Active Campaigns" 
           value="6" 
-          trend="+2" 
-          trendDirection="up"
-          description="Last 30 days" 
-          icon="mail" 
+          trend={{
+            value: 2,
+            isPositive: true
+          }}
+          className="bg-card"
+          icon={<div className="h-4 w-4">📧</div>}
         />
       </div>
 

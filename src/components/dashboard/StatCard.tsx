@@ -16,21 +16,21 @@ interface StatCardProps {
 
 const StatCard = ({ title, value, icon, trend, className }: StatCardProps) => {
   return (
-    <Card className={cn("dashboard-card", className)}>
+    <Card className={cn("p-6", className)}>
       <div className="flex justify-between items-start">
         <div>
-          <p className="stat-label">{title}</p>
-          <p className="stat-value mt-1">{value}</p>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <p className="text-2xl font-bold mt-1">{value}</p>
           
           {trend && (
             <div className="flex items-center mt-1">
               <span
                 className={cn(
                   "text-xs font-medium",
-                  trend.isPositive ? "text-green-600" : "text-red-600"
+                  trend.isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                 )}
               >
-                {trend.isPositive ? "↑" : "↓"} {Math.abs(trend.value)}%
+                {trend.isPositive ? "↑" : "↓"} {trend.value}%
               </span>
               <span className="text-xs text-muted-foreground ml-1">vs last month</span>
             </div>
