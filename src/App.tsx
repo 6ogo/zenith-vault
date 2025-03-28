@@ -21,6 +21,13 @@ import Dashboard from "./pages/Dashboard";
 import About from "./pages/About";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import FAQ from "./pages/FAQ";
+import Contact from "./pages/Contact";
+// Feature pages
+import SalesManagement from "./pages/features/SalesManagement";
+import CustomerService from "./pages/features/CustomerService";
+import MarketingAutomation from "./pages/features/MarketingAutomation";
+import WebsiteDevelopment from "./pages/features/WebsiteDevelopment";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -50,9 +57,17 @@ const AppWithAuth = () => {
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/auth/login" element={<Login />} />
         <Route path="/auth/signup" element={<SignUp />} />
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+        
+        {/* Feature Pages */}
+        <Route path="/features/sales-management" element={<SalesManagement />} />
+        <Route path="/features/customer-service" element={<CustomerService />} />
+        <Route path="/features/marketing-automation" element={<MarketingAutomation />} />
+        <Route path="/features/website-development" element={<WebsiteDevelopment />} />
         
         {/* Protected Routes */}
         <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>

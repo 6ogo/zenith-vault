@@ -21,10 +21,10 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-foreground mb-4">Features</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/features/sales" className="text-muted-foreground hover:text-primary transition-colors">Sales Management</Link></li>
-              <li><Link to="/features/service" className="text-muted-foreground hover:text-primary transition-colors">Customer Service</Link></li>
-              <li><Link to="/features/marketing" className="text-muted-foreground hover:text-primary transition-colors">Marketing Automation</Link></li>
-              <li><Link to="/features/website" className="text-muted-foreground hover:text-primary transition-colors">Website Development</Link></li>
+              <li><Link to="/features/sales-management" className="text-muted-foreground hover:text-primary transition-colors">Sales Management</Link></li>
+              <li><Link to="/features/customer-service" className="text-muted-foreground hover:text-primary transition-colors">Customer Service</Link></li>
+              <li><Link to="/features/marketing-automation" className="text-muted-foreground hover:text-primary transition-colors">Marketing Automation</Link></li>
+              <li><Link to="/features/website-development" className="text-muted-foreground hover:text-primary transition-colors">Website Development</Link></li>
             </ul>
           </div>
           
@@ -42,7 +42,6 @@ const Footer = () => {
             <h3 className="font-semibold text-foreground mb-4">Support</h3>
             <ul className="space-y-2 text-sm">
               <li><Link to="/faq" className="text-muted-foreground hover:text-primary transition-colors">FAQ</Link></li>
-              <li><Link to="/docs" className="text-muted-foreground hover:text-primary transition-colors">Documentation</Link></li>
               <li><a href="mailto:support@zenithvault.com" className="text-muted-foreground hover:text-primary transition-colors">support@zenithvault.com</a></li>
             </ul>
           </div>
@@ -51,9 +50,9 @@ const Footer = () => {
         <div className="border-t border-border mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
           <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Zenith Vault. All rights reserved.</p>
           <div className="flex gap-4 mt-4 md:mt-0">
-            <a href="#" className="text-muted-foreground hover:text-primary text-xs">Privacy</a>
-            <a href="#" className="text-muted-foreground hover:text-primary text-xs">Terms</a>
-            <a href="#" className="text-muted-foreground hover:text-primary text-xs">Cookies</a>
+            <Link to="/privacy" className="text-muted-foreground hover:text-primary text-xs">Privacy</Link>
+            <Link to="/terms" className="text-muted-foreground hover:text-primary text-xs">Terms</Link>
+            <Link to="/faq" className="text-muted-foreground hover:text-primary text-xs">FAQ</Link>
           </div>
         </div>
       </div>
