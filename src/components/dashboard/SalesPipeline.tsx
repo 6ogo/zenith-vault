@@ -74,8 +74,7 @@ const SalesPipeline = () => {
               <div className="flex items-center gap-2">
                 <Progress
                   value={stage.progress}
-                  className="h-2"
-                  indicatorClassName={stage.color}
+                  className={`h-2 ${stage.color}`}
                 />
                 <span className="text-xs font-medium">{stage.progress}%</span>
               </div>

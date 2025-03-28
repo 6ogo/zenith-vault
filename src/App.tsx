@@ -13,6 +13,9 @@ import Marketing from "./pages/Marketing";
 import Analytics from "./pages/Analytics";
 import Website from "./pages/Website";
 import Settings from "./pages/Settings";
+import Login from "./pages/auth/Login";
+import SignUp from "./pages/auth/SignUp";
+import ForgotPassword from "./pages/auth/ForgotPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +27,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Auth Routes */}
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/signup" element={<SignUp />} />
+          <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+          
+          {/* Main Layout Routes */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/sales" element={<Sales />} />
@@ -34,6 +43,7 @@ const App = () => (
             <Route path="/website" element={<Website />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
