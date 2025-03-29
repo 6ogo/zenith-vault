@@ -63,17 +63,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const checkMfaStatus = async () => {
       if (user) {
         try {
-          const { data: mfaData, error: mfaError } = await supabase
-            .from("profiles")
-            .select("is_mfa_enabled")
-            .eq("id", user.id)
-            .single();
-
-          if (mfaError) {
-            console.error("Error fetching MFA status:", mfaError);
-          } else {
-            setIsMfaEnabled(mfaData?.is_mfa_enabled || false);
+          // Check MFA status directly from Supabase auth.mfa
+          const { data, error } = await supabase.auth.mfa.listFactors();
+          
+          if (error) {
+            console.error("Error fetching MFA factors:", error);
+            return;
           }
+          
+          // Check if there are any verified TOTP factors
+          const hasVerifiedTotpFactor = data.totp.some(factor => 
+            factor.status === 'verified'
+          );
+          
+          setIsMfaEnabled(hasVerifiedTotpFactor);
         } catch (error) {
           console.error("Unexpected error fetching MFA status:", error);
         }
@@ -235,15 +238,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateProfile = async (details: any) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .update({
+      // Update user metadata instead of trying to update a non-existent profiles table
+      const { data, error } = await supabase.auth.updateUser({
+        data: {
           full_name: details.fullName,
-          updated_at: new Date(),
-        })
-        .eq("id", user?.id)
-        .select()
-        .single();
+          updated_at: new Date().toISOString(),
+        }
+      });
 
       if (error) {
         throw error;
@@ -297,22 +298,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Error verifying MFA:", error);
         return { error };
       }
-
-      // Update the user's profile in the database to reflect MFA is enabled
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .update({ is_mfa_enabled: true })
-        .eq("id", user?.id)
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error("Error updating MFA status in profile:", profileError);
-        return { error: profileError };
-      }
-
+      
+      // Update the MFA enabled status in state
       setIsMfaEnabled(true);
-      return { data: profileData, error: null };
+      
+      return { error: null };
     } catch (error: any) {
       console.error("Error verifying MFA:", error);
       return { error };
@@ -324,11 +314,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const verify2FADuringLogin = async (otp: string) => {
     setIsLoading(true);
     try {
-      // This method would integrate with Supabase's MFA verification
-      // For now, using a simple simulation
-      console.log("2FA verification code:", otp);
+      // First get the current MFA challenge
+      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
+        factorId: 'totp'
+      });
       
-      // Simulate successful verification (in production, use supabase.auth.mfa.verify)
+      if (challengeError) {
+        console.error("Error creating MFA challenge:", challengeError);
+        throw challengeError;
+      }
+      
+      // Verify the challenge with the provided OTP
+      const { data, error } = await supabase.auth.mfa.verify({
+        factorId: 'totp',
+        challengeId: challengeData.id,
+        code: otp
+      });
+      
+      if (error) {
+        console.error("Error verifying MFA code:", error);
+        throw error;
+      }
+      
       setIsVerifying2FA(false);
       navigate("/dashboard");
       
