@@ -10,10 +10,12 @@ import RecentLeads from "@/components/dashboard/RecentLeads";
 import CustomerSatisfaction from "@/components/dashboard/CustomerSatisfaction";
 import MarketingCampaigns from "@/components/dashboard/MarketingCampaigns";
 import StatCard from "@/components/dashboard/StatCard";
+import DataModeToggle from "@/components/dashboard/DataModeToggle";
+import { useDataMode } from "@/contexts/DataModeContext";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const userRole = user?.user_metadata?.role || "user";
+  const { isRealData, setIsRealData } = useDataMode();
   
   const userWelcomeName = user?.user_metadata?.full_name || user?.email || "User";
 
@@ -26,6 +28,8 @@ const Dashboard = () => {
         </p>
       </div>
 
+      <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
+
       <Alert className="bg-secondary/20 border-secondary">
         <Check className="h-4 w-4 text-secondary" />
         <AlertTitle>Welcome to Zenith Vault!</AlertTitle>
@@ -35,7 +39,7 @@ const Dashboard = () => {
       </Alert>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <StatCard 
           title="Total Leads" 
           value="152" 

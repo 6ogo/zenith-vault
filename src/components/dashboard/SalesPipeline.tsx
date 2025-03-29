@@ -62,21 +62,23 @@ const SalesPipeline = () => {
         <CardTitle className="text-lg font-semibold">Sales Pipeline</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {pipelineStages.map((stage) => (
             <div key={stage.id}>
               <div className="flex justify-between items-center mb-1">
                 <div className="font-medium text-sm">{stage.name}</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground whitespace-nowrap">
                   {stage.deals} deals · ${stage.value.toLocaleString()}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Progress
-                  value={stage.progress}
-                  className={`h-2 ${stage.color}`}
-                />
-                <span className="text-xs font-medium">{stage.progress}%</span>
+                <div className="w-full bg-secondary rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full ${stage.color}`}
+                    style={{ width: `${stage.progress}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium whitespace-nowrap">{stage.progress}%</span>
               </div>
             </div>
           ))}

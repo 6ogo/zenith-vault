@@ -20,6 +20,27 @@ const data = [
 const COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444"];
 
 const CustomerSatisfaction = () => {
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }) => {
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.3;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill={data[index].color}
+        textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central"
+        fontSize="12"
+        fontWeight="500"
+      >
+        {`${name}: ${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
   return (
     <Card className="dashboard-card">
       <CardHeader className="pb-3">
@@ -28,7 +49,7 @@ const CustomerSatisfaction = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[250px]">
+        <div className="h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -40,10 +61,8 @@ const CustomerSatisfaction = () => {
                 fill="#8884d8"
                 paddingAngle={2}
                 dataKey="value"
-                label={({ name, percent }) => 
-                  `${name}: ${(percent * 100).toFixed(0)}%`
-                }
-                labelLine={false}
+                labelLine={true}
+                label={renderCustomizedLabel}
               >
                 {data.map((entry, index) => (
                   <Cell 
@@ -62,8 +81,11 @@ const CustomerSatisfaction = () => {
                 }}
               />
               <Legend 
+                layout="horizontal"
                 verticalAlign="bottom" 
-                height={36}
+                align="center"
+                iconSize={10}
+                iconType="circle"
                 formatter={(value) => (
                   <span className="text-xs">{value}</span>
                 )}

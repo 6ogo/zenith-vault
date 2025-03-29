@@ -16,11 +16,11 @@ interface StatCardProps {
 
 const StatCard = ({ title, value, icon, trend, className }: StatCardProps) => {
   return (
-    <Card className={cn("p-6", className)}>
+    <Card className={cn("p-4 sm:p-6", className)}>
       <div className="flex justify-between items-start">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
+        <div className="overflow-hidden">
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
+          <p className="text-xl sm:text-2xl font-bold mt-1 truncate">{value}</p>
           
           {trend && (
             <div className="flex items-center mt-1">
@@ -32,12 +32,13 @@ const StatCard = ({ title, value, icon, trend, className }: StatCardProps) => {
               >
                 {trend.isPositive ? "↑" : "↓"} {trend.value}%
               </span>
-              <span className="text-xs text-muted-foreground ml-1">vs last month</span>
+              <span className="text-xs text-muted-foreground ml-1 hidden sm:inline">vs last month</span>
+              <span className="text-xs text-muted-foreground ml-1 sm:hidden">vs last</span>
             </div>
           )}
         </div>
         
-        <div className="p-2.5 rounded-full bg-primary/10 text-primary">
+        <div className="p-2 sm:p-2.5 rounded-full bg-primary/10 text-primary flex-shrink-0">
           {icon}
         </div>
       </div>
