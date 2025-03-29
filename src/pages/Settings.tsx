@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -96,15 +95,26 @@ export default function Settings() {
       }
       
       if (data) {
-        setProfileData(data as ProfileData);
+        const typedData: ProfileData = {
+          id: data.id,
+          full_name: data.full_name,
+          avatar_url: data.avatar_url,
+          updated_at: data.updated_at,
+          is_mfa_enabled: data.is_mfa_enabled,
+          job_title: data.job_title || null,
+          department: data.department || null,
+          phone_number: data.phone_number || null,
+        };
         
-        form.setValue("fullName", data.full_name || "");
+        setProfileData(typedData);
+        
+        form.setValue("fullName", typedData.full_name || "");
         form.setValue("email", user?.email || "");
-        form.setValue("phone", data.phone_number || "");
-        form.setValue("jobTitle", data.job_title || "");
-        form.setValue("department", data.department || "");
+        form.setValue("phone", typedData.phone_number || "");
+        form.setValue("jobTitle", typedData.job_title || "");
+        form.setValue("department", typedData.department || "");
         
-        if (!data.full_name || !data.job_title || !data.department) {
+        if (!typedData.full_name || !typedData.job_title || !typedData.department) {
           setIsFirstLogin(true);
         }
       } else {

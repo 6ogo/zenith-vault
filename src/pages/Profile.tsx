@@ -76,14 +76,26 @@ const Profile = () => {
           return;
         }
         
-        setProfileData(data as ProfileData);
+        // Explicitly type the data with all our custom fields
+        const typedData: ProfileData = {
+          id: data.id,
+          full_name: data.full_name,
+          avatar_url: data.avatar_url,
+          updated_at: data.updated_at,
+          is_mfa_enabled: data.is_mfa_enabled,
+          job_title: data.job_title || null,
+          department: data.department || null,
+          phone_number: data.phone_number || null,
+        };
+        
+        setProfileData(typedData);
         
         form.reset({
-          fullName: data?.full_name || '',
+          fullName: typedData.full_name || '',
           email: user.email || '',
-          jobTitle: data?.job_title || '',
-          department: data?.department || '',
-          phoneNumber: data?.phone_number || '',
+          jobTitle: typedData.job_title || '',
+          department: typedData.department || '',
+          phoneNumber: typedData.phone_number || '',
         });
       } catch (error) {
         console.error('Error fetching profile:', error);
