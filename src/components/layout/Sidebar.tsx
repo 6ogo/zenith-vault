@@ -112,7 +112,10 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
                 )
               }
             >
-              <route.icon className={cn("w-4 h-4", isCollapsed ? "" : "mr-2")} />
+              <route.icon className={cn(
+                isCollapsed ? "w-6 h-6" : "w-4 h-4", 
+                isCollapsed ? "" : "mr-2"
+              )} />
               {!isCollapsed && <span>{route.label}</span>}
             </NavLink>
           ))}
@@ -124,7 +127,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
           className="flex items-center justify-between w-full text-sm text-sidebar-foreground hover:text-white transition-colors"
         >
           {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 mx-auto" />
+            <ChevronRight className="w-6 h-6 mx-auto" />
           ) : (
             <>
               <span>Collapse</span>
