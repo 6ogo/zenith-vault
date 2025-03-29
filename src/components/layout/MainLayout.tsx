@@ -49,9 +49,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         
         // Also check for user settings
         const { data: settingsData, error: settingsError } = await supabase
-          .rpc('get_user_settings', { p_user_id: user.id });
+          .from('user_settings')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
           
-        if (settingsError || !settingsData) {
+        if (settingsError && settingsError.code === 'PGRST116') {
           // Create default settings if they don't exist
           const { error: createSettingsError } = await supabase
             .from('user_settings')

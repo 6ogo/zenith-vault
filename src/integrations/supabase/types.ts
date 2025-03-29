@@ -451,6 +451,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      get_user_settings: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          interface_preferences: Json | null
+          notification_preferences: Json | null
+          updated_at: string
+          user_id: string
+        }[]
+      }
       halfvec_avg: {
         Args: {
           "": number[]
@@ -587,6 +600,34 @@ export type Database = {
           "": unknown[]
         }
         Returns: number
+      }
+      update_user_interface_preferences: {
+        Args: {
+          p_user_id: string
+          p_preferences: Json
+        }
+        Returns: {
+          created_at: string
+          id: string
+          interface_preferences: Json | null
+          notification_preferences: Json | null
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      update_user_notification_preferences: {
+        Args: {
+          p_user_id: string
+          p_preferences: Json
+        }
+        Returns: {
+          created_at: string
+          id: string
+          interface_preferences: Json | null
+          notification_preferences: Json | null
+          updated_at: string
+          user_id: string
+        }[]
       }
       vector_avg: {
         Args: {

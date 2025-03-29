@@ -1,16 +1,29 @@
-import { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
+
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+
+export type OrganizationRole = 'admin' | 'user' | 'manager';
+export type MemberStatus = 'active' | 'pending' | 'inactive';
 
 export interface OrganizationMember {
   id: string;
   user_id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: 'active' | 'inactive' | 'pending';
+  organization_id: string;
+  role: OrganizationRole;
+  status: MemberStatus;
   joined_at: string;
+  full_name?: string;
+  email?: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
 }
 
 export interface OrganizationApproval {
@@ -22,206 +35,203 @@ export interface OrganizationApproval {
   requestedAt: string;
 }
 
-export interface OrganizationSettings {
-  id: string;
-  name: string;
-  website?: string;
-  address?: string;
-  settings?: Record<string, any>;
+export interface UseOrganizationReturn {
+  currentOrganization: Organization | null;
+  loading: boolean;
+  members: OrganizationMember[];
+  approvals: OrganizationApproval[];
+  refreshOrganization: () => Promise<void>;
+  approveMember: (memberId: string) => Promise<boolean>;
+  rejectMember: (memberId: string) => Promise<boolean>;
+  removeMember: (memberId: string) => Promise<boolean>;
+  updateMemberRole: (memberId: string, newRole: OrganizationRole) => Promise<boolean>;
 }
 
-export function useOrganization() {
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+export function useOrganization(): UseOrganizationReturn {
   const { user } = useAuth();
+  const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null);
+  const [members, setMembers] = useState<OrganizationMember[]>([]);
+  const [approvals, setApprovals] = useState<OrganizationApproval[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const { toast } = useToast();
 
-  const fetchUserOrganization = useCallback(async () => {
-    if (!user) return null;
+  const refreshOrganization = useCallback(async () => {
+    if (!user) return;
     
     try {
       setLoading(true);
       
-      // Get the organization member record for the current user
+      // First, find the user's organization membership
       const { data: memberData, error: memberError } = await supabase
         .from('organization_members')
-        .select('organization_id')
+        .select('organization_id, role, status')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .single();
-        
+      
       if (memberError) {
-        console.error('Error fetching user organization:', memberError);
-        return null;
+        console.error('Error fetching organization membership:', memberError);
+        return;
       }
       
-      if (!memberData) {
-        return null;
-      }
+      if (!memberData || !memberData.organization_id) return;
       
-      // Get the organization details
+      // Next, get the organization details
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .select('*')
         .eq('id', memberData.organization_id)
         .single();
-        
+      
       if (orgError) {
-        console.error('Error fetching organization details:', orgError);
-        return null;
+        console.error('Error fetching organization:', orgError);
+        return;
       }
       
-      return orgData;
+      setCurrentOrganization(orgData);
+      
+      // Get all members of this organization with their profiles
+      const { data: membersData, error: membersError } = await supabase
+        .from('organization_members')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            avatar_url,
+            id
+          )
+        `)
+        .eq('organization_id', memberData.organization_id);
+      
+      if (membersError) {
+        console.error('Error fetching organization members:', membersError);
+        return;
+      }
+      
+      // Format members with profile data
+      const formattedMembers: OrganizationMember[] = membersData.map(member => {
+        const profile = member.profiles as any;
+        return {
+          ...member,
+          full_name: profile?.full_name || 'Unknown User',
+          email: profile?.email || 'No email'
+        };
+      });
+      
+      setMembers(formattedMembers);
+      
+      // If user is admin, get pending membership approvals
+      if (memberData.role === 'admin') {
+        const { data: pendingData, error: pendingError } = await supabase
+          .from('organization_members')
+          .select(`
+            *,
+            profiles:user_id (
+              full_name,
+              avatar_url,
+              id
+            )
+          `)
+          .eq('organization_id', memberData.organization_id)
+          .eq('status', 'pending');
+        
+        if (pendingError) {
+          console.error('Error fetching pending approvals:', pendingError);
+          return;
+        }
+        
+        // Format pending approvals
+        const formattedApprovals: OrganizationApproval[] = pendingData.map(member => {
+          const profile = member.profiles as any;
+          return {
+            id: member.id,
+            name: profile?.full_name || 'Unknown User',
+            email: profile?.email || 'No email',
+            organization: orgData.name,
+            role: member.role,
+            requestedAt: member.joined_at
+          };
+        });
+        
+        setApprovals(formattedApprovals);
+      }
     } catch (error) {
-      console.error('Error in fetchUserOrganization:', error);
-      return null;
+      console.error('Error in refreshOrganization:', error);
     } finally {
       setLoading(false);
     }
   }, [user]);
-
-  const fetchOrganizationMembers = useCallback(async (organizationId: string) => {
+  
+  // Approve a pending member
+  const approveMember = async (memberId: string): Promise<boolean> => {
     try {
-      setLoading(true);
-      
-      // Join organization_members with profiles to get user details
-      const { data, error } = await supabase
-        .from('organization_members')
-        .select(`
-          id,
-          user_id,
-          role,
-          status,
-          joined_at,
-          profiles:user_id (
-            full_name
-          ),
-          users:user_id (
-            email
-          )
-        `)
-        .eq('organization_id', organizationId);
-        
-      if (error) {
-        console.error('Error fetching organization members:', error);
-        return [];
-      }
-      
-      // Format the data for the UI
-      const formattedMembers: OrganizationMember[] = data.map(member => ({
-        id: member.id,
-        user_id: member.user_id,
-        name: member.profiles?.full_name || 'Unknown',
-        email: member.users?.email || 'Unknown',
-        role: member.role,
-        status: member.status as 'active' | 'inactive' | 'pending',
-        joined_at: member.joined_at
-      }));
-      
-      return formattedMembers;
-    } catch (error) {
-      console.error('Error in fetchOrganizationMembers:', error);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchPendingApprovals = useCallback(async (organizationId: string) => {
-    try {
-      setLoading(true);
-      
-      // Get pending organization members and join with profiles
-      const { data, error } = await supabase
-        .from('organization_members')
-        .select(`
-          id,
-          user_id,
-          role,
-          joined_at,
-          profiles:user_id (
-            full_name
-          ),
-          users:user_id (
-            email
-          ),
-          organizations:organization_id (
-            name
-          )
-        `)
-        .eq('organization_id', organizationId)
-        .eq('status', 'pending');
-        
-      if (error) {
-        console.error('Error fetching pending approvals:', error);
-        return [];
-      }
-      
-      // Format the data for the UI
-      const formattedApprovals: OrganizationApproval[] = data.map(approval => ({
-        id: approval.id,
-        name: approval.profiles?.full_name || 'Unknown',
-        email: approval.users?.email || 'Unknown',
-        organization: approval.organizations?.name || 'Unknown',
-        role: approval.role,
-        requestedAt: approval.joined_at
-      }));
-      
-      return formattedApprovals;
-    } catch (error) {
-      console.error('Error in fetchPendingApprovals:', error);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const updateMemberRole = useCallback(async (memberId: string, newRole: string) => {
-    try {
-      setLoading(true);
-      
       const { error } = await supabase
         .from('organization_members')
-        .update({ role: newRole })
+        .update({ status: 'active' })
         .eq('id', memberId);
-        
+      
       if (error) {
-        console.error('Error updating member role:', error);
+        console.error('Error approving member:', error);
         toast({
           title: 'Error',
-          description: 'Failed to update member role',
+          description: 'Failed to approve member',
           variant: 'destructive'
         });
         return false;
       }
       
       toast({
-        title: 'Role updated',
-        description: `User role has been updated to ${newRole}`
+        title: 'Member Approved',
+        description: 'The member has been approved'
       });
       
+      await refreshOrganization();
       return true;
     } catch (error) {
-      console.error('Error in updateMemberRole:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update member role',
-        variant: 'destructive'
-      });
+      console.error('Error in approveMember:', error);
       return false;
-    } finally {
-      setLoading(false);
     }
-  }, [toast]);
-
-  const removeMember = useCallback(async (memberId: string) => {
+  };
+  
+  // Reject a pending member
+  const rejectMember = async (memberId: string): Promise<boolean> => {
     try {
-      setLoading(true);
-      
       const { error } = await supabase
         .from('organization_members')
         .delete()
         .eq('id', memberId);
-        
+      
+      if (error) {
+        console.error('Error rejecting member:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to reject member',
+          variant: 'destructive'
+        });
+        return false;
+      }
+      
+      toast({
+        title: 'Member Rejected',
+        description: 'The membership request has been rejected'
+      });
+      
+      await refreshOrganization();
+      return true;
+    } catch (error) {
+      console.error('Error in rejectMember:', error);
+      return false;
+    }
+  };
+  
+  // Remove an active member
+  const removeMember = async (memberId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('organization_members')
+        .delete()
+        .eq('id', memberId);
+      
       if (error) {
         console.error('Error removing member:', error);
         toast({
@@ -233,213 +243,69 @@ export function useOrganization() {
       }
       
       toast({
-        title: 'Member removed',
-        description: 'The member has been removed from your organization'
+        title: 'Member Removed',
+        description: 'The member has been removed from the organization'
       });
       
+      await refreshOrganization();
       return true;
     } catch (error) {
       console.error('Error in removeMember:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to remove member',
-        variant: 'destructive'
-      });
       return false;
-    } finally {
-      setLoading(false);
     }
-  }, [toast]);
-
-  const approveRequest = useCallback(async (memberId: string) => {
+  };
+  
+  // Update a member's role
+  const updateMemberRole = async (memberId: string, newRole: OrganizationRole): Promise<boolean> => {
     try {
-      setLoading(true);
-      
       const { error } = await supabase
         .from('organization_members')
-        .update({ status: 'active' })
+        .update({ role: newRole })
         .eq('id', memberId);
-        
+      
       if (error) {
-        console.error('Error approving request:', error);
+        console.error('Error updating member role:', error);
         toast({
           title: 'Error',
-          description: 'Failed to approve request',
+          description: 'Failed to update member role',
           variant: 'destructive'
         });
         return false;
       }
       
       toast({
-        title: 'User approved',
-        description: 'The user has been added to your organization'
+        title: 'Role Updated',
+        description: `Member role has been updated to ${newRole}`
       });
       
+      await refreshOrganization();
       return true;
     } catch (error) {
-      console.error('Error in approveRequest:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to approve request',
-        variant: 'destructive'
-      });
+      console.error('Error in updateMemberRole:', error);
       return false;
-    } finally {
-      setLoading(false);
     }
-  }, [toast]);
-
-  const rejectRequest = useCallback(async (memberId: string) => {
-    try {
-      setLoading(true);
-      
-      const { error } = await supabase
-        .from('organization_members')
-        .delete()
-        .eq('id', memberId);
-        
-      if (error) {
-        console.error('Error rejecting request:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to reject request',
-          variant: 'destructive'
-        });
-        return false;
-      }
-      
-      toast({
-        title: 'Request rejected',
-        description: 'The membership request has been rejected'
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Error in rejectRequest:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to reject request',
-        variant: 'destructive'
-      });
-      return false;
-    } finally {
-      setLoading(false);
+  };
+  
+  // Load organization data when user changes
+  useEffect(() => {
+    if (user) {
+      refreshOrganization();
+    } else {
+      setCurrentOrganization(null);
+      setMembers([]);
+      setApprovals([]);
     }
-  }, [toast]);
-
-  const updateOrganizationSettings = useCallback(async (organizationId: string, settings: Partial<OrganizationSettings>) => {
-    try {
-      setLoading(true);
-      
-      const { error } = await supabase
-        .from('organizations')
-        .update({
-          name: settings.name,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', organizationId);
-        
-      if (error) {
-        console.error('Error updating organization settings:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to update organization settings',
-          variant: 'destructive'
-        });
-        return false;
-      }
-      
-      // Check if organization settings exists
-      const { data, error: fetchError } = await supabase
-        .from('organization_settings')
-        .select('id')
-        .eq('organization_id', organizationId)
-        .eq('settings_type', 'general')
-        .single();
-        
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error checking organization settings:', fetchError);
-        toast({
-          title: 'Error',
-          description: 'Failed to update organization settings',
-          variant: 'destructive'
-        });
-        return false;
-      }
-      
-      // Create or update organization settings
-      const settingsData = {
-        website: settings.website,
-        address: settings.address,
-        ...settings.settings
-      };
-      
-      let settingsError;
-      
-      if (data) {
-        // Update existing settings
-        const result = await supabase
-          .from('organization_settings')
-          .update({
-            settings_value: settingsData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', data.id);
-          
-        settingsError = result.error;
-      } else {
-        // Insert new settings
-        const result = await supabase
-          .from('organization_settings')
-          .insert({
-            organization_id: organizationId,
-            settings_type: 'general',
-            settings_value: settingsData,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-          
-        settingsError = result.error;
-      }
-      
-      if (settingsError) {
-        console.error('Error updating organization settings details:', settingsError);
-        toast({
-          title: 'Warning',
-          description: 'Organization name updated but failed to save additional settings',
-          variant: 'destructive'
-        });
-        return false;
-      }
-      
-      toast({
-        title: 'Settings updated',
-        description: 'Organization settings have been updated successfully'
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Error in updateOrganizationSettings:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update organization settings',
-        variant: 'destructive'
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
+  }, [user, refreshOrganization]);
+  
   return {
+    currentOrganization,
     loading,
-    fetchUserOrganization,
-    fetchOrganizationMembers,
-    fetchPendingApprovals,
-    updateMemberRole,
+    members,
+    approvals,
+    refreshOrganization,
+    approveMember,
+    rejectMember,
     removeMember,
-    approveRequest,
-    rejectRequest,
-    updateOrganizationSettings
+    updateMemberRole
   };
 }
