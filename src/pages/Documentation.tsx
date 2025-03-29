@@ -183,7 +183,7 @@ const Documentation = () => {
                 <h3 className="text-lg font-semibold">API Access</h3>
                 <p>Zenith Vault provides a comprehensive REST API for custom integrations:</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  <li>API key generation is available in Settings -> API</li>
+                  <li>API key generation is available in Settings -&gt; API</li>
                   <li>Base URL: <code>https://api.zenithvault.com/v1</code></li>
                   <li>Full API documentation available with examples and schemas</li>
                 </ul>
@@ -216,7 +216,7 @@ const Documentation = () => {
                 <h3 className="text-lg font-semibold">Webhook Support</h3>
                 <p>Create webhooks to trigger external actions:</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  <li>Configure in Settings -> Webhooks</li>
+                  <li>Configure in Settings -&gt; Webhooks</li>
                   <li>Available triggers for all major system events</li>
                   <li>Custom HTTP headers and authentication</li>
                   <li>Webhook activity monitoring and retry options</li>
