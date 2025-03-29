@@ -95,33 +95,16 @@ const TicketList = ({ filter = 'all', refreshTrigger = 0 }: TicketListProps) => 
     
     setLoading(true);
     try {
-      let query = supabase
-        .from('tickets')
-        .select(`
-          *,
-          creator_details:profiles!tickets_created_by_fkey(full_name),
-          assignee_details:profiles!tickets_assigned_to_fkey(full_name)
-        `)
-        .order('created_at', { ascending: false });
-      
-      // Apply filters
-      if (filter === 'mine') {
-        query = query.eq('created_by', user.id);
-      } else if (filter === 'assigned') {
-        query = query.eq('assigned_to', user.id);
-      } else if (filter === 'open') {
-        query = query.eq('status', 'open');
-      } else if (filter === 'pending') {
-        query = query.eq('status', 'pending');
-      } else if (filter === 'closed') {
-        query = query.in('status', ['closed', 'resolved']);
-      }
-      
-      const { data, error } = await query;
+      // Use the list_tickets function
+      const { data, error } = await supabase.rpc('list_tickets', {
+        p_filter: filter
+      });
       
       if (error) throw error;
       
-      setTickets(data as Ticket[]);
+      // Parse the JSON data
+      const ticketData = data || [];
+      setTickets(Array.isArray(ticketData) ? ticketData : []);
     } catch (error: any) {
       console.error('Error fetching tickets:', error);
       toast({
@@ -136,10 +119,10 @@ const TicketList = ({ filter = 'all', refreshTrigger = 0 }: TicketListProps) => 
   
   const updateTicketStatus = async (ticketId: string, newStatus: Ticket['status']) => {
     try {
-      const { error } = await supabase
-        .from('tickets')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq('id', ticketId);
+      const { data, error } = await supabase.rpc('update_ticket_status', {
+        p_ticket_id: ticketId,
+        p_status: newStatus
+      });
       
       if (error) throw error;
       
@@ -171,10 +154,9 @@ const TicketList = ({ filter = 'all', refreshTrigger = 0 }: TicketListProps) => 
     if (!user) return;
     
     try {
-      const { error } = await supabase
-        .from('tickets')
-        .update({ assigned_to: user.id, updated_at: new Date().toISOString() })
-        .eq('id', ticketId);
+      const { data, error } = await supabase.rpc('assign_ticket_to_me', {
+        p_ticket_id: ticketId
+      });
       
       if (error) throw error;
       
@@ -183,7 +165,7 @@ const TicketList = ({ filter = 'all', refreshTrigger = 0 }: TicketListProps) => 
         description: 'Ticket has been assigned to you',
       });
       
-      // Update local state & refetch to get updated assignee details
+      // Refetch to get updated assignee details
       fetchTickets();
     } catch (error: any) {
       console.error('Error assigning ticket:', error);
@@ -200,24 +182,13 @@ const TicketList = ({ filter = 'all', refreshTrigger = 0 }: TicketListProps) => 
     
     setSubmittingComment(true);
     try {
-      // Add comment to ticket_comments table
-      const { error: commentError } = await supabase
-        .from('ticket_comments')
-        .insert({
-          ticket_id: selectedTicket.id,
-          content: comment,
-          created_by: user.id,
-        });
+      // Add comment using the add_ticket_comment function
+      const { data, error } = await supabase.rpc('add_ticket_comment', {
+        p_ticket_id: selectedTicket.id,
+        p_content: comment
+      });
       
-      if (commentError) throw commentError;
-      
-      // Update ticket's updated_at timestamp
-      const { error: updateError } = await supabase
-        .from('tickets')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', selectedTicket.id);
-      
-      if (updateError) throw updateError;
+      if (error) throw error;
       
       // If includeCustomer is true and there's a customer email, send email
       if (includeCustomer && selectedTicket.customer_email) {

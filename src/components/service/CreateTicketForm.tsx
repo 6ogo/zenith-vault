@@ -68,20 +68,15 @@ const CreateTicketForm = ({ onSuccess }: { onSuccess: () => void }) => {
     setIsSubmitting(true);
     
     try {
-      const { data, error } = await supabase
-        .from('tickets')
-        .insert([
-          {
-            subject: values.subject,
-            description: values.description,
-            priority: values.priority,
-            type: values.ticketType,
-            customer_email: values.customerEmail || null,
-            status: 'open',
-            created_by: user.id,
-          },
-        ])
-        .select();
+      // Use a raw query since we can't modify the types.ts file
+      const { data, error } = await supabase.rpc('create_ticket', {
+        p_subject: values.subject,
+        p_description: values.description,
+        p_priority: values.priority,
+        p_type: values.ticketType,
+        p_customer_email: values.customerEmail || null,
+        p_status: 'open'
+      });
       
       if (error) throw error;
       
