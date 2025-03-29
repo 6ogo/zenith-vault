@@ -81,7 +81,7 @@ const Index = () => {
       <section className="py-16 md:py-20 px-4 md:px-8 flex-1 relative overflow-hidden">
         <DataFlowBackground />
         <div className="container mx-auto max-w-6xl relative z-10">
-          <div className="flex flex-col items-center text-center animate-fade-in backdrop-blur-sm bg-background/30 rounded-2xl p-8 shadow-sm">
+          <div className="flex flex-col items-center text-center animate-fade-in">
             <div className="mb-6">
               <ZenithLogo width={80} height={80} className="mx-auto" />
             </div>
