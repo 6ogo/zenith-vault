@@ -45,6 +45,9 @@ const ServiceSolvedCasesPieChart = ({ data, title = "Solved Cases by Agent" }: S
                 verticalAlign="bottom" 
                 align="center"
                 wrapperStyle={{ paddingTop: '20px' }}
+                formatter={(value, entry, index) => (
+                  <span style={{ color: entry.color }}>{value}</span>
+                )}
               />
             </PieChart>
           </ResponsiveContainer>

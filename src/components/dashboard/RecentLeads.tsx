@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -29,7 +29,7 @@ const statusStyles: Record<LeadStatus, { color: string; label: string }> = {
   lost: { color: "bg-red-100 text-red-800", label: "Lost" },
 };
 
-const recentLeads: Lead[] = [
+const initialLeads: Lead[] = [
   {
     id: "1",
     name: "Sarah Johnson",
@@ -82,7 +82,33 @@ const recentLeads: Lead[] = [
   },
 ];
 
-const RecentLeads = () => {
+interface RecentLeadsProps {
+  refreshTrigger?: number;
+}
+
+const RecentLeads: React.FC<RecentLeadsProps> = ({ refreshTrigger = 0 }) => {
+  const [leads, setLeads] = useState<Lead[]>(initialLeads);
+
+  // Check local storage for any newly added leads
+  useEffect(() => {
+    try {
+      // This is just for demo purposes - in a real app, you'd use state management 
+      // or context, not localStorage
+      const storedLeadsJson = localStorage.getItem("demoLeads");
+      if (storedLeadsJson) {
+        const storedLeads = JSON.parse(storedLeadsJson);
+        setLeads(prevLeads => {
+          // Combine stored leads with initial leads, avoiding duplicates
+          const existingIds = new Set(prevLeads.map(lead => lead.id));
+          const newLeads = storedLeads.filter((lead: Lead) => !existingIds.has(lead.id));
+          return [...prevLeads, ...newLeads];
+        });
+      }
+    } catch (error) {
+      console.error("Error loading stored leads:", error);
+    }
+  }, [refreshTrigger]);
+
   return (
     <Card className="dashboard-card">
       <CardHeader className="pb-3">
@@ -101,7 +127,7 @@ const RecentLeads = () => {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {recentLeads.map((lead) => (
+                {leads.map((lead) => (
                   <tr key={lead.id} className="py-2">
                     <td className="py-3 pr-4">
                       <div className="flex items-center gap-2">

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,9 +23,10 @@ interface ReportData {
 interface ReportsListProps {
   searchQuery?: string;
   categoryFilter?: string;
+  onViewReport?: (reportId: string) => void;
 }
 
-export const ReportsList = ({ searchQuery = "", categoryFilter }: ReportsListProps) => {
+export const ReportsList = ({ searchQuery = "", categoryFilter, onViewReport }: ReportsListProps) => {
   const { isRealData } = useDataMode();
   const { toast } = useToast();
   
@@ -136,6 +137,12 @@ export const ReportsList = ({ searchQuery = "", categoryFilter }: ReportsListPro
     setShowShareDialog(true);
   };
 
+  const handleViewReport = (reportId: string) => {
+    if (onViewReport) {
+      onViewReport(reportId);
+    }
+  };
+
   const renderReportIcon = (type: string) => {
     switch (type) {
       case 'line': return <LineChart className="h-5 w-5 text-primary" />;
@@ -189,7 +196,11 @@ export const ReportsList = ({ searchQuery = "", categoryFilter }: ReportsListPro
                     <Button variant="ghost" size="sm" onClick={() => openShareDialog(report)}>
                       <Share2 className="h-4 w-4 mr-1" /> Share
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleViewReport(report.id)}
+                    >
                       View <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>

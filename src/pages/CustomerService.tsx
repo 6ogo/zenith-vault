@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ServiceSolvedCasesPieChart from "@/components/service/ServiceSolvedCasesPieChart";
 import { useDataMode } from "@/contexts/DataModeContext";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import CreateTicketForm from "@/components/service/CreateTicketForm";
 
 // Demo ticket data
 const demoTickets = [
@@ -255,6 +256,8 @@ const CustomerService = () => {
   const [selectedTicket, setSelectedTicket] = useState<typeof demoTickets[0] | null>(null);
   const [filteredTickets, setFilteredTickets] = useState(demoTickets);
   const [activeTab, setActiveTab] = useState("tickets");
+  const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   React.useEffect(() => {
     let filtered = demoTickets;
@@ -274,10 +277,15 @@ const CustomerService = () => {
     }
     
     setFilteredTickets(filtered);
-  }, [searchQuery, activeTab]);
+  }, [searchQuery, activeTab, refreshTrigger]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+  };
+
+  const handleTicketCreated = () => {
+    setTicketDialogOpen(false);
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const counts = {
@@ -297,9 +305,22 @@ const CustomerService = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button size="sm" className="font-medium">
-            <Plus className="h-4 w-4 mr-1" /> New Ticket
-          </Button>
+          <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="font-medium">
+                <Plus className="h-4 w-4 mr-1" /> New Ticket
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Create New Support Ticket</DialogTitle>
+                <DialogDescription>
+                  Add a new support ticket. Fill out the form below with the ticket details.
+                </DialogDescription>
+              </DialogHeader>
+              <CreateTicketForm onSuccess={handleTicketCreated} />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       

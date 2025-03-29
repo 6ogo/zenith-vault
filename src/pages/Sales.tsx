@@ -1,14 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowUpRight } from "lucide-react";
 import SalesPipeline from "@/components/dashboard/SalesPipeline";
 import RecentLeads from "@/components/dashboard/RecentLeads";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useDataMode } from "@/contexts/DataModeContext";
+import CreateLeadForm from "@/components/sales/CreateLeadForm";
+import AILeadScoring from "@/components/sales/AILeadScoring";
 
 const Sales = () => {
   const { isRealData } = useDataMode();
+  const [leadDialogOpen, setLeadDialogOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  const handleLeadCreated = () => {
+    setLeadDialogOpen(false);
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -20,9 +30,22 @@ const Sales = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button size="sm" className="font-medium">
-            <Plus className="h-4 w-4 mr-1" /> New Lead
-          </Button>
+          <Dialog open={leadDialogOpen} onOpenChange={setLeadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="font-medium">
+                <Plus className="h-4 w-4 mr-1" /> New Lead
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Create New Lead</DialogTitle>
+                <DialogDescription>
+                  Add a new lead to your sales pipeline. Fill out the form below with the lead's details.
+                </DialogDescription>
+              </DialogHeader>
+              <CreateLeadForm onSuccess={handleLeadCreated} />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       
@@ -49,7 +72,7 @@ const Sales = () => {
           ) : (
             <div className="grid grid-cols-1 gap-4">
               <SalesPipeline />
-              <RecentLeads />
+              <RecentLeads refreshTrigger={refreshTrigger} />
             </div>
           )}
         </TabsContent>
@@ -62,9 +85,11 @@ const Sales = () => {
                     No leads data available. Connect your CRM or create your first lead.
                   </p>
                   <div className="flex justify-center gap-3">
-                    <Button>
-                      <Plus className="h-4 w-4 mr-1" /> Add Lead
-                    </Button>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Plus className="h-4 w-4 mr-1" /> Add Lead
+                      </Button>
+                    </DialogTrigger>
                     <Button variant="outline" onClick={() => window.location.href = "/integrations"}>
                       Connect CRM
                     </Button>
@@ -74,7 +99,8 @@ const Sales = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
-              <RecentLeads />
+              <RecentLeads refreshTrigger={refreshTrigger} />
+              <AILeadScoring />
             </div>
           )}
         </TabsContent>
