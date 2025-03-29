@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
@@ -7,11 +8,13 @@ import Footer from "./Footer";
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const footerRef = useRef<HTMLElement | null>(null);
-  const headerRef = useRef<HTMLElement | null>(null);
-  const location = useLocation();
-  const [footerHeight, setFooterHeight] = useState(0);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [footerHeight, setFooterHeight] = useState(0);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  
+  const headerRef = useRef<HTMLElement | null>(null);
+  const footerRef = useRef<HTMLElement | null>(null);
+  const location = useLocation();
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -23,33 +26,40 @@ const MainLayout = () => {
 
   useEffect(() => {
     const updateElementHeights = () => {
-      if (footerRef.current) {
-        setFooterHeight(footerRef.current.offsetHeight);
-      }
       if (headerRef.current) {
         setHeaderHeight(headerRef.current.offsetHeight);
+      }
+      if (footerRef.current) {
+        setFooterHeight(footerRef.current.offsetHeight);
       }
     };
 
     updateElementHeights();
     window.addEventListener('resize', updateElementHeights);
     
+    const handleScroll = () => {
+      setScrollPosition(window.scrollY);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
     return () => {
       window.removeEventListener('resize', updateElementHeights);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Fixed header at the top */}
-      <Header ref={headerRef} toggleSidebar={toggleSidebar} className="fixed top-0 left-0 w-full z-40" />
+      {/* Non-fixed header at the top */}
+      <Header ref={headerRef} toggleSidebar={toggleSidebar} />
       
-      {/* Content area with appropriate padding to account for fixed header */}
-      <div className="flex flex-1 relative" style={{ marginTop: `${headerHeight}px` }}>
-        {/* Mobile sidebar - absolute positioning */}
+      {/* Content area with sidebar and main content */}
+      <div className="flex flex-1 relative">
+        {/* Mobile sidebar - absolute positioning with backdrop */}
         <div className={`fixed inset-0 z-30 transform md:hidden ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out`} style={{ top: `${headerHeight}px` }}>
+        } transition-transform duration-300 ease-in-out`}>
           <div className="relative h-full w-64 max-w-xs">
             <div className="h-full">
               <Sidebar isCollapsed={false} onToggleCollapse={toggleSidebarCollapse} />
@@ -61,17 +71,18 @@ const MainLayout = () => {
           </div>
         </div>
         
-        {/* Desktop sidebar - fixed positioning */}
+        {/* Desktop sidebar - fixed positioning that respects header and footer */}
         <div 
-          className={`hidden md:block fixed top-0 left-0 h-screen transition-all duration-300 z-20 ${
+          className={`hidden md:block fixed left-0 z-20 transition-all duration-300 ${
             sidebarCollapsed ? "w-16" : "w-64"
           }`}
           style={{ 
             top: `${headerHeight}px`, 
             height: `calc(100vh - ${headerHeight}px)`,
+            maxHeight: `calc(100vh - ${headerHeight}px - ${footerHeight}px + ${Math.min(scrollPosition, footerHeight)}px)`,
           }}
         >
-          <div className="h-full overflow-auto" style={{ maxHeight: `calc(100vh - ${headerHeight}px)` }}>
+          <div className="h-full overflow-y-auto custom-scrollbar">
             <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
           </div>
         </div>

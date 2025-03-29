@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -124,14 +125,8 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
                     )
                   }
                 >
-                  {isCollapsed ? (
-                    <route.icon className="w-5 h-5 mx-auto" />
-                  ) : (
-                    <>
-                      <route.icon className="w-5 h-5" />
-                      <span className="ml-2">{route.label}</span>
-                    </>
-                  )}
+                  <route.icon className={cn("w-5 h-5", isCollapsed && "mx-auto")} />
+                  {!isCollapsed && <span className="ml-2">{route.label}</span>}
                 </NavLink>
               ))}
             </nav>
@@ -148,7 +143,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
           )}
         >
           {isCollapsed ? (
-            <ChevronRight className="w-5 h-5 mx-auto" />
+            <ChevronRight className="w-5 h-5" />
           ) : (
             <>
               <span>Collapse</span>
