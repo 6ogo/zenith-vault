@@ -7,7 +7,6 @@ interface DataFlowBackgroundProps {
 
 const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mouseRef = useRef({ x: 0, y: 0 });
   const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -46,12 +45,11 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
     }
     `;
 
-    // Fragment shader - creates animated data flow boxes
+    // Fragment shader - creates animated data flow boxes without mouse interaction
     const fss = `#version 300 es
     precision mediump float;
     out vec4 outColor;
     in vec2 vPosition;
-    uniform vec2 uMouse;
     uniform float uTime;
 
     // Simple pseudo-random function
@@ -88,13 +86,6 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         float box = step(-boxWidth, cellPos.x) * step(cellPos.x, boxWidth) * 
                     step(-boxHeight, cellPos.y) * step(cellPos.y, boxHeight);
         
-        // Mouse interaction - creates a wave of activity
-        // Map mouse coordinates directly to grid cells without the 0.5 + 0.5 adjustment
-        vec2 mouseCell = uMouse * gridSize;
-        float mouseDist = distance(cell, mouseCell) / 3.5; // Reduced divisor for wider impact
-        float mouseInfluence = max(0.0, 1.0 - mouseDist);
-        mouseInfluence = mouseInfluence * (0.5 + 0.5 * sin(uTime * 3.0 - mouseDist * 5.0)); // Pulsing wave
-        
         // Time-based animation with data packet pulses
         float pulseSpeed = rand * 2.0 + 0.5;
         float pulse = sin(uTime * pulseSpeed + rand * 10.0) * 0.5 + 0.5;
@@ -113,7 +104,7 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         );
         
         // Apply different colors based on data activity - boost green influence
-        float activity = max(dataActivity * streamPulse, mouseInfluence);
+        float activity = dataActivity * streamPulse;
         vec3 finalColor = mix(baseColor, activeColor, min(1.0, (activity + pulse * 0.4) * 0.9)); // Increased mix
         
         // Add connecting lines between data blocks
@@ -136,7 +127,7 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
                      (step(-boxHeight, cellPos.y) * step(cellPos.y, boxHeight));
         edge = min(edge, 1.0);
         
-        float edgeBrightness = 0.8 + mouseInfluence * 0.3 + pulse * 0.5; // Increased brightness
+        float edgeBrightness = 0.8 + pulse * 0.5; // Increased brightness
         vec3 edgeColor = accentColor * edgeBrightness;
         vec3 lineColor = mix(accentColor * 0.8, accentColor, streamPulse); // More green in lines
         
@@ -145,7 +136,7 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         finalColor = mix(finalColor, lineColor, dataLine * 0.8); // Increased line intensity
         
         // Only draw where the box or lines are - increased alpha
-        float alpha = max(box * (0.5 + activity * 0.5 + mouseInfluence * 0.4), dataLine * 0.4 * dataStream);
+        float alpha = max(box * (0.5 + activity * 0.5), dataLine * 0.4 * dataStream);
         
         outColor = vec4(finalColor, alpha);
     }
@@ -196,7 +187,6 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
 
     // Get attribute and uniform locations
     const positionAttributeLocation = gl.getAttribLocation(program, "position");
-    const mouseUniformLocation = gl.getUniformLocation(program, "uMouse");
     const timeUniformLocation = gl.getUniformLocation(program, "uTime");
 
     // Create buffer for a full-screen quad
@@ -242,7 +232,6 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
       gl.useProgram(program);
       gl.bindVertexArray(vao);
       
-      gl.uniform2f(mouseUniformLocation, mouseRef.current.x, mouseRef.current.y);
       gl.uniform1f(timeUniformLocation, currentTime);
       
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -253,22 +242,9 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
     // Start the animation
     render();
 
-    // Handle mouse movement
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      // Fix the y-coordinate to match the expected direction
-      mouseRef.current = {
-        x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        y: -((e.clientY - rect.top) / rect.height) * 2 + 1 // Add negative sign to flip y-axis
-      };
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('resize', resizeCanvas);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', resizeCanvas);
       if (animationRef.current !== null) {
         cancelAnimationFrame(animationRef.current);
