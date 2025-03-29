@@ -1,3 +1,4 @@
+
 import React, { forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,7 +37,7 @@ const Header = forwardRef<HTMLElement, HeaderProps>(({ toggleSidebar, className 
   return (
     <header 
       ref={ref}
-      className={`h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950 w-full z-40 ${className || ''}`}
+      className={`h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950 w-full ${className || ''}`}
     >
       <div className="flex items-center gap-4">
         <Button
