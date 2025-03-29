@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 
 interface DataFlowBackgroundProps {
@@ -256,10 +257,10 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
     const handleMouseMove = (e: MouseEvent) => {
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      // Keep the normalized coordinates but no need to adjust y coordinate sign
+      // Fix the y-coordinate to match the expected direction
       mouseRef.current = {
         x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        y: ((e.clientY - rect.top) / rect.height) * 2 - 1 // Removed the negative sign
+        y: -((e.clientY - rect.top) / rect.height) * 2 + 1 // Add negative sign to flip y-axis
       };
     };
 

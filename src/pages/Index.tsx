@@ -45,9 +45,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen dark:bg-gray-950 flex flex-col">
+    <div className="min-h-screen h-screen w-screen overflow-x-hidden dark:bg-gray-950 flex flex-col relative">
+      <DataFlowBackground />
       {/* Header for landing page */}
-      <header className="py-4 px-4 md:px-8 lg:px-12 border-b">
+      <header className="py-4 px-4 md:px-8 lg:px-12 border-b relative z-10">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <ZenithLogo width={40} height={40} />
@@ -78,9 +79,8 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="py-16 md:py-20 px-4 md:px-8 flex-1 relative overflow-hidden">
-        <DataFlowBackground />
-        <div className="container mx-auto max-w-6xl relative z-10">
+      <section className="py-16 md:py-20 px-4 md:px-8 flex-1 relative z-10">
+        <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col items-center text-center animate-fade-in">
             <div className="mb-6">
               <ZenithLogo width={80} height={80} className="mx-auto" />
@@ -118,7 +118,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 md:px-8 bg-muted/50 dark:bg-gray-900">
+      <section className="py-20 px-4 md:px-8 bg-muted/50 dark:bg-gray-900 relative z-10">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-primary dark:text-primary">Key Features</h2>
@@ -145,7 +145,7 @@ const Index = () => {
       </section>
 
       {/* Security Section */}
-      <section className="py-20 px-4 md:px-8 dark:bg-gray-950">
+      <section className="py-20 px-4 md:px-8 dark:bg-gray-950 relative z-10">
         <div className="container mx-auto max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
