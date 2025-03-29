@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,29 +78,38 @@ const Organization = () => {
 
   const fetchPendingApprovals = async (organizationId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data: membersData, error: membersError } = await supabase
         .from('organization_members')
         .select(`
           id,
           user_id,
           role,
           status,
-          joined_at,
-          profiles(full_name)
+          joined_at
         `)
         .eq('organization_id', organizationId)
         .eq('status', 'pending');
       
-      if (error) throw error;
+      if (membersError) throw membersError;
       
-      const formattedPendingMembers = data?.map(member => ({
-        id: member.id,
-        name: member.profiles?.full_name || 'Unknown',
-        email: 'Email not available',
-        organization: orgName,
-        role: member.role,
-        requestedAt: member.joined_at,
-      })) || [];
+      const formattedPendingMembers = await Promise.all(
+        membersData?.map(async (member) => {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', member.user_id)
+            .single();
+          
+          return {
+            id: member.id,
+            name: profileError ? 'Unknown' : (profileData?.full_name || 'Unknown'),
+            email: 'Email not available',
+            organization: orgName,
+            role: member.role,
+            requestedAt: member.joined_at,
+          };
+        }) || []
+      );
       
       setPendingApprovals(formattedPendingMembers);
     } catch (error: any) {
@@ -111,29 +119,38 @@ const Organization = () => {
 
   const fetchOrganizationMembers = async (organizationId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data: membersData, error: membersError } = await supabase
         .from('organization_members')
         .select(`
           id,
           user_id,
           role,
           status,
-          joined_at,
-          profiles(full_name)
+          joined_at
         `)
         .eq('organization_id', organizationId)
         .eq('status', 'active');
       
-      if (error) throw error;
+      if (membersError) throw membersError;
       
-      const formattedMembers = data?.map(member => ({
-        id: member.id,
-        name: member.profiles?.full_name || 'Unknown',
-        email: 'Email not available',
-        role: member.role,
-        status: member.status,
-        joinedAt: member.joined_at,
-      })) || [];
+      const formattedMembers = await Promise.all(
+        membersData?.map(async (member) => {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', member.user_id)
+            .single();
+          
+          return {
+            id: member.id,
+            name: profileError ? 'Unknown' : (profileData?.full_name || 'Unknown'),
+            email: 'Email not available',
+            role: member.role,
+            status: member.status,
+            joinedAt: member.joined_at,
+          };
+        }) || []
+      );
       
       setMembers(formattedMembers);
     } catch (error: any) {
