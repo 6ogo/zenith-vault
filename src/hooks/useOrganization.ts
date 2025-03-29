@@ -108,11 +108,18 @@ export function useOrganization(): UseOrganizationReturn {
         return;
       }
       
-      // Format members with profile data
+      // Format members with profile data and ensure proper typing
       const formattedMembers: OrganizationMember[] = membersData.map(member => {
         const profile = member.profiles as any;
         return {
-          ...member,
+          id: member.id,
+          user_id: member.user_id,
+          organization_id: member.organization_id,
+          // Cast role string to OrganizationRole to ensure type safety
+          role: member.role as OrganizationRole,
+          // Cast status string to MemberStatus to ensure type safety
+          status: member.status as MemberStatus,
+          joined_at: member.joined_at,
           full_name: profile?.full_name || 'Unknown User',
           email: profile?.email || 'No email'
         };

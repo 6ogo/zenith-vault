@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Shield, ArrowRight, BarChart, MessageSquare, Mail, Code } from "lucide-react";
+import { Shield, ArrowRight, BarChart, MessageSquare, Mail, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
@@ -8,11 +7,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import ZenithLogo from "@/components/common/ZenithLogo";
 import Footer from "@/components/layout/Footer";
 import DataFlowBackground from "@/components/common/DataFlowBackground";
+
 const Index = () => {
   const navigate = useNavigate();
   const {
     user
   } = useAuth();
+  
   const features = [{
     title: "Sales Management",
     description: "Track leads, manage pipelines, and forecast sales with AI-powered tools.",
@@ -26,10 +27,11 @@ const Index = () => {
     description: "Create personalized campaigns and track engagement in real-time.",
     icon: <Mail className="h-8 w-8 text-secondary" />
   }, {
-    title: "Website Development",
-    description: "Build and host your site with easy-to-use templates or full customization.",
-    icon: <Code className="h-8 w-8 text-secondary" />
+    title: "Website Overview",
+    description: "Get an edge with our SEO and performance ranker, plus competitor analysis. Optimize your online presence and stay competitive.",
+    icon: <Globe className="h-8 w-8 text-secondary" />
   }];
+  
   const handleGetStarted = () => {
     if (user) {
       navigate("/dashboard");
@@ -37,6 +39,7 @@ const Index = () => {
       navigate("/auth/signup");
     }
   };
+  
   return <div className="min-h-screen w-screen overflow-x-hidden overflow-y-auto dark:bg-gray-950 flex flex-col relative">
       <DataFlowBackground className="opacity-80" />
       

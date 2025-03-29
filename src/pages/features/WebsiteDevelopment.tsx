@@ -33,38 +33,38 @@ const WebsiteDevelopment = () => {
         <div className="container mx-auto max-w-4xl">
           <div className="flex items-center mb-8">
             <ZenithLogo width={48} height={48} className="mr-4" />
-            <h1 className="text-3xl font-bold text-primary">Website Development</h1>
+            <h1 className="text-3xl font-bold text-primary">Website Overview</h1>
           </div>
           
           <div className="prose dark:prose-invert max-w-none">
             <p className="text-lg mb-6">
-              Build and maintain your online presence with our flexible Website Development tools, designed for users of all technical levels.
+              Get an edge with our SEO and performance ranker, plus competitor analysis. Optimize your online presence and stay competitive.
             </p>
             
             <h2 className="text-xl font-semibold mt-8 mb-4">Key Features</h2>
             
-            <h3 className="text-lg font-medium mt-6 mb-2">Pre-built Industry Templates</h3>
+            <h3 className="text-lg font-medium mt-6 mb-2">SEO Performance Analysis</h3>
             <p>
-              Get started quickly with professionally designed templates tailored to your industry. Choose from a variety of layouts and styles that reflect your brand identity.
+              Gain insights into your website's search engine ranking with detailed SEO metrics and recommendations for improvement.
             </p>
             
-            <h3 className="text-lg font-medium mt-6 mb-2">Visual Drag-and-Drop Builder</h3>
+            <h3 className="text-lg font-medium mt-6 mb-2">Competitor Analysis</h3>
             <p>
-              Create and modify your website without coding knowledge. Our intuitive visual editor lets you arrange elements, customize styles, and preview changes in real-time.
+              Benchmark your website against competitors to identify opportunities and stay ahead in your industry.
             </p>
             
-            <h3 className="text-lg font-medium mt-6 mb-2">Pro-Code Customization</h3>
+            <h3 className="text-lg font-medium mt-6 mb-2">Performance Optimization</h3>
             <p>
-              For developers and advanced users, access the full code editor to implement custom features and designs. Take complete control of your website's functionality and appearance.
+              Enhance your website's speed and user experience with targeted performance improvements based on detailed analysis.
             </p>
             
-            <h3 className="text-lg font-medium mt-6 mb-2">Automated Deployment and Hosting</h3>
+            <h3 className="text-lg font-medium mt-6 mb-2">Automated Recommendations</h3>
             <p>
-              Publish your website with one click and let us handle the technical details. Your site is automatically optimized for speed and security on our reliable hosting infrastructure.
+              Receive AI-powered suggestions to improve your online presence, tailored to your specific business needs and goals.
             </p>
             
             <div className="bg-muted p-6 rounded-lg mt-8">
-              <h3 className="text-lg font-medium mb-4">Ready to build your perfect website?</h3>
+              <h3 className="text-lg font-medium mb-4">Ready to optimize your online presence?</h3>
               <Button onClick={() => navigate("/auth/signup")}>Start Your Free Trial</Button>
             </div>
           </div>
