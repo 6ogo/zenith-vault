@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Database, Trash2, PlusCircle, Save } from "lucide-react";
+import { Upload, Database, Trash2, PlusCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -43,12 +43,14 @@ const KnowledgeBaseManager = () => {
     try {
       const { data, error } = await supabase
         .from('knowledge_base')
-        .select('*')
+        .select('id, title, content, type, created_at')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      setEntries(data || []);
+      if (data) {
+        setEntries(data as KnowledgeEntry[]);
+      }
     } catch (error) {
       console.error('Error fetching knowledge base entries:', error);
       toast({

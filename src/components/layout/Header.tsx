@@ -16,10 +16,11 @@ import {
 
 interface HeaderProps {
   toggleSidebar: () => void;
+  onLogout: () => void;
   className?: string;
 }
 
-const Header = ({ toggleSidebar, className }: HeaderProps) => {
+const Header = ({ toggleSidebar, onLogout, className }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();

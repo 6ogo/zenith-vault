@@ -2,9 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PaperPlaneIcon, InfoCircledIcon, RefreshCcwIcon, PlusIcon } from "lucide-react";
+import { Send, Info, RefreshCcw, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { queryChatbot } from "@/services/ai";
@@ -55,16 +54,19 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
       const { data, error } = await supabase
         .from('chat_conversations')
         .select('id, title')
+        .eq('user_id', supabase.auth.getUser().then(res => res.data.user?.id))
         .order('updated_at', { ascending: false });
       
       if (error) throw error;
       
-      setConversations(data || []);
-      
-      // If conversations exist and no conversation is selected, select the most recent one
-      if (data && data.length > 0 && !currentConversationId) {
-        setCurrentConversationId(data[0].id);
-        fetchMessages(data[0].id);
+      if (data) {
+        setConversations(data);
+        
+        // If conversations exist and no conversation is selected, select the most recent one
+        if (data.length > 0 && !currentConversationId) {
+          setCurrentConversationId(data[0].id);
+          fetchMessages(data[0].id);
+        }
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -116,9 +118,21 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
 
   const createNewConversation = async () => {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      
+      if (!user || !user.user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to use the chatbot",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('chat_conversations')
         .insert({
+          user_id: user.user.id,
           title: 'New Conversation'
         })
         .select()
@@ -126,16 +140,18 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
       
       if (error) throw error;
       
-      setCurrentConversationId(data.id);
-      setMessages([{
-        id: '0',
-        role: 'assistant',
-        content: "Hello! I'm Zenith Assistant. How can I help you today?",
-        timestamp: new Date()
-      }]);
-      
-      // Update conversations list
-      fetchConversations();
+      if (data) {
+        setCurrentConversationId(data.id);
+        setMessages([{
+          id: '0',
+          role: 'assistant',
+          content: "Hello! I'm Zenith Assistant. How can I help you today?",
+          timestamp: new Date()
+        }]);
+        
+        // Update conversations list
+        fetchConversations();
+      }
     } catch (error) {
       console.error('Error creating new conversation:', error);
       toast({
@@ -153,111 +169,134 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
   const handleSendMessage = async () => {
     if (!input.trim()) return;
     
-    // Create or get conversation ID
-    let conversationId = currentConversationId;
-    if (!conversationId) {
-      try {
-        const { data, error } = await supabase
-          .from('chat_conversations')
-          .insert({
-            title: 'New Conversation'
-          })
-          .select()
-          .single();
-        
-        if (error) throw error;
-        
-        conversationId = data.id;
-        setCurrentConversationId(data.id);
-        
-        // Update conversations list
-        fetchConversations();
-      } catch (error) {
-        console.error('Error creating conversation:', error);
+    try {
+      // Check if user is authenticated
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData || !userData.user) {
         toast({
-          title: "Failed to create conversation",
-          description: "Please try again later",
+          title: "Authentication required",
+          description: "Please sign in to use the chatbot",
           variant: "destructive"
         });
         return;
       }
-    }
-    
-    // Create user message locally
-    const userMessageId = crypto.randomUUID();
-    const userMessage = {
-      id: userMessageId,
-      role: 'user' as const,
-      content: input,
-      timestamp: new Date()
-    };
-
-    setMessages(prevMessages => [...prevMessages, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      // Prepare message history for context (last 5 messages)
-      const messageHistory = messages
-        .slice(-5)
-        .map(msg => ({ role: msg.role, content: msg.content }));
       
-      // Call API
-      const response = await queryChatbot({
-        question: input,
-        conversationId,
-        messageHistory
-      });
-      
-      // Create assistant message
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: response.response,
-        timestamp: new Date(),
-        sources: response.sources
-      };
-
-      setMessages(prevMessages => [...prevMessages, assistantMessage]);
-      
-      // Update conversation title if it's 'New Conversation'
-      const currentConversation = conversations.find(c => c.id === conversationId);
-      if (currentConversation && currentConversation.title === 'New Conversation') {
-        // Use the first user message as the conversation title (truncated)
-        const newTitle = input.length > 30 ? input.substring(0, 30) + '...' : input;
-        
-        const { error } = await supabase
-          .from('chat_conversations')
-          .update({ title: newTitle })
-          .eq('id', conversationId);
-        
-        if (error) {
-          console.error('Error updating conversation title:', error);
-        } else {
-          // Update local conversations list
-          fetchConversations();
+      // Create or get conversation ID
+      let conversationId = currentConversationId;
+      if (!conversationId) {
+        try {
+          const { data, error } = await supabase
+            .from('chat_conversations')
+            .insert({
+              user_id: userData.user.id,
+              title: 'New Conversation'
+            })
+            .select()
+            .single();
+          
+          if (error) throw error;
+          
+          if (data) {
+            conversationId = data.id;
+            setCurrentConversationId(data.id);
+            
+            // Update conversations list
+            fetchConversations();
+          }
+        } catch (error) {
+          console.error('Error creating conversation:', error);
+          toast({
+            title: "Failed to create conversation",
+            description: "Please try again later",
+            variant: "destructive"
+          });
+          return;
         }
       }
-    } catch (error) {
-      console.error('Error querying chatbot:', error);
-      toast({
-        title: "Failed to get response",
-        description: "Please try again later",
-        variant: "destructive"
-      });
+      
+      // Create user message locally
+      const userMessageId = crypto.randomUUID();
+      const userMessage = {
+        id: userMessageId,
+        role: 'user' as const,
+        content: input,
+        timestamp: new Date()
+      };
 
-      // Add error message
-      setMessages(prevMessages => [
-        ...prevMessages, 
-        {
+      setMessages(prevMessages => [...prevMessages, userMessage]);
+      setInput('');
+      setIsLoading(true);
+
+      try {
+        // Prepare message history for context (last 5 messages)
+        const messageHistory = messages
+          .slice(-5)
+          .map(msg => ({ role: msg.role, content: msg.content }));
+        
+        // Call API
+        const response = await queryChatbot({
+          question: input,
+          conversationId: conversationId!,
+          messageHistory
+        });
+        
+        // Create assistant message
+        const assistantMessage: Message = {
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: "I'm sorry, I encountered an error while processing your request. Please try again later.",
-          timestamp: new Date()
+          content: response.response,
+          timestamp: new Date(),
+          sources: response.sources
+        };
+
+        setMessages(prevMessages => [...prevMessages, assistantMessage]);
+        
+        // Update conversation title if it's 'New Conversation'
+        const currentConversation = conversations.find(c => c.id === conversationId);
+        if (currentConversation && currentConversation.title === 'New Conversation') {
+          // Use the first user message as the conversation title (truncated)
+          const newTitle = input.length > 30 ? input.substring(0, 30) + '...' : input;
+          
+          const { error } = await supabase
+            .from('chat_conversations')
+            .update({ title: newTitle })
+            .eq('id', conversationId);
+          
+          if (error) {
+            console.error('Error updating conversation title:', error);
+          } else {
+            // Update local conversations list
+            fetchConversations();
+          }
         }
-      ]);
-    } finally {
-      setIsLoading(false);
+      } catch (error) {
+        console.error('Error querying chatbot:', error);
+        toast({
+          title: "Failed to get response",
+          description: "Please try again later",
+          variant: "destructive"
+        });
+
+        // Add error message
+        setMessages(prevMessages => [
+          ...prevMessages, 
+          {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: "I'm sorry, I encountered an error while processing your request. Please try again later.",
+            timestamp: new Date()
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to use the chatbot",
+        variant: "destructive"
+      });
     }
   };
 
@@ -280,7 +319,7 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
             size="sm"
             onClick={createNewConversation}
           >
-            <PlusIcon className="h-4 w-4 mr-1" />
+            <Plus className="h-4 w-4 mr-1" />
             New Chat
           </Button>
         </div>
@@ -327,7 +366,7 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
                   {message.sources && message.sources.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-border opacity-80 text-sm">
                       <div className="flex items-center gap-1 mb-1">
-                        <InfoCircledIcon className="h-3 w-3" />
+                        <Info className="h-3 w-3" />
                         <span>Sources:</span>
                       </div>
                       <div className="flex flex-wrap gap-1">
@@ -354,7 +393,7 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
               <div className="flex justify-start">
                 <div className="max-w-[80%] p-3 rounded-lg bg-muted mr-12">
                   <div className="flex items-center space-x-2">
-                    <RefreshCcwIcon className="h-4 w-4 animate-spin" />
+                    <RefreshCcw className="h-4 w-4 animate-spin" />
                     <span>Thinking...</span>
                   </div>
                 </div>
@@ -371,13 +410,12 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
                 placeholder="Type your message here..."
                 className="flex-1 resize-none"
                 rows={1}
-                maxRows={4}
               />
               <Button 
                 onClick={handleSendMessage} 
                 disabled={isLoading || !input.trim()}
               >
-                <PaperPlaneIcon className="h-4 w-4" />
+                <Send className="h-4 w-4" />
               </Button>
             </div>
           </CardFooter>

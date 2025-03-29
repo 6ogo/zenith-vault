@@ -32,83 +32,79 @@ serve(async (req) => {
     const { entries, type } = await req.json();
     
     if (!entries || !Array.isArray(entries) || entries.length === 0) {
-      throw new Error('No entries provided for ingestion');
+      throw new Error('No entries provided or invalid format');
     }
     
-    if (!type || (type !== 'faq' && type !== 'documentation')) {
-      throw new Error('Invalid type provided. Must be "faq" or "documentation"');
+    if (!type || !['faq', 'documentation'].includes(type)) {
+      throw new Error('Invalid entry type. Must be "faq" or "documentation"');
     }
     
-    console.log(`Ingesting ${entries.length} ${type} entries`);
+    console.log(`Processing ${entries.length} entries of type '${type}'`);
+    
+    // Process results
+    const results = {
+      success: true,
+      processed: 0,
+      total: entries.length,
+      errors: []
+    };
     
     // Process each entry
-    const results = [];
-    
     for (const entry of entries) {
-      // Validate entry
-      if (type === 'faq' && (!entry.question || !entry.answer)) {
-        console.warn('Skipping invalid FAQ entry:', entry);
-        continue;
+      try {
+        if (!entry.title || !entry.content) {
+          throw new Error('Entry missing title or content');
+        }
+        
+        // Generate embedding for the content (combination of title and content for better context)
+        const embeddingText = `${entry.title}\n${entry.content}`;
+        
+        // Call the embedding API
+        const embeddingResponse = await fetch('https://api.groq.com/openai/v1/embeddings', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'text-embedding-ada-002',
+            input: embeddingText
+          }),
+        });
+        
+        if (!embeddingResponse.ok) {
+          const errorData = await embeddingResponse.json();
+          throw new Error(`GROQ API error: ${errorData.error?.message || 'Unknown error'}`);
+        }
+        
+        const embeddingData = await embeddingResponse.json();
+        const embedding = embeddingData.data[0].embedding;
+        
+        // Store in Supabase
+        const { error: insertError } = await supabase
+          .from('knowledge_base')
+          .insert({
+            title: entry.title,
+            content: entry.content,
+            type: type,
+            embedding: embedding
+          });
+        
+        if (insertError) {
+          throw new Error(`Error inserting into Supabase: ${insertError.message}`);
+        }
+        
+        results.processed++;
+      } catch (error) {
+        console.error(`Error processing entry: ${error.message}`);
+        results.errors.push(error.message);
       }
-      
-      if (type === 'documentation' && (!entry.title || !entry.content)) {
-        console.warn('Skipping invalid documentation entry:', entry);
-        continue;
-      }
-      
-      // Prepare content based on entry type
-      const title = type === 'faq' ? entry.question : entry.title;
-      const content = type === 'faq' ? entry.answer : entry.content;
-      
-      // Generate embedding for the content
-      const embeddingResponse = await fetch('https://api.groq.com/openai/v1/embeddings', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${groqApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: "text-embedding-ada-002",
-          input: `${title} ${content}`
-        }),
-      });
-      
-      if (!embeddingResponse.ok) {
-        const errorData = await embeddingResponse.json();
-        console.error('GROQ API embedding error:', errorData);
-        throw new Error(`GROQ API embedding error: ${errorData.error?.message || 'Unknown error'}`);
-      }
-      
-      const embeddingData = await embeddingResponse.json();
-      const embedding = embeddingData.data[0].embedding;
-      
-      // Save the entry to the knowledge base
-      const { data, error } = await supabase
-        .from('knowledge_base')
-        .insert({
-          title,
-          content,
-          type,
-          embedding
-        })
-        .select();
-      
-      if (error) {
-        console.error('Error inserting knowledge base entry:', error);
-        throw new Error(`Error inserting knowledge base entry: ${error.message}`);
-      }
-      
-      results.push(data[0]);
-      console.log(`Successfully ingested entry: ${title.substring(0, 30)}...`);
     }
     
+    results.success = results.processed > 0;
+    
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        message: `Successfully ingested ${results.length} entries`,
-        processed: results.length,
-        total: entries.length
-      }),
+      JSON.stringify(results),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 

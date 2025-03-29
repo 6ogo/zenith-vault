@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import { supabase } from '@/integrations/supabase/client';
-import { useUser } from '@/contexts/UserContext';
 import ChatbotButton from "@/components/chat/ChatbotButton";
 
 interface MainLayoutProps {
@@ -12,7 +12,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
-  const { user, setUser } = useUser();
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -30,7 +30,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         setUser(session.user);
       }
     });
-  }, [navigate, setUser]);
+  }, [navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -40,7 +40,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header user={user} onLogout={handleLogout} />
+      <Header onLogout={handleLogout} />
       <div className="flex-1 flex flex-col md:flex-row">
         <Sidebar className="w-64 hidden md:block border-r" />
         <main className="flex-1 overflow-auto bg-background">

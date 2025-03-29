@@ -3,11 +3,9 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
-  DialogContent,
-  DialogHeader,
-  DialogTitle
+  DialogContent
 } from "@/components/ui/dialog";
-import { MessageCircleQuestionIcon } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import ChatInterface from "./ChatInterface";
 
 interface ChatbotButtonProps {
@@ -25,7 +23,7 @@ const ChatbotButton = ({ className }: ChatbotButtonProps) => {
         size="icon"
         variant="default"
       >
-        <MessageCircleQuestionIcon className="h-6 w-6" />
+        <MessageCircle className="h-6 w-6" />
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

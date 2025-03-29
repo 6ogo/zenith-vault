@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface AIRequestParams {
@@ -107,31 +106,78 @@ export interface KnowledgeBaseEntry {
   content: string;
 }
 
-export const ingestKnowledgeBase = async (
-  entries: KnowledgeBaseEntry[], 
-  type: 'faq' | 'documentation'
-): Promise<{success: boolean, message: string, processed: number, total: number}> => {
-  try {
-    const { data, error } = await supabase.functions.invoke('knowledge-ingestion', {
-      body: {
-        entries,
-        type
-      }
-    });
-
-    if (error) {
-      console.error('Error ingesting knowledge base entries:', error);
-      throw new Error(error.message);
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error in ingestKnowledgeBase:', error);
-    throw error;
-  }
+export interface IngestKnowledgeBaseResponse {
+  success: boolean;
+  processed: number;
+  total: number;
+  errors?: string[];
 }
 
-// Helper functions for specific features
+export interface ChatbotQueryResponse {
+  response: string;
+  sources?: {
+    title: string;
+    type: string;
+    similarity: number;
+  }[];
+  model?: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
+export interface ChatbotQueryRequest {
+  question: string;
+  conversationId?: string;
+  messageHistory?: { role: 'user' | 'assistant', content: string }[];
+}
+
+/**
+ * Add entries to the knowledge base
+ */
+export const ingestKnowledgeBase = async (
+  entries: { title: string; content: string }[],
+  type: 'faq' | 'documentation'
+): Promise<IngestKnowledgeBaseResponse> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('knowledge-ingestion', {
+      body: { entries, type }
+    });
+    
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error('Error ingesting knowledge base entries:', error);
+    return {
+      success: false,
+      processed: 0,
+      total: entries.length,
+      errors: [error.message || 'Unknown error occurred']
+    };
+  }
+};
+
+/**
+ * Query the chatbot with a question
+ */
+export const queryChatbot = async (request: ChatbotQueryRequest): Promise<ChatbotQueryResponse> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('chatbot-query', {
+      body: request
+    });
+    
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error('Error querying chatbot:', error);
+    throw error;
+  }
+};
+
 export const generateSalesInsight = (prompt: string) => 
   generateWithAI({ prompt, feature: 'sales' });
 
