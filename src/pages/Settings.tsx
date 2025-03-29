@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -41,7 +40,6 @@ export default function Settings() {
     },
   });
 
-  // Fetch user data on component mount
   useEffect(() => {
     if (user) {
       fetchProfileData();
@@ -50,7 +48,6 @@ export default function Settings() {
     }
   }, [user]);
 
-  // Set form values when profile data is loaded
   useEffect(() => {
     if (profileData) {
       form.setValue("fullName", profileData.full_name || "");
@@ -59,7 +56,6 @@ export default function Settings() {
       form.setValue("jobTitle", profileData.job_title || "");
       form.setValue("department", profileData.department || "");
       
-      // Check if this is potentially a first login that needs profile completion
       if (!profileData.full_name || !profileData.job_title || !profileData.department) {
         setIsFirstLogin(true);
       }
@@ -68,19 +64,56 @@ export default function Settings() {
 
   const fetchProfileData = async () => {
     try {
+      if (!user?.id) return;
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user?.id)
-        .single();
+        .eq('id', user.id)
+        .maybeSingle();
       
-      if (error) throw error;
-      setProfileData(data);
+      if (error) {
+        console.error('Error fetching profile:', error);
+        toast({
+          title: "Failed to load profile",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (data) {
+        setProfileData(data);
+        
+        form.setValue("fullName", data.full_name || "");
+        form.setValue("email", user?.email || "");
+        form.setValue("phone", data.phone_number || "");
+        form.setValue("jobTitle", data.job_title || "");
+        form.setValue("department", data.department || "");
+        
+        if (!data.full_name || !data.job_title || !data.department) {
+          setIsFirstLogin(true);
+        }
+      } else {
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert([{ 
+            id: user.id,
+            full_name: user.user_metadata?.full_name || '',
+            avatar_url: user.user_metadata?.avatar_url || null
+          }]);
+        
+        if (createError) {
+          console.error('Error creating profile:', createError);
+        } else {
+          fetchProfileData();
+        }
+      }
     } catch (error: any) {
-      console.error('Error fetching profile:', error);
+      console.error('Error in fetchProfileData:', error);
       toast({
         title: "Failed to load profile",
-        description: error.message,
+        description: "Could not load your profile information",
         variant: "destructive",
       });
     }
@@ -88,7 +121,6 @@ export default function Settings() {
 
   const fetchOrganization = async () => {
     try {
-      // Get organization membership
       const { data: memberData, error: memberError } = await supabase
         .from('organization_members')
         .select('organization_id, role, status')
@@ -96,13 +128,12 @@ export default function Settings() {
         .single();
       
       if (memberError) {
-        if (memberError.code !== 'PGRST116') { // Not found error
+        if (memberError.code !== 'PGRST116') {
           throw memberError;
         }
-        return; // No organization membership
+        return;
       }
       
-      // Get organization details
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .select('*')
@@ -122,8 +153,6 @@ export default function Settings() {
   };
 
   const fetchSessions = async () => {
-    // In a real app, you would fetch actual session data from Supabase Auth API
-    // For now, we'll use mock data as Supabase doesn't expose active sessions via the client API
     setSessions([
       {
         id: 'current',
@@ -139,7 +168,7 @@ export default function Settings() {
         info: 'Safari on Mac',
         ip: '192.168.1.2',
         active: false,
-        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
       }
     ]);
   };
@@ -167,6 +196,8 @@ export default function Settings() {
   const handleUpdateProfile = async (values: any) => {
     setLoading(true);
     try {
+      if (!user?.id) return;
+      
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -176,7 +207,7 @@ export default function Settings() {
           department: values.department,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user?.id);
+        .eq('id', user.id);
       
       if (error) throw error;
       

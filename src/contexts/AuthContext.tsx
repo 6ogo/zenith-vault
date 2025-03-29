@@ -242,6 +242,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         throw error;
       }
+      
+      if (user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            full_name: details.fullName,
+            updated_at: new Date().toISOString()
+          });
+        
+        if (profileError) {
+          console.warn('Profile table update failed, but auth metadata was updated:', profileError);
+        }
+      }
+      
       return data;
     } catch (error: any) {
       console.log(error);

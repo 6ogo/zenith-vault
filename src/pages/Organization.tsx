@@ -30,39 +30,52 @@ const Organization = () => {
   const fetchOrganizationData = async () => {
     setOrgLoading(true);
     try {
+      if (!user?.id) return;
+      
       const { data: memberData, error: memberError } = await supabase
         .from('organization_members')
         .select('organization_id, role, status')
-        .eq('user_id', user?.id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
       
-      if (memberError) {
-        if (memberError.code !== 'PGRST116') {
-          throw memberError;
-        }
+      if (memberError && memberError.code !== 'PGRST116') {
+        console.error('Error fetching organization membership:', memberError);
+      }
+      
+      if (!memberData) {
         setOrgLoading(false);
         return;
       }
-      
-      const isUserAdmin = memberData.role === 'admin';
-      setIsAdmin(isUserAdmin);
       
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .select('*')
         .eq('id', memberData.organization_id)
-        .single();
+        .maybeSingle();
       
-      if (orgError) throw orgError;
+      if (orgError) {
+        console.error('Error fetching organization:', orgError);
+        setOrgLoading(false);
+        return;
+      }
       
-      setOrganization(orgData);
-      setOrgName(orgData.name);
-      
-      if (isUserAdmin) {
-        await fetchPendingApprovals(memberData.organization_id);
-        await fetchOrganizationMembers(memberData.organization_id);
-      } else {
-        await fetchOrganizationMembers(memberData.organization_id);
+      if (orgData) {
+        setOrganization({
+          ...orgData,
+          role: memberData.role,
+          status: memberData.status
+        });
+        setOrgName(orgData.name);
+        
+        const isUserAdmin = memberData.role === 'admin';
+        setIsAdmin(isUserAdmin);
+        
+        if (isUserAdmin) {
+          await fetchPendingApprovals(memberData.organization_id);
+          await fetchOrganizationMembers(memberData.organization_id);
+        } else {
+          await fetchOrganizationMembers(memberData.organization_id);
+        }
       }
     } catch (error: any) {
       console.error('Error fetching organization data:', error);

@@ -15,13 +15,16 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { TwoFactorSetup } from '@/components/auth/TwoFactorSetup';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const profileFormSchema = z.object({
   fullName: z.string().min(1, { message: 'Name is required' }),
   email: z.string().email().optional(),
+  jobTitle: z.string().optional(),
+  department: z.string().optional(),
+  phoneNumber: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -38,6 +41,9 @@ const Profile = () => {
     defaultValues: {
       fullName: '',
       email: '',
+      jobTitle: '',
+      department: '',
+      phoneNumber: '',
     },
   });
   
@@ -53,13 +59,19 @@ const Profile = () => {
           .eq('id', user.id)
           .single();
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
         
         setProfileData(data);
         
         form.reset({
-          fullName: data.full_name || '',
+          fullName: data?.full_name || '',
           email: user.email || '',
+          jobTitle: data?.job_title || '',
+          department: data?.department || '',
+          phoneNumber: data?.phone_number || '',
         });
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -74,9 +86,24 @@ const Profile = () => {
     
     setIsLoading(true);
     try {
+      // Update auth user metadata
       await updateProfile({
         fullName: values.fullName,
       });
+      
+      // Update profile in profiles table
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: values.fullName,
+          job_title: values.jobTitle,
+          department: values.department,
+          phone_number: values.phoneNumber,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+        
+      if (error) throw error;
       
       toast({
         title: 'Profile updated',
@@ -137,6 +164,48 @@ const Profile = () => {
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input {...field} disabled />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="jobTitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Title</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="department"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Department</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
