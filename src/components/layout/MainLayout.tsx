@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
@@ -28,7 +29,7 @@ const MainLayout = () => {
         <div className={`fixed inset-0 z-30 transform md:hidden ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300 ease-in-out`}>
-          <div className="relative h-full w-72 max-w-xs">
+          <div className="relative h-full w-64 max-w-xs">
             <div className="h-full">
               <Sidebar isCollapsed={false} onToggleCollapse={toggleSidebarCollapse} />
             </div>
@@ -39,7 +40,7 @@ const MainLayout = () => {
         
         {/* Desktop sidebar - sticky with top-0 */}
         <div className={`hidden md:block sticky top-0 h-screen z-20 transition-all duration-300 ${
-          sidebarCollapsed ? "w-16" : "w-72"
+          sidebarCollapsed ? "w-16" : "w-64"
         }`}>
           <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
