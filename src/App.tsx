@@ -1,4 +1,3 @@
-
 import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
@@ -9,6 +8,12 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { DataModeProvider } from '@/contexts/DataModeContext';
 import LoadingScreen from '@/components/LoadingScreen';
 import Index from '@/pages/Index';
+import SignUp from '@/pages/SignUp';
+import Login from '@/pages/Login';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import VerifyEmail from '@/pages/VerifyEmail';
+import Callback from '@/pages/Callback';
 import Dashboard from '@/pages/Dashboard';
 import Sales from '@/pages/Sales';
 import Customers from '@/pages/Customers';
@@ -25,14 +30,6 @@ import NotFound from '@/pages/NotFound';
 import Protected from '@/components/Protected';
 import MainLayout from '@/components/layout/MainLayout';
 import Documentation from '@/pages/Documentation';
-
-// Auth pages
-import SignUp from '@/pages/auth/SignUp';
-import Login from '@/pages/auth/Login';
-import ForgotPassword from '@/pages/auth/ForgotPassword';
-import ResetPassword from '@/pages/auth/ResetPassword';
-import VerifyEmail from '@/pages/auth/VerifyEmail';
-import Callback from '@/pages/auth/Callback';
 
 const App = () => {
   const queryClient = new QueryClient();

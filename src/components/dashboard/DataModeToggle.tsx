@@ -1,38 +1,61 @@
 
-import React from 'react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import React from "react";
+import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "react-router-dom";
+import { useDataMode } from "@/contexts/DataModeContext";
 
-export interface DataModeToggleProps {
-  isRealData?: boolean;
-  onToggle: (value: boolean) => void;
+interface DataModeToggleProps {
+  className?: string;
 }
 
-const DataModeToggle = ({ isRealData = false, onToggle }: DataModeToggleProps) => {
+const DataModeToggle = ({ className = "" }: DataModeToggleProps) => {
+  const { toast } = useToast();
+  const location = useLocation();
+  const { isRealData, setIsRealData, isAllowedToToggle } = useDataMode();
+  const currentPage = location.pathname.split('/')[1] || 'dashboard';
+  
+  // Don't render on pages that don't support toggling
+  if (!isAllowedToToggle(currentPage)) {
+    return null;
+  }
+  
+  const handleToggle = (checked: boolean) => {
+    setIsRealData(checked);
+    
+    toast({
+      title: checked ? "Real data mode activated" : "Demo data mode activated",
+      description: checked 
+        ? "Showing real data from your connected systems." 
+        : "Showing demo data for demonstration purposes.",
+      duration: 3000,
+    });
+  };
+  
   return (
-    <div className="flex items-center space-x-4 bg-muted p-3 rounded-lg">
-      <div className="flex flex-col space-y-1 flex-1">
-        <Label htmlFor="data-mode" className="font-medium">
-          Data Mode
+    <Card className={`flex items-center justify-between px-4 py-2 mb-4 ${className}`}>
+      <div className="flex items-center space-x-4">
+        <Label htmlFor="data-mode" className="text-sm font-medium cursor-pointer">
+          Data Mode:
         </Label>
-        <p className="text-xs text-muted-foreground">
-          {isRealData 
-            ? "Using real organization data"
-            : "Using sample demonstration data"
-          }
-        </p>
+        <div className="flex items-center justify-between w-32">
+          <span className={`text-sm ${!isRealData ? 'font-bold text-primary' : 'text-muted-foreground'}`}>DEMO</span>
+          <Switch 
+            id="data-mode" 
+            checked={isRealData}
+            onCheckedChange={handleToggle}
+          />
+          <span className={`text-sm ${isRealData ? 'font-bold text-primary' : 'text-muted-foreground'}`}>REAL</span>
+        </div>
       </div>
-      <div className="flex items-center space-x-2">
-        <Label htmlFor="data-mode" className={isRealData ? "font-medium" : "text-muted-foreground"}>
-          {isRealData ? "REAL" : "DEMO"}
-        </Label>
-        <Switch
-          id="data-mode"
-          checked={isRealData}
-          onCheckedChange={onToggle}
-        />
-      </div>
-    </div>
+      {isRealData && (
+        <div className="text-xs text-muted-foreground">
+          Showing real data from your connected systems
+        </div>
+      )}
+    </Card>
   );
 };
 
