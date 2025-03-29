@@ -30,10 +30,9 @@ const Sales = () => {
       </div>
       
       <Tabs defaultValue="pipeline" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:w-[400px]">
+        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
           <TabsTrigger value="leads">Leads</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
         <TabsContent value="pipeline" className="mt-4">
@@ -82,19 +81,99 @@ const Sales = () => {
             </div>
           )}
         </TabsContent>
-        <TabsContent value="customers" className="mt-4">
-          <div className="p-8 text-center text-muted-foreground">
-            {isRealData 
-              ? "No customer data available. Connect your CRM through the integrations page."
-              : "Customer management features will be available in the next update."}
-          </div>
-        </TabsContent>
         <TabsContent value="reports" className="mt-4">
-          <div className="p-8 text-center text-muted-foreground">
-            {isRealData 
-              ? "No sales reports available. Connect your sales data through the integrations page."
-              : "Sales reporting features will be available in the next update."}
-          </div>
+          {isRealData ? (
+            <div className="grid grid-cols-1 gap-4">
+              <Card className="dashboard-card p-6">
+                <div className="text-center">
+                  <p className="text-muted-foreground mb-4">
+                    No sales reports available. Connect your sales data through the integrations page.
+                  </p>
+                  <Button onClick={() => window.location.href = "/integrations"}>
+                    <ArrowUpRight className="h-4 w-4 mr-1" /> Go to Integrations
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="dashboard-card">
+                <CardHeader>
+                  <CardTitle>Customer Journey Analysis</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-muted-foreground">Average time from lead to customer: <span className="font-semibold text-foreground">18 days</span></p>
+                      <div className="h-2 bg-muted rounded-full">
+                        <div className="h-full bg-primary rounded-full" style={{ width: '65%' }}></div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-muted-foreground">Touchpoints before conversion: <span className="font-semibold text-foreground">5.2</span></p>
+                      <div className="h-2 bg-muted rounded-full">
+                        <div className="h-full bg-primary rounded-full" style={{ width: '78%' }}></div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-muted-foreground">Lead qualification rate: <span className="font-semibold text-foreground">42%</span></p>
+                      <div className="h-2 bg-muted rounded-full">
+                        <div className="h-full bg-primary rounded-full" style={{ width: '42%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="dashboard-card">
+                <CardHeader>
+                  <CardTitle>Churn Analysis</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-muted-foreground">Monthly churn rate: <span className="font-semibold text-foreground">2.1%</span></p>
+                      <div className="h-2 bg-muted rounded-full">
+                        <div className="h-full bg-red-500 rounded-full" style={{ width: '21%' }}></div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-muted-foreground">Customer lifetime: <span className="font-semibold text-foreground">18 months</span></p>
+                      <div className="h-2 bg-muted rounded-full">
+                        <div className="h-full bg-green-500 rounded-full" style={{ width: '75%' }}></div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-muted-foreground">Annual recurring revenue at risk: <span className="font-semibold text-foreground">$86,500</span></p>
+                      <div className="h-2 bg-muted rounded-full">
+                        <div className="h-full bg-amber-500 rounded-full" style={{ width: '34%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="dashboard-card md:col-span-2">
+                <CardHeader>
+                  <CardTitle>Tips to Improve Sales Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-3">
+                      <h3 className="font-medium mb-1">Accelerate your lead response time</h3>
+                      <p className="text-sm text-muted-foreground">Responding to leads within 5 minutes increases conversion rates by 900%. Your current average is 3.2 hours.</p>
+                    </div>
+                    <div className="border rounded-lg p-3">
+                      <h3 className="font-medium mb-1">Optimize your sales process for existing customers</h3>
+                      <p className="text-sm text-muted-foreground">It costs 5-25x more to acquire a new customer than retain an existing one. Focus on up-selling to your existing base.</p>
+                    </div>
+                    <div className="border rounded-lg p-3">
+                      <h3 className="font-medium mb-1">Implement a customer win-back strategy</h3>
+                      <p className="text-sm text-muted-foreground">You have a 60-70% chance of selling to an existing customer and only a 5-20% chance of selling to a new prospect.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

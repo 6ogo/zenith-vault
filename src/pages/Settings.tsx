@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -358,11 +359,9 @@ export default function Settings() {
         
         <div className="md:col-span-9 space-y-8">
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 lg:w-[600px]">
+            <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="account">Account</TabsTrigger>
-              <TabsTrigger value="team">Team</TabsTrigger>
-              <TabsTrigger value="billing">Billing</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
             </TabsList>
             <TabsContent value="profile" className="mt-4">
@@ -522,16 +521,6 @@ export default function Settings() {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-            <TabsContent value="team" className="mt-4">
-              <div className="p-8 text-center text-muted-foreground">
-                Team management features will be available in the next update.
-              </div>
-            </TabsContent>
-            <TabsContent value="billing" className="mt-4">
-              <div className="p-8 text-center text-muted-foreground">
-                Billing management features will be available in the next update.
-              </div>
             </TabsContent>
             <TabsContent value="notifications" className="mt-4">
               <div className="p-8 text-center text-muted-foreground">

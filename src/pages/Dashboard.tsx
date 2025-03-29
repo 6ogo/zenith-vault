@@ -8,7 +8,6 @@ import SalesChart from "@/components/dashboard/SalesChart";
 import SalesPipeline from "@/components/dashboard/SalesPipeline";
 import RecentLeads from "@/components/dashboard/RecentLeads";
 import CustomerSatisfaction from "@/components/dashboard/CustomerSatisfaction";
-import MarketingCampaigns from "@/components/dashboard/MarketingCampaigns";
 import StatCard from "@/components/dashboard/StatCard";
 import DataModeToggle from "@/components/dashboard/DataModeToggle";
 import { useDataMode } from "@/contexts/DataModeContext";
@@ -112,7 +111,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <div>
           <Card>
             <CardHeader>
@@ -136,19 +135,6 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <RecentLeads />
-            </CardContent>
-          </Card>
-        </div>
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Marketing Campaigns</CardTitle>
-              <CardDescription>
-                Active campaign performance
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <MarketingCampaigns />
             </CardContent>
           </Card>
         </div>

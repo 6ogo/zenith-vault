@@ -96,7 +96,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
           {isCollapsed ? "AC" : "Admin Console"}
         </span>
       </div>
-      <div className="flex-grow p-4 overflow-y-auto">
+      <div className="flex-grow p-4 overflow-y-auto sticky top-0">
         <nav className="flex flex-col space-y-1">
           {routes.map((route) => (
             <NavLink
@@ -121,7 +121,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
           ))}
         </nav>
       </div>
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="sticky bottom-0 p-4 border-t border-sidebar-border bg-[#003366]">
         <button 
           onClick={onToggleCollapse}
           className="flex items-center justify-between w-full text-sm text-sidebar-foreground hover:text-white transition-colors"
