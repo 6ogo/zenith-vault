@@ -1,16 +1,18 @@
 
 import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import Footer from "./Footer";
 
-const MainLayout = () => {
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+const MainLayout = ({ children }: MainLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [footerHeight, setFooterHeight] = useState(0);
   const footerRef = useRef<HTMLElement | null>(null);
-  const location = useLocation();
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -72,7 +74,7 @@ const MainLayout = () => {
         {/* Main content - full width */}
         <div className="flex-1 w-full">
           <main className="p-4 md:p-6 w-full">
-            <Outlet />
+            {children}
           </main>
         </div>
       </div>

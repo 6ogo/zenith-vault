@@ -51,7 +51,7 @@ const App = () => {
                   <Route path="/auth/verify-email" element={<VerifyEmail />} />
                   <Route path="/auth/callback" element={<Callback />} />
                   
-                  {/* Add Documentation route */}
+                  {/* Protected Routes with MainLayout */}
                   <Route path="/documentation" element={
                     <Protected>
                       <MainLayout>
@@ -60,7 +60,6 @@ const App = () => {
                     </Protected>
                   } />
   
-                  {/* Main app routes */}
                   <Route path="/dashboard" element={
                     <Protected>
                       <MainLayout>
