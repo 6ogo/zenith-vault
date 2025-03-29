@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -43,6 +43,7 @@ interface AISettings {
 const AISettingsPanel = () => {
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [settings, setSettings] = useState<AISettings>({
     model: 'llama3-8b-8192',
     temperature: 0.7,
@@ -50,6 +51,43 @@ const AISettingsPanel = () => {
     dataSources: ['sales_data', 'customer_data'],
     enabledFunctions: ['lead_scoring', 'sentiment_analysis']
   });
+
+  // Load current settings when component mounts
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!user?.user_metadata?.organization_id) return;
+      
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('organization_settings')
+          .select('settings_value')
+          .eq('organization_id', user.user_metadata.organization_id)
+          .eq('settings_type', 'ai_configuration')
+          .single();
+          
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "No rows returned" error code
+          console.error('Error loading AI settings:', error);
+          toast({
+            variant: "destructive",
+            title: "Failed to Load Settings",
+            description: error.message
+          });
+          return;
+        }
+        
+        if (data?.settings_value) {
+          setSettings(data.settings_value as AISettings);
+        }
+      } catch (error) {
+        console.error('Error in loadSettings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadSettings();
+  }, [user]);
 
   const handleDataSourceToggle = (sourceId: string) => {
     setSettings(prev => {
@@ -72,7 +110,14 @@ const AISettingsPanel = () => {
   };
 
   const saveSettings = async () => {
-    if (!user) return;
+    if (!user?.user_metadata?.organization_id) {
+      toast({
+        variant: "destructive",
+        title: "Cannot Save Settings",
+        description: "No organization ID found. Please refresh or contact support."
+      });
+      return;
+    }
     
     setIsSaving(true);
     try {
@@ -81,7 +126,7 @@ const AISettingsPanel = () => {
         .from('organization_settings')
         .upsert(
           { 
-            organization_id: user.user_metadata?.organization_id,
+            organization_id: user.user_metadata.organization_id,
             settings_type: 'ai_configuration',
             settings_value: settings
           }, 
@@ -94,7 +139,7 @@ const AISettingsPanel = () => {
         title: "AI Settings Saved",
         description: "Your AI configuration has been updated successfully."
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving AI settings:', error);
       toast({
         variant: "destructive",
@@ -134,6 +179,25 @@ const AISettingsPanel = () => {
           <p className="text-muted-foreground">
             You need administrator privileges to access these settings.
           </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings2 className="h-5 w-5" />
+            Loading AI Configuration
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center py-8">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <p className="text-sm text-muted-foreground">Loading your settings...</p>
+          </div>
         </CardContent>
       </Card>
     );
