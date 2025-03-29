@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, User, Lock, EyeOff, Eye, Linkedin, Building } from "lucide-react";
+import { Mail, User, Lock, EyeOff, Eye, Building } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,11 +21,10 @@ const SignUp = () => {
   const [isCreatingOrg, setIsCreatingOrg] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [linkedinLoading, setLinkedinLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signUp, signInWithGoogle, signInWithLinkedIn, user } = useAuth();
+  const { signUp, signInWithGoogle, user } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -108,7 +107,7 @@ const SignUp = () => {
     }
   };
 
-  const handleSocialSignUp = async (provider: 'google' | 'linkedin') => {
+  const handleGoogleSignUp = async () => {
     // Validate organization/role combination first
     if (organization && !role) {
       toast({
@@ -120,34 +119,21 @@ const SignUp = () => {
     }
     
     try {
-      if (provider === 'google') {
-        setGoogleLoading(true);
-        console.log("Attempting to sign in with Google");
-        const { data, error } = await signInWithGoogle();
-        console.log("Google sign in response:", data, error);
-        
-        if (error) throw error;
-      } else if (provider === 'linkedin') {
-        setLinkedinLoading(true);
-        console.log("Attempting to sign in with LinkedIn");
-        const { data, error } = await signInWithLinkedIn();
-        console.log("LinkedIn sign in response:", data, error);
-        
-        if (error) throw error;
-      }
+      setGoogleLoading(true);
+      console.log("Attempting to sign in with Google");
+      const { data, error } = await signInWithGoogle();
+      console.log("Google sign in response:", data, error);
+      
+      if (error) throw error;
     } catch (error: any) {
-      console.error(`${provider} signup error:`, error);
+      console.error(`Google signup error:`, error);
       toast({
         title: "Error",
-        description: error.message || `Failed to sign up with ${provider}. Please try again.`,
+        description: error.message || `Failed to sign up with Google. Please try again.`,
         variant: "destructive",
       });
     } finally {
-      if (provider === 'google') {
-        setGoogleLoading(false);
-      } else if (provider === 'linkedin') {
-        setLinkedinLoading(false);
-      }
+      setGoogleLoading(false);
     }
   };
 
@@ -317,21 +303,10 @@ const SignUp = () => {
               type="button" 
               variant="outline" 
               className="w-full" 
-              onClick={() => handleSocialSignUp('google')}
-              disabled={googleLoading || linkedinLoading}
+              onClick={handleGoogleSignUp}
+              disabled={googleLoading}
             >
               {googleLoading ? "Connecting..." : "Sign up with Google"}
-            </Button>
-            
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full flex items-center gap-2" 
-              onClick={() => handleSocialSignUp('linkedin')}
-              disabled={linkedinLoading || googleLoading}
-            >
-              <Linkedin className="h-4 w-4" />
-              {linkedinLoading ? "Connecting..." : "Sign up with LinkedIn"}
             </Button>
           </div>
         </CardContent>

@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
   DialogContent,
-  DialogTitle
+  DialogTitle,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { MessageCircle } from "lucide-react";
 import ChatInterface from "./ChatInterface";
@@ -30,6 +31,9 @@ const ChatbotButton = ({ className }: ChatbotButtonProps) => {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-4xl p-0 h-[90vh]">
           <DialogTitle className="sr-only">Zenith Assistant Chat</DialogTitle>
+          <DialogDescription className="sr-only">
+            Chat with our AI assistant to get help with your tasks.
+          </DialogDescription>
           <ChatInterface />
         </DialogContent>
       </Dialog>
