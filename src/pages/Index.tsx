@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Shield, ArrowRight, BarChart, MessageSquare, Mail, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ const Index = () => {
     }
   };
   return <div className="min-h-screen w-screen overflow-x-hidden overflow-y-auto dark:bg-gray-950 flex flex-col relative">
-      <DataFlowBackground />
+      <DataFlowBackground className="opacity-80" />
       
       {/* Header for landing page - removed border-b */}
       <header className="py-4 px-4 md:px-8 lg:px-12 relative z-10">
