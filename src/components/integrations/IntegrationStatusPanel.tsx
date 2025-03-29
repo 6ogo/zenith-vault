@@ -54,11 +54,47 @@ const IntegrationStatusPanel = () => {
   const fetchIntegrations = async () => {
     setIsLoading(true);
     try {
-      // Since there's no 'integrations' table yet in the database, 
-      // we'll return an empty array for real data mode
-      // In a production app, this would fetch from a real 'integrations' table
-      setIntegrations([]);
-      setIsLoading(false);
+      if (isRealData) {
+        // Check if the integrations table exists in the database
+        const { data: tablesData, error: tablesError } = await supabase
+          .from('pg_tables')
+          .select('tablename')
+          .eq('schemaname', 'public')
+          .eq('tablename', 'integrations');
+
+        // If the table doesn't exist yet, return an empty array
+        if (tablesError || !tablesData || tablesData.length === 0) {
+          console.log('Integrations table does not exist yet');
+          setIntegrations([]);
+          setIsLoading(false);
+          return;
+        }
+
+        // If the table exists, fetch the integrations
+        const { data, error } = await supabase
+          .from('integrations')
+          .select('*');
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          // Map the data to the expected format
+          const formattedIntegrations = data.map((item) => ({
+            id: item.id,
+            name: item.provider,
+            provider: item.provider,
+            category: item.provider_type || getCategoryFromProvider(item.provider),
+            status: item.status as "connected" | "disconnected" | "error",
+            lastSync: item.last_sync ? new Date(item.last_sync).toLocaleDateString() : null
+          }));
+          setIntegrations(formattedIntegrations);
+        } else {
+          setIntegrations([]);
+        }
+      } else {
+        // Use demo data when in demo mode
+        setIntegrations(demoIntegrations);
+      }
     } catch (error) {
       console.error("Error fetching integrations:", error);
       toast({
@@ -66,20 +102,24 @@ const IntegrationStatusPanel = () => {
         description: "Failed to load integrations. Please try again.",
         variant: "destructive",
       });
-      setIntegrations([]);
-      setIsLoading(false);
+      setIntegrations(isRealData ? [] : demoIntegrations);
     }
+    setIsLoading(false);
+  };
+
+  // Helper function to determine category from provider name
+  const getCategoryFromProvider = (provider: string): string => {
+    const lowerProvider = provider.toLowerCase();
+    if (lowerProvider.includes('mail') || lowerProvider.includes('send')) return 'marketing';
+    if (lowerProvider.includes('crm') || lowerProvider.includes('salesforce') || lowerProvider.includes('hubspot')) return 'crm';
+    if (lowerProvider.includes('stripe') || lowerProvider.includes('pay')) return 'payments';
+    if (lowerProvider.includes('erp') || lowerProvider.includes('sap') || lowerProvider.includes('netsuite')) return 'erp';
+    return 'other';
   };
 
   // Load integrations on component mount
   useEffect(() => {
-    if (isRealData) {
-      fetchIntegrations();
-    } else {
-      // Use demo data when in demo mode
-      setIntegrations(demoIntegrations);
-      setIsLoading(false);
-    }
+    fetchIntegrations();
   }, [isRealData]);
 
   const refreshIntegrations = () => {
@@ -131,7 +171,7 @@ const IntegrationStatusPanel = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        {!isRealData && integrations.length > 0 ? (
+        {integrations.length > 0 ? (
           <div className="space-y-4">
             {integrations.map((integration) => (
               <div
@@ -143,6 +183,8 @@ const IntegrationStatusPanel = () => {
                     {integration.category === "crm" && "👥"}
                     {integration.category === "marketing" && "📧"}
                     {integration.category === "payments" && "💳"}
+                    {integration.category === "erp" && "🏢"}
+                    {!["crm", "marketing", "payments", "erp"].includes(integration.category) && "🔌"}
                   </div>
                   <div>
                     <div className="font-medium">{integration.name}</div>

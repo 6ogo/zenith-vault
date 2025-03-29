@@ -25,7 +25,7 @@ const Integrations = () => {
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link to="/integrations/documentation">
+          <Link to="/integration-documentation">
             <FileText className="mr-2 h-4 w-4" />
             Documentation
           </Link>

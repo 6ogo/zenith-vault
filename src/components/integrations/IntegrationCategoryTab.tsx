@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/use-toast';
 import IntegrationSetupWizard from './IntegrationSetupWizard';
 import { Plus, ExternalLink, Link2 } from 'lucide-react';
+import { useDataMode } from '@/contexts/DataModeContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Integration {
   id: string;
@@ -28,6 +30,8 @@ const IntegrationCategoryTab = ({
 }: IntegrationCategoryTabProps) => {
   const { toast } = useToast();
   const [setupIntegration, setSetupIntegration] = useState<Integration | null>(null);
+  const { isRealData } = useDataMode();
+  const [isConnecting, setIsConnecting] = useState<string | null>(null);
 
   const handleSetupClick = (integration: Integration) => {
     setSetupIntegration(integration);
@@ -36,6 +40,50 @@ const IntegrationCategoryTab = ({
   // Close the setup wizard
   const handleCloseWizard = () => {
     setSetupIntegration(null);
+  };
+
+  const handleConnectIntegration = async (integration: Integration) => {
+    if (!isRealData) {
+      // Demo mode just shows toast and opens setup wizard
+      toast({
+        title: "Demo Mode",
+        description: `In a real environment, this would connect to ${integration.name}.`,
+      });
+      handleSetupClick(integration);
+      return;
+    }
+
+    setIsConnecting(integration.id);
+    
+    try {
+      // In real data mode, we would attempt to connect to the integration
+      toast({
+        title: "Connecting...",
+        description: `Initiating connection to ${integration.name}`,
+      });
+
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // For now, we'll simulate a success scenario
+      // In a real implementation, this would involve OAuth flows or API key setup
+      toast({
+        title: "Connection Initiated",
+        description: `Please complete the authentication process for ${integration.name}`,
+      });
+      
+      // Open the setup wizard to complete the connection process
+      handleSetupClick(integration);
+    } catch (error) {
+      console.error(`Error connecting to ${integration.name}:`, error);
+      toast({
+        title: "Connection Failed",
+        description: `Could not connect to ${integration.name}. Please try again.`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsConnecting(null);
+    }
   };
 
   return (
@@ -74,10 +122,19 @@ const IntegrationCategoryTab = ({
               <CardFooter className="p-4 pt-2 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                 <Button 
                   className="w-full sm:w-auto" 
-                  onClick={() => handleSetupClick(integration)}
+                  onClick={() => handleConnectIntegration(integration)}
                   variant={integration.isCustom ? "outline" : "default"}
+                  disabled={isConnecting === integration.id}
                 >
-                  {integration.isCustom ? (
+                  {isConnecting === integration.id ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Connecting...
+                    </>
+                  ) : integration.isCustom ? (
                     <>
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Configure Custom
@@ -111,6 +168,7 @@ const IntegrationCategoryTab = ({
         <IntegrationSetupWizard 
           integration={setupIntegration}
           onClose={handleCloseWizard}
+          isRealData={isRealData}
         />
       )}
     </div>

@@ -17,7 +17,7 @@ const IntegrationHelpPanel = ({ category }: IntegrationHelpPanelProps) => {
           title: 'Email Marketing Integrations',
           description: 'Connect your email marketing platforms to automate campaigns and analyze engagement.',
           links: [
-            { title: 'Email integration guide', url: '/integrations/documentation#email' },
+            { title: 'Email integration guide', url: '/integration-documentation#email' },
             { title: 'Mailchimp API documentation', url: 'https://mailchimp.com/developer/' },
             { title: 'SendGrid API documentation', url: 'https://docs.sendgrid.com/api-reference' }
           ]
@@ -27,7 +27,7 @@ const IntegrationHelpPanel = ({ category }: IntegrationHelpPanelProps) => {
           title: 'CRM Integrations',
           description: 'Sync customer data between your CRM system and platform to provide unified insights.',
           links: [
-            { title: 'CRM integration guide', url: '/integrations/documentation#crm' },
+            { title: 'CRM integration guide', url: '/integration-documentation#crm' },
             { title: 'Salesforce API documentation', url: 'https://developer.salesforce.com/docs' },
             { title: 'HubSpot API documentation', url: 'https://developers.hubspot.com/docs/api/overview' }
           ]
@@ -37,7 +37,7 @@ const IntegrationHelpPanel = ({ category }: IntegrationHelpPanelProps) => {
           title: 'ERP Integrations',
           description: 'Connect with your ERP system to streamline operations and enhance decision making.',
           links: [
-            { title: 'ERP integration guide', url: '/integrations/documentation#erp' },
+            { title: 'ERP integration guide', url: '/integration-documentation#erp' },
             { title: 'SAP API documentation', url: 'https://developers.sap.com/' },
             { title: 'NetSuite API documentation', url: 'https://docs.oracle.com/en/cloud/saas/netsuite/index.html' }
           ]
@@ -47,9 +47,9 @@ const IntegrationHelpPanel = ({ category }: IntegrationHelpPanelProps) => {
           title: 'Database Connections',
           description: 'Configure connections to external databases for data import, export, and synchronization.',
           links: [
-            { title: 'Database integration guide', url: '/integrations/documentation#database' },
-            { title: 'PostgreSQL connection guide', url: '/integrations/documentation#postgres' },
-            { title: 'MySQL connection guide', url: '/integrations/documentation#mysql' }
+            { title: 'Database integration guide', url: '/integration-documentation#database' },
+            { title: 'PostgreSQL connection guide', url: '/integration-documentation#postgres' },
+            { title: 'MySQL connection guide', url: '/integration-documentation#mysql' }
           ]
         };
       default:
@@ -57,9 +57,9 @@ const IntegrationHelpPanel = ({ category }: IntegrationHelpPanelProps) => {
           title: 'Additional Services',
           description: 'Connect to various third-party services to extend platform functionality.',
           links: [
-            { title: 'Services integration guide', url: '/integrations/documentation#services' },
-            { title: 'Custom API integration', url: '/integrations/documentation#custom-api' },
-            { title: 'Webhooks configuration', url: '/integrations/documentation#webhooks' }
+            { title: 'Services integration guide', url: '/integration-documentation#services' },
+            { title: 'Custom API integration', url: '/integration-documentation#custom-api' },
+            { title: 'Webhooks configuration', url: '/integration-documentation#webhooks' }
           ]
         };
     }
@@ -111,7 +111,7 @@ const IntegrationHelpPanel = ({ category }: IntegrationHelpPanelProps) => {
           
           <div className="pt-2">
             <Link 
-              to="/integrations/documentation" 
+              to="/integration-documentation" 
               className="text-sm text-primary hover:underline flex items-center"
             >
               <FileText className="mr-1.5 h-3.5 w-3.5" />
