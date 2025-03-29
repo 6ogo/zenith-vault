@@ -34,7 +34,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   };
 
   return (
-    <header className="h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950 sticky top-0 w-full z-40">
+    <header className="h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950 w-full z-40">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"

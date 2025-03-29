@@ -1,11 +1,11 @@
 
-import React from "react";
+import React, { forwardRef } from "react";
 import { Link } from "react-router-dom";
 import ZenithLogo from "../common/ZenithLogo";
 import { scrollToTop } from "@/utils/scrollUtils";
 import { useToast } from "@/hooks/use-toast";
 
-const Footer = () => {
+const Footer = forwardRef<HTMLElement>((props, ref) => {
   const { toast } = useToast();
   
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -21,7 +21,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="w-full bg-background border-t border-border py-8 px-4 md:px-6 mt-auto">
+    <footer ref={ref} className="w-full bg-background border-t border-border py-8 px-4 md:px-6">
       <div className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
@@ -74,6 +74,8 @@ const Footer = () => {
       </div>
     </footer>
   );
-};
+});
+
+Footer.displayName = "Footer";
 
 export default Footer;
