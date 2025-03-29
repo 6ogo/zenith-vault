@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,9 +16,10 @@ import {
 
 interface HeaderProps {
   toggleSidebar: () => void;
+  className?: string;
 }
 
-const Header = ({ toggleSidebar }: HeaderProps) => {
+const Header = ({ toggleSidebar, className }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
@@ -34,7 +34,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   };
 
   return (
-    <header className="h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950 w-full z-40">
+    <header className={`h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950 w-full z-40 ${className || ''}`}>
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"

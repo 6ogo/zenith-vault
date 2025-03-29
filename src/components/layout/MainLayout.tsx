@@ -19,46 +19,40 @@ const MainLayout = () => {
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header - fixed at top */}
-      <Header toggleSidebar={toggleSidebar} />
+      {/* Fixed header */}
+      <Header toggleSidebar={toggleSidebar} className="fixed top-0 left-0 right-0 z-40" />
       
-      {/* Content area (between header and footer) */}
-      <div className="flex flex-1 pt-16"> {/* Add pt-16 to account for fixed header height */}
+      {/* Content area - with padding to account for fixed header */}
+      <div className="flex flex-1 mt-16"> {/* 16 = 4rem (header height) */}
         {/* Mobile sidebar */}
-        <div
-          className={`fixed inset-0 z-30 transform md:hidden ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } transition-transform duration-300 ease-in-out`}
-        >
+        <div className={`fixed inset-0 z-30 transform md:hidden ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } transition-transform duration-300 ease-in-out`}>
           <div className="relative h-full w-72 max-w-xs">
             <div className="h-full">
               <Sidebar isCollapsed={false} onToggleCollapse={toggleSidebarCollapse} />
             </div>
-            <div
-              className="absolute inset-0 -right-10 w-screen bg-black/50"
-              onClick={toggleSidebar}
-            ></div>
+            <div className="absolute inset-0 -right-10 w-screen bg-black/50"
+              onClick={toggleSidebar}></div>
           </div>
         </div>
         
-        {/* Desktop sidebar - fixed position with full height */}
-        <div className={`hidden md:block fixed top-0 left-0 h-full z-20 pt-16 transition-all duration-300 ${
+        {/* Desktop sidebar - sticky with negative top */}
+        <div className={`hidden md:block sticky top-0 h-screen z-20 transition-all duration-300 ${
           sidebarCollapsed ? "w-16" : "w-72"
         }`}>
           <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
         
         {/* Main content */}
-        <div className={`flex-1 ${
-          sidebarCollapsed ? "md:ml-16" : "md:ml-72"
-        }`}>
+        <div className="flex-1">
           <main className="p-4 md:p-6 w-full overflow-x-auto">
             <Outlet />
           </main>
         </div>
       </div>
       
-      {/* Footer - completely outside the main area, full width */}
+      {/* Footer - completely outside the content area */}
       <Footer ref={footerRef} />
     </div>
   );
