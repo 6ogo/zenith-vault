@@ -58,17 +58,15 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
     }
 
     void main() {
-        // Enhanced color palette with more vibrant colors
+        // Specific color palette as requested
         vec3 primaryColor = vec3(0.0, 0.2, 0.4);     // Deep Blue (#003366)
         vec3 accentColor = vec3(0.0, 0.8, 0.4);      // Bright Green (#00CC66)
-        vec3 secondaryAccent = vec3(0.0, 0.5, 0.8);  // Sky Blue (#0080CC)
-        vec3 tertiaryAccent = vec3(0.8, 0.3, 0.0);   // Orange Accent (#CC5000)
-        vec3 highlightColor = mix(primaryColor, accentColor, 0.6); // Enhanced blend
+        vec3 highlightColor = mix(primaryColor, accentColor, 0.5); // Blend between primary and accent
         vec3 outlineColor = accentColor;             // Bright Green outlines
         vec3 bgColor = vec3(0.94, 0.94, 0.94);       // Light Gray (#F0F0F0)
         
-        // Smaller grid size for higher quality visualization
-        float gridSize = 24.0; // Reduced from 32 for larger squares
+        // Smaller grid size for more detailed data flow visualization
+        float gridSize = 32.0;
         
         // More dynamic movement
         float timeScale = 0.12;
@@ -81,11 +79,11 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         
         // Enhanced randomization for more natural data flow
         float rand = random(cell);
-        float randSize = random(cell + 0.7) * 0.25 + 0.2; // Increased size by ~25%
+        float randSize = random(cell + 0.7) * 0.2 + 0.15;
         
-        // Data packet shapes - larger squares
-        float boxWidth = randSize * 0.8;  // Increased from 0.7
-        float boxHeight = randSize * 0.6; // Increased from 0.5
+        // Data packet shapes
+        float boxWidth = randSize * 0.7;
+        float boxHeight = randSize * 0.5;
         float box = smoothStep(-boxWidth, -boxWidth + 0.01, cellPos.x) * 
                    smoothStep(boxWidth - 0.01, boxWidth, -cellPos.x) *
                    smoothStep(-boxHeight, -boxHeight + 0.01, cellPos.y) * 
@@ -96,32 +94,20 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         float pulse = sin(uTime * pulseSpeed + rand * 6.28) * 0.5 + 0.5;
         
         // Enhanced data streams with clearer flow patterns
-        float dataStream = step(0.65, random(floor(cell * 0.15))); // Slightly increased frequency
-        float dataActivity = step(0.42, rand) * dataStream; // More active cells
+        float dataStream = step(0.68, random(floor(cell * 0.15))); // Moderate frequency of streams
+        float dataActivity = step(0.45, rand) * dataStream; // Active cells
         float streamPulse = sin(uTime * 2.0 + vPosition.y * 12.0) * 0.5 + 0.5;
         
         // More vibrant color blending
-        vec3 baseColor = mix(primaryColor, accentColor * 0.6, 0.3);
-        
-        // Add color variation based on position and random values
-        float colorVariation = random(cell * 0.5 + uTime * 0.01);
-        vec3 activeColor;
-        
-        if (colorVariation < 0.33) {
-            activeColor = mix(accentColor, secondaryAccent, rand * 0.8);
-        } else if (colorVariation < 0.66) {
-            activeColor = mix(secondaryAccent, highlightColor, rand * 0.7);
-        } else {
-            // Occasionally add orange highlights for contrast
-            activeColor = mix(accentColor, tertiaryAccent, rand * 0.5);
-        }
+        vec3 baseColor = mix(primaryColor, accentColor * 0.6, 0.25);
+        vec3 activeColor = mix(accentColor, highlightColor, rand * 0.7 + 0.3);
         
         float activity = dataActivity * streamPulse;
-        vec3 finalColor = mix(baseColor, activeColor, min(1.0, activity + pulse * 0.6));
+        vec3 finalColor = mix(baseColor, activeColor, min(1.0, activity + pulse * 0.5));
         
         // Enhanced connecting lines for better flow visualization
-        float lineWidth = 0.025; // Thicker lines
-        float lineOutlineWidth = 0.035; // Width of line outlines
+        float lineWidth = 0.02; // Slightly thicker lines
+        float lineOutlineWidth = 0.03; // Width of line outlines
         float lineY = abs(cellPos.y);
         float lineX = abs(cellPos.x);
         float dataLine = 0.0;
@@ -133,13 +119,13 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
             float verticalLine = smoothStep(lineWidth, 0.0, lineX) * step(abs(cellPos.y), 0.4);
             dataLine = max(horizontalLine, verticalLine);
             
-            // Random pattern for outlines - increased to 40% of lines get outlines
+            // Random pattern for outlines - only about 30% of lines get outlines
             float outlineRandomizer = random(cell * 1.5 + 0.42);
-            bool shouldDrawOutline = outlineRandomizer > 0.6; // Changed from 0.7
+            bool shouldDrawOutline = outlineRandomizer > 0.7;
             
             if (shouldDrawOutline) {
                 // Create interesting patterns for the outlines
-                float patternType = floor(random(cell + 0.789) * 4.0); // 0, 1, 2, or 3 (added one more pattern)
+                float patternType = floor(random(cell + 0.789) * 3.0); // 0, 1, or 2
                 
                 if (patternType < 1.0) {
                     // Pattern 1: Dashed outlines
@@ -155,67 +141,39 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
                     float horizontalOutline = smoothStep(lineOutlineWidth, lineWidth, lineY) * step(abs(cellPos.x), 0.42) * flowFactor;
                     float verticalOutline = smoothStep(lineOutlineWidth, lineWidth, lineX) * step(abs(cellPos.y), 0.42) * flowFactor;
                     dataLineOutline = max(horizontalOutline, verticalOutline);
-                } else if (patternType < 3.0) {
+                } else {
                     // Pattern 3: Corner outlines only
                     float cornerFactor = step(0.25, abs(cellPos.x)) * step(0.25, abs(cellPos.y));
                     float horizontalOutline = smoothStep(lineOutlineWidth, lineWidth, lineY) * step(abs(cellPos.x), 0.42) * cornerFactor;
                     float verticalOutline = smoothStep(lineOutlineWidth, lineWidth, lineX) * step(abs(cellPos.y), 0.42) * cornerFactor;
                     dataLineOutline = max(horizontalOutline, verticalOutline);
-                } else {
-                    // Pattern 4: Rainbow pulse effect (new)
-                    float rainbowPulse = sin(uTime * 3.0 + cellPos.x * 3.0 - cellPos.y * 3.0) * 0.5 + 0.5;
-                    float horizontalOutline = smoothStep(lineOutlineWidth, lineWidth, lineY) * step(abs(cellPos.x), 0.45);
-                    float verticalOutline = smoothStep(lineOutlineWidth, lineWidth, lineX) * step(abs(cellPos.y), 0.45);
-                    dataLineOutline = max(horizontalOutline, verticalOutline) * rainbowPulse;
-                    
-                    // For this pattern, use more varied colors
-                    randomOutlineColor = mix(secondaryAccent, tertiaryAccent, rainbowPulse);
                 }
             }
             
-            // Add random glowing nodes at line intersections (slightly more of them)
-            float intersection = step(0.96, random(cell * 0.3)) * 
+            // Add random glowing nodes at line intersections (fewer of them)
+            float intersection = step(0.975, random(cell * 0.3)) * 
                                step(lineWidth * 1.5, abs(lineY)) * 
                                step(lineWidth * 1.5, abs(lineX)) * 
-                               step(abs(cellPos.x), 0.12) * 
-                               step(abs(cellPos.y), 0.12);
+                               step(abs(cellPos.x), 0.1) * 
+                               step(abs(cellPos.y), 0.1);
                                
-            dataLineOutline = max(dataLineOutline, intersection * (sin(uTime * 3.0 + rand * 10.0) * 0.5 + 1.8));
+            dataLineOutline = max(dataLineOutline, intersection * (sin(uTime * 3.0 + rand * 10.0) * 0.5 + 1.5));
         }
         
         // Enhanced edge glow for better visibility
-        float edgeThickness = 0.026; // Thicker edges
+        float edgeThickness = 0.023; // Slightly thicker edges
         float edge = (1.0 - smoothStep(boxWidth - edgeThickness, boxWidth, abs(cellPos.x))) * 
                     (step(-boxWidth, cellPos.x) * step(cellPos.x, boxWidth)) +
                     (1.0 - smoothStep(boxHeight - edgeThickness, boxHeight, abs(cellPos.y))) * 
                     (step(-boxHeight, cellPos.y) * step(cellPos.y, boxHeight));
         edge = min(edge, 1.0);
         
-        // Dynamic edge colors based on position
-        vec3 edgeColor;
-        float edgeColorSelector = random(cell + 0.31 + uTime * 0.01);
-        
-        if (edgeColorSelector < 0.4) {
-            edgeColor = mix(highlightColor, vec3(1.0), 0.4) * (1.0 + pulse * 0.5);
-        } else if (edgeColorSelector < 0.7) {
-            edgeColor = mix(secondaryAccent, vec3(1.0), 0.3) * (1.0 + pulse * 0.5);
-        } else {
-            edgeColor = mix(tertiaryAccent, vec3(1.0), 0.3) * (1.0 + pulse * 0.5);
-        }
-        
+        vec3 edgeColor = mix(highlightColor, vec3(1.0), 0.4) * (1.0 + pulse * 0.5);
         vec3 lineColor = mix(accentColor * 0.8, highlightColor, streamPulse);
         
-        // Random outlines on lines with varied intensity and colors
-        float randomOutlineIntensity = random(cell + 0.68) * 3.0; // Increased intensity
+        // Random bright green outlines on some lines with varied intensity
+        float randomOutlineIntensity = random(cell + 0.68) * 2.5;
         vec3 randomOutlineColor = outlineColor;
-        
-        // Occasionally use different colors for outlines
-        float outlineColorSelector = random(cell + 0.5);
-        if (outlineColorSelector > 0.7) {
-            randomOutlineColor = secondaryAccent;
-        } else if (outlineColorSelector > 0.4) {
-            randomOutlineColor = mix(outlineColor, secondaryAccent, 0.5);
-        }
         
         // Final color composition
         finalColor = mix(finalColor, edgeColor, edge * 0.9);
@@ -223,7 +181,7 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         finalColor = mix(finalColor, randomOutlineColor, dataLineOutline * randomOutlineIntensity);
         
         // Increased overall opacity for better visibility
-        float alpha = max(box * (0.85 + activity * 0.35), max(dataLine * 0.7, dataLineOutline * 0.9) * dataStream);
+        float alpha = max(box * (0.8 + activity * 0.3), max(dataLine * 0.6, dataLineOutline * 0.8) * dataStream);
         
         outColor = vec4(finalColor, alpha);
     }
