@@ -9,7 +9,7 @@ import Service from './pages/Service';
 import Integrations from './pages/Integrations';
 import Settings from './pages/Settings';
 import Login from './pages/auth/Login';
-import SignUp from './pages/auth/SignUp';
+import SignUp from './pages/auth/Signup';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
