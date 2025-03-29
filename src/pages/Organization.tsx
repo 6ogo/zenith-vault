@@ -92,7 +92,8 @@ const Organization = () => {
           role,
           status,
           joined_at,
-          profiles:user_id(full_name, id)
+          user_id,
+          profiles:user_id(id, full_name)
         `)
         .eq('organization_id', organizationId)
         .eq('status', 'pending');
@@ -126,7 +127,8 @@ const Organization = () => {
           role,
           status,
           joined_at,
-          profiles:user_id(full_name, id)
+          user_id,
+          profiles:user_id(id, full_name)
         `)
         .eq('organization_id', organizationId)
         .eq('status', 'active');
