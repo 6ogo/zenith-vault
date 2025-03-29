@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +30,6 @@ const Organization = () => {
   const fetchOrganizationData = async () => {
     setOrgLoading(true);
     try {
-      // Get user's organization membership
       const { data: memberData, error: memberError } = await supabase
         .from('organization_members')
         .select('organization_id, role, status')
@@ -39,17 +37,16 @@ const Organization = () => {
         .single();
       
       if (memberError) {
-        if (memberError.code !== 'PGRST116') { // Not found error
+        if (memberError.code !== 'PGRST116') {
           throw memberError;
         }
         setOrgLoading(false);
-        return; // No organization membership
+        return;
       }
       
       const isUserAdmin = memberData.role === 'admin';
       setIsAdmin(isUserAdmin);
       
-      // Get organization details
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .select('*')
@@ -61,12 +58,10 @@ const Organization = () => {
       setOrganization(orgData);
       setOrgName(orgData.name);
       
-      // If admin, fetch pending approvals and all members
       if (isUserAdmin) {
         await fetchPendingApprovals(memberData.organization_id);
         await fetchOrganizationMembers(memberData.organization_id);
       } else {
-        // For regular users, just fetch active members
         await fetchOrganizationMembers(memberData.organization_id);
       }
     } catch (error: any) {
@@ -83,7 +78,6 @@ const Organization = () => {
 
   const fetchPendingApprovals = async (organizationId: string) => {
     try {
-      // Get pending organization members
       const { data, error } = await supabase
         .from('organization_members')
         .select(`
@@ -92,19 +86,17 @@ const Organization = () => {
           role,
           status,
           joined_at,
-          user_id,
-          profiles:user_id(id, full_name)
+          profiles:profiles!user_id(full_name)
         `)
         .eq('organization_id', organizationId)
         .eq('status', 'pending');
       
       if (error) throw error;
       
-      // Format data for the component
       const formattedPendingMembers = data?.map(member => ({
         id: member.id,
         name: member.profiles?.full_name || 'Unknown',
-        email: 'Email not available', // Email is not available via profiles table
+        email: 'Email not available',
         organization: orgName,
         role: member.role,
         requestedAt: member.joined_at,
@@ -118,7 +110,6 @@ const Organization = () => {
 
   const fetchOrganizationMembers = async (organizationId: string) => {
     try {
-      // Get organization members
       const { data, error } = await supabase
         .from('organization_members')
         .select(`
@@ -127,19 +118,17 @@ const Organization = () => {
           role,
           status,
           joined_at,
-          user_id,
-          profiles:user_id(id, full_name)
+          profiles:profiles!user_id(full_name)
         `)
         .eq('organization_id', organizationId)
         .eq('status', 'active');
       
       if (error) throw error;
       
-      // Format data for the component
       const formattedMembers = data?.map(member => ({
         id: member.id,
         name: member.profiles?.full_name || 'Unknown',
-        email: 'Email not available', // Email is not available via profiles table
+        email: 'Email not available',
         role: member.role,
         status: member.status,
         joinedAt: member.joined_at,
@@ -150,7 +139,7 @@ const Organization = () => {
       console.error('Error fetching organization members:', error);
     }
   };
-  
+
   const handleUpdateOrg = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -165,7 +154,6 @@ const Organization = () => {
     
     setLoading(true);
     try {
-      // For admins, allow updating organization name
       const { error } = await supabase
         .from('organizations')
         .update({ name: orgName, updated_at: new Date().toISOString() })
@@ -188,11 +176,10 @@ const Organization = () => {
       setLoading(false);
     }
   };
-  
+
   const handleApproveUser = async (id: string) => {
     setLoading(true);
     try {
-      // Update the member status to active
       const { error } = await supabase
         .from('organization_members')
         .update({ status: 'active' })
@@ -200,7 +187,6 @@ const Organization = () => {
       
       if (error) throw error;
       
-      // Refresh data
       if (organization) {
         await fetchPendingApprovals(organization.id);
         await fetchOrganizationMembers(organization.id);
@@ -221,11 +207,10 @@ const Organization = () => {
       setLoading(false);
     }
   };
-  
+
   const handleRejectUser = async (id: string) => {
     setLoading(true);
     try {
-      // Delete the member record
       const { error } = await supabase
         .from('organization_members')
         .delete()
@@ -233,7 +218,6 @@ const Organization = () => {
       
       if (error) throw error;
       
-      // Refresh pending approvals
       if (organization) {
         await fetchPendingApprovals(organization.id);
       }
@@ -255,11 +239,10 @@ const Organization = () => {
       setLoading(false);
     }
   };
-  
+
   const handleChangeRole = async (id: string, newRole: string) => {
     setLoading(true);
     try {
-      // Update the member role
       const { error } = await supabase
         .from('organization_members')
         .update({ role: newRole })
@@ -267,7 +250,6 @@ const Organization = () => {
       
       if (error) throw error;
       
-      // Update local state
       setMembers(members.map(member => 
         member.id === id 
           ? { ...member, role: newRole } 
@@ -289,11 +271,10 @@ const Organization = () => {
       setLoading(false);
     }
   };
-  
+
   const handleRemoveMember = async (id: string) => {
     setLoading(true);
     try {
-      // Remove the member from the organization
       const { error } = await supabase
         .from('organization_members')
         .delete()
@@ -301,7 +282,6 @@ const Organization = () => {
       
       if (error) throw error;
       
-      // Update local state
       setMembers(members.filter(member => member.id !== id));
       
       toast({
