@@ -1,235 +1,149 @@
+import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { TwoFactorVerification } from '@/components/auth/TwoFactorVerification';
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from "@/components/ui/use-toast"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, EyeOff, Eye, Linkedin } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Separator } from "@/components/ui/separator";
+const loginSchema = z.object({
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  password: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }),
+});
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [linkedinLoading, setLinkedinLoading] = useState(false);
+export default function Login() {
+  const { signIn, signInWithGoogle, signInWithLinkedIn, isLoading, isVerifying2FA } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle, signInWithLinkedIn, user } = useAuth();
+  const { toast } = useToast()
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
-    }
-  }, [user, navigate]);
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleSubmit = async (values) => {
+    if (isLoading) return;
+
+    const { error, mfaRequired } = await signIn(values.email, values.password);
     
-    if (!email || !password) {
+    if (error) {
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: "Login failed",
+        description: error.message,
         variant: "destructive",
-      });
+      })
       return;
     }
     
-    setIsLoading(true);
-    
-    try {
-      const { error } = await signIn(email, password);
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Success",
-        description: "Login successful! Redirecting to dashboard...",
-      });
-      
-      navigate("/dashboard");
-    } catch (error: any) {
-      console.error("Login error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to login. Please check your credentials.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Note: If mfaRequired is true, the isVerifying2FA state in AuthContext will be set to true
+    // and the component will render the TwoFactorVerification component
   };
 
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
-    
-    try {
-      const { error } = await signInWithGoogle();
-      
-      if (error) {
-        throw error;
-      }
-    } catch (error: any) {
-      console.error("Google login error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to login with Google. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
-  const handleLinkedInLogin = async () => {
-    setLinkedinLoading(true);
-    
-    try {
-      const { error } = await signInWithLinkedIn();
-      
-      if (error) {
-        throw error;
-      }
-    } catch (error: any) {
-      console.error("LinkedIn login error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to login with LinkedIn. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLinkedinLoading(false);
-    }
-  };
+  // If 2FA verification is required, show the verification screen
+  if (isVerifying2FA) {
+    return <TwoFactorVerification />;
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center text-primary">Sign In</CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access your account
+    <div className="grid h-screen place-items-center">
+      <Card className="w-[350px]">
+        <CardHeader>
+          <CardTitle>Login</CardTitle>
+          <CardDescription>
+            Enter your email and password to login
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
+        <CardContent className="grid gap-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="grid gap-4">
+            <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  disabled={isLoading}
-                />
-              </div>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                {...form.register("email")}
+              />
+              {form.formState.errors.email && (
+                <p className="text-red-500 text-sm">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link 
-                  to="/auth/forgot-password" 
-                  className="text-sm font-medium text-secondary hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
-                  disabled={isLoading}
+                  placeholder="Enter your password"
+                  {...form.register("password")}
                 />
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-10 w-10 text-muted-foreground"
-                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  onClick={togglePasswordVisibility}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+                  {showPassword ? "Hide" : "Show"}
+                </button>
               </div>
+              {form.formState.errors.password && (
+                <p className="text-red-500 text-sm">
+                  {form.formState.errors.password.message}
+                </p>
+              )}
             </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-primary hover:bg-primary/90" 
-              disabled={isLoading}
-            >
-              {isLoading ? "Signing in..." : "Sign In"}
+            <Button disabled={isLoading} type="submit">
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
-
-          <div className="relative my-4">
+          <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
+              <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
-
-          <div className="flex flex-col space-y-3">
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full" 
-              onClick={handleGoogleLogin}
-              disabled={googleLoading || linkedinLoading}
-            >
-              {googleLoading ? "Connecting..." : "Sign in with Google"}
-            </Button>
-            
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full flex items-center gap-2" 
-              onClick={handleLinkedInLogin}
-              disabled={linkedinLoading || googleLoading}
-            >
-              <Linkedin className="h-4 w-4" />
-              {linkedinLoading ? "Connecting..." : "Sign in with LinkedIn"}
-            </Button>
+          <div className="grid grid-cols-3 gap-2">
+            <Button onClick={() => signInWithGoogle()} variant="outline">Google</Button>
+            <Button onClick={() => signInWithLinkedIn()} variant="outline">LinkedIn</Button>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="text-center text-sm">
-            Don't have an account?{" "}
-            <Link 
-              to="/auth/signup" 
-              className="text-secondary font-medium hover:underline"
-            >
-              Sign up
-            </Link>
-          </div>
-          <div className="text-center text-sm">
-            <Link 
-              to="/" 
-              className="text-muted-foreground hover:underline"
-            >
-              Back to Home
-            </Link>
-          </div>
+        <CardFooter className="flex flex-col gap-2">
+          <Link to="/auth/forgot-password" className="text-sm text-muted-foreground">
+            Forgot Password?
+          </Link>
+          <Link to="/auth/register" className="text-sm text-muted-foreground">
+            Don't have an account? Register
+          </Link>
         </CardFooter>
       </Card>
     </div>
   );
-};
-
-export default Login;
+}
