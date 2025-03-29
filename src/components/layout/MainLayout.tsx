@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
@@ -34,7 +35,7 @@ const MainLayout = () => {
       <Header toggleSidebar={toggleSidebar} />
       
       {/* Content area */}
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-x-hidden">
         {/* Mobile sidebar */}
         <div className={`fixed inset-0 z-30 transform md:hidden ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -58,8 +59,8 @@ const MainLayout = () => {
           <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
         
-        {/* Main content */}
-        <div className="flex-1">
+        {/* Main content - add overflow-x-hidden to prevent horizontal scroll */}
+        <div className="flex-1 overflow-x-hidden">
           <main className="p-4 md:p-6 w-full overflow-x-auto">
             <Outlet />
           </main>
