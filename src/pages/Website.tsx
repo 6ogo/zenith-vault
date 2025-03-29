@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Plus, ExternalLink, Code, PenTool, Eye, Globe, AlertCircle, CheckCircle, XCircle, Search } from "lucide-react";
+import { Plus, ExternalLink, Code, PenTool, Eye, Globe, AlertCircle, CheckCircle, XCircle, Search, RefreshCw } from "lucide-react";
 import { useDataMode } from "@/contexts/DataModeContext";
 import DataModeToggle from "@/components/dashboard/DataModeToggle";
 
