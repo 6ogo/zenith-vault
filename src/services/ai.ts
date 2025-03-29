@@ -142,11 +142,25 @@ export const ingestKnowledgeBase = async (
 
 /**
  * Query the chatbot with a question
+ * This function handles both simple queries and full request objects
  */
-export const queryChatbot = async (request: ChatbotQueryRequest | ChatbotQueryParams): Promise<ChatbotQueryResponse> => {
+export const queryChatbot = async (
+  requestOrParams: ChatbotQueryRequest | string | { question: string; conversationId?: string; messageHistory?: Array<{role: 'user' | 'assistant', content: string}>; organization_id?: string; service_case_id?: string; }
+): Promise<ChatbotQueryResponse> => {
   try {
+    let requestBody: any;
+    
+    // Handle string input (just a question)
+    if (typeof requestOrParams === 'string') {
+      requestBody = { question: requestOrParams };
+    } 
+    // Handle full request object
+    else {
+      requestBody = requestOrParams;
+    }
+    
     const { data, error } = await supabase.functions.invoke('chatbot-query', {
-      body: request
+      body: requestBody
     });
     
     if (error) throw error;

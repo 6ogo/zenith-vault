@@ -98,15 +98,21 @@ const ChatInterface = ({ className, serviceCaseId, hideHistory }: ChatInterfaceP
       
       if (data && data.length > 0) {
         const formattedMessages = data.map(msg => {
-          // Safely handle metadata which may not exist in some messages
-          const metadata = typeof msg.metadata === 'object' ? msg.metadata : {};
-          return {
+          // Create a base message with required fields
+          const formattedMessage: Message = {
             id: msg.id,
             role: msg.role as 'user' | 'assistant',
             content: msg.content,
             timestamp: new Date(msg.created_at),
-            sources: metadata?.sources || []
+            sources: undefined
           };
+          
+          // If there's a metadata field and it has sources, add them to the message
+          if (msg.metadata && typeof msg.metadata === 'object') {
+            formattedMessage.sources = msg.metadata.sources || undefined;
+          }
+          
+          return formattedMessage;
         });
         
         setMessages(formattedMessages);
