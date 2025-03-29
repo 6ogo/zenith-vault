@@ -40,7 +40,8 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
     try {
       // First get the files
       let query = supabase
-        .from('data_files');
+        .from('data_files')
+        .select();
       
       if (mode === 'my-files') {
         // Files owned by me
@@ -99,6 +100,17 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
 
   const handleDeleteFile = async (fileId: string, filePath: string) => {
     try {
+      // Check if the file exists and belongs to the user
+      const fileToDelete = files.find(file => file.id === fileId);
+      if (!fileToDelete || fileToDelete.owner_id !== user?.id) {
+        toast({
+          title: "Permission denied",
+          description: "You can only delete your own files",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // 1. Delete the file from storage
       const { error: storageError } = await supabase.storage
         .from('datafiles')
@@ -315,87 +327,5 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  }
-
-  function handleDeleteFile(fileId: string, filePath: string) {
-    // Check if the file exists and belongs to the user
-    const fileToDelete = files.find(file => file.id === fileId);
-    if (!fileToDelete || fileToDelete.owner_id !== user?.id) {
-      toast({
-        title: "Permission denied",
-        description: "You can only delete your own files",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Delete the file
-    (async () => {
-      try {
-        // 1. Delete the file from storage
-        const { error: storageError } = await supabase.storage
-          .from('datafiles')
-          .remove([filePath]);
-
-        if (storageError) throw storageError;
-
-        // 2. Delete the metadata from the database
-        const { error: dbError } = await supabase
-          .from('data_files')
-          .delete()
-          .eq('id', fileId);
-
-        if (dbError) throw dbError;
-
-        // 3. Update the UI
-        setFiles(files.filter(file => file.id !== fileId));
-
-        toast({
-          title: "File deleted",
-          description: "The file has been deleted successfully",
-        });
-      } catch (error: any) {
-        console.error("Error deleting file:", error);
-        toast({
-          title: "Delete failed",
-          description: error.message || "Failed to delete file. Please try again.",
-          variant: "destructive",
-        });
-      }
-    })();
-  }
-
-  function handleDownloadFile(filePath: string, fileName: string) {
-    (async () => {
-      try {
-        const { data, error } = await supabase.storage
-          .from('datafiles')
-          .download(filePath);
-
-        if (error) throw error;
-
-        // Create a download link and trigger the download
-        const url = URL.createObjectURL(data);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-
-        toast({
-          title: "Download started",
-          description: "Your file is being downloaded",
-        });
-      } catch (error: any) {
-        console.error("Error downloading file:", error);
-        toast({
-          title: "Download failed",
-          description: error.message || "Failed to download file. Please try again.",
-          variant: "destructive",
-        });
-      }
-    })();
   }
 };
