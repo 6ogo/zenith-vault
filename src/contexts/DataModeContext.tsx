@@ -19,7 +19,7 @@ const initialContext: DataModeContextType = {
 const DataModeContext = createContext<DataModeContextType>(initialContext);
 
 export const DataModeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isRealData, setIsRealData] = useState(false);
+  const [isRealData, setIsRealDataState] = useState(false);
   // Simulate user and organization IDs for filtering data
   const [userId] = useState('demo-user-001');
   const [organizationId] = useState('demo-org-001');
@@ -28,14 +28,18 @@ export const DataModeProvider = ({ children }: { children: React.ReactNode }) =>
   useEffect(() => {
     const storedPreference = localStorage.getItem('zenithDataMode');
     if (storedPreference) {
-      setIsRealData(storedPreference === 'real');
+      setIsRealDataState(storedPreference === 'real');
     }
   }, []);
 
-  // Save preference to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem('zenithDataMode', isRealData ? 'real' : 'demo');
-  }, [isRealData]);
+  // Custom setter that ensures the state is updated and persisted
+  const setIsRealData = (value: boolean) => {
+    setIsRealDataState(value);
+    localStorage.setItem('zenithDataMode', value ? 'real' : 'demo');
+    
+    // Force a reload of the page to ensure all components pick up the new data mode
+    window.location.reload();
+  };
 
   const contextValue = {
     isRealData,

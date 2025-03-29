@@ -21,7 +21,7 @@ const ServiceSolvedCasesPieChart = ({ data, title = "Solved Cases by Agent" }: S
         <CardTitle className="text-md">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
+        <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -32,14 +32,20 @@ const ServiceSolvedCasesPieChart = ({ data, title = "Solved Cases by Agent" }: S
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
-                label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                legendType="circle"
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip formatter={(value) => [`${value} tickets`, 'Solved']} />
-              <Legend />
+              <Legend 
+                layout="horizontal" 
+                verticalAlign="bottom" 
+                align="center"
+                wrapperStyle={{ paddingTop: '20px' }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>

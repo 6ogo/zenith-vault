@@ -3,6 +3,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "./components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
+import { DataModeProvider } from '@/contexts/DataModeContext';
 
 import Index from './pages/Index';
 import About from './pages/About';
@@ -40,154 +41,156 @@ import RolesManagement from './pages/organization/RolesManagement';
 const App = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="zenith-vault-theme">
-      <Toaster />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/faq" element={<FAQ />} />
-        
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/signup" element={<SignUp />} />
-        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-        <Route path="/auth/reset-password" element={<ResetPassword />} />
-        <Route path="/auth/verify-email" element={<VerifyEmail />} />
-        <Route path="/auth/callback" element={<Callback />} />
+      <DataModeProvider>
+        <Toaster />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<FAQ />} />
           
-        {/* Protected Routes */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <MainLayout>
-              <Dashboard />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/profile" 
-          element={
-            <MainLayout>
-              <Profile />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/organization" 
-          element={
-            <MainLayout>
-              <Organization />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/organization/roles" 
-          element={
-            <MainLayout>
-              <RolesManagement />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/settings" 
-          element={
-            <MainLayout>
-              <Settings />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/sales" 
-          element={
-            <MainLayout>
-              <Sales />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/customers" 
-          element={
-            <MainLayout>
-              <Customers />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/service" 
-          element={
-            <MainLayout>
-              <Service />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/marketing" 
-          element={
-            <MainLayout>
-              <Marketing />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/analytics" 
-          element={
-            <MainLayout>
-              <Analytics />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/reports" 
-          element={
-            <MainLayout>
-              <Reports />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/integrations" 
-          element={
-            <MainLayout>
-              <Integrations />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/integration-documentation" 
-          element={
-            <MainLayout>
-              <IntegrationDocumentation />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/data-files" 
-          element={
-            <MainLayout>
-              <DataFiles />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/website" 
-          element={
-            <MainLayout>
-              <Website />
-            </MainLayout>
-          } 
-        />
-        <Route 
-          path="/chatbot-admin" 
-          element={
-            <MainLayout>
-              <ChatbotAdmin />
-            </MainLayout>
-          } 
-        />
-        
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/signup" element={<SignUp />} />
+          <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
+          <Route path="/auth/verify-email" element={<VerifyEmail />} />
+          <Route path="/auth/callback" element={<Callback />} />
+            
+          {/* Protected Routes */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <MainLayout>
+                <Dashboard />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <MainLayout>
+                <Profile />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/organization" 
+            element={
+              <MainLayout>
+                <Organization />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/organization/roles" 
+            element={
+              <MainLayout>
+                <RolesManagement />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <MainLayout>
+                <Settings />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/sales" 
+            element={
+              <MainLayout>
+                <Sales />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/customers" 
+            element={
+              <MainLayout>
+                <Customers />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/service" 
+            element={
+              <MainLayout>
+                <Service />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/marketing" 
+            element={
+              <MainLayout>
+                <Marketing />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/analytics" 
+            element={
+              <MainLayout>
+                <Analytics />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/reports" 
+            element={
+              <MainLayout>
+                <Reports />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/integrations" 
+            element={
+              <MainLayout>
+                <Integrations />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/integration-documentation" 
+            element={
+              <MainLayout>
+                <IntegrationDocumentation />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/data-files" 
+            element={
+              <MainLayout>
+                <DataFiles />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/website" 
+            element={
+              <MainLayout>
+                <Website />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/chatbot-admin" 
+            element={
+              <MainLayout>
+                <ChatbotAdmin />
+              </MainLayout>
+            } 
+          />
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </DataModeProvider>
     </ThemeProvider>
   );
 };
