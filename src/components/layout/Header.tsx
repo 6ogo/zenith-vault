@@ -1,10 +1,9 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { Menu, Bell, Sun, Moon, LogOut, User } from "lucide-react";
-import { useTheme } from "@/components/ThemeProvider";
-import ZenithLogo from "../common/ZenithLogo";
+
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Menu, X, Bell, User, Settings } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,97 +11,71 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
-interface HeaderProps {
-  toggleSidebar: () => void;
+export interface HeaderProps {
   onLogout: () => void;
-  className?: string;
+  toggleSidebar?: () => void;
 }
 
-const Header = ({ toggleSidebar, onLogout, className }: HeaderProps) => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
+const Header: React.FC<HeaderProps> = ({ onLogout, toggleSidebar }) => {
   return (
-    <header className={`h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950 w-full z-40 ${className || ''}`}>
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          className="md:hidden"
-        >
+    <header className="sticky top-0 z-40 w-full border-b bg-background">
+      <div className="container flex h-16 items-center px-4 sm:px-6">
+        <Button variant="ghost" size="icon" className="mr-2 md:hidden" onClick={toggleSidebar}>
           <Menu className="h-5 w-5" />
         </Button>
-        <div className="flex items-center space-x-2">
-          <ZenithLogo width={28} height={28} />
-          <h1 className="text-xl font-bold text-primary hidden md:block">Zenith Vault</h1>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-        >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-        </Button>
-        
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Notifications"
-        >
-          <Bell className="h-5 w-5" />
-        </Button>
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="rounded-full"
-              aria-label="User menu"
-            >
-              <User className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {user && (
-              <>
-                <DropdownMenuItem className="text-sm">
-                  <span className="truncate">{user.email}</span>
+        <div className="flex flex-1 items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Link to="/" className="flex items-center space-x-2">
+              <img src="/logo.svg" alt="Logo" className="h-8 w-8" />
+              <span className="hidden font-bold sm:inline-block">Zenith Platform</span>
+            </Link>
+          </div>
+          <div className="flex items-center space-x-2">
+            <ThemeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full" aria-label="Notifications">
+                  <Bell className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer">
+                  No new notifications
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')}>
-                  Profile Settings
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full" aria-label="User menu">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer" asChild>
+                  <Link to="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" asChild>
+                  <Link to="/settings">
+                    <div className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </div>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem onClick={handleSignOut} className="text-red-500 focus:text-red-500">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Sign out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <DropdownMenuItem className="cursor-pointer" onClick={onLogout}>
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </div>
     </header>
   );
