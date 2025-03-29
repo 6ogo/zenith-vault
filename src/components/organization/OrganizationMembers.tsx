@@ -27,9 +27,15 @@ interface OrganizationMembersProps {
   members?: Member[];
   onChangeRole: (id: string, newRole: string) => void;
   onRemoveMember: (id: string) => void;
+  memberRoleSelector?: React.ReactNode;
 }
 
-const OrganizationMembers = ({ members = [], onChangeRole, onRemoveMember }: OrganizationMembersProps) => {
+const OrganizationMembers = ({ 
+  members = [], 
+  onChangeRole, 
+  onRemoveMember,
+  memberRoleSelector 
+}: OrganizationMembersProps) => {
   // This null check is already being handled by the default parameter, but we'll add an additional check
   // to be extra safe and clear about the intent
   const hasMembers = members && members.length > 0;
@@ -66,6 +72,7 @@ const OrganizationMembers = ({ members = [], onChangeRole, onRemoveMember }: Org
             <TableRow>
               <TableHead>Member</TableHead>
               <TableHead>Role</TableHead>
+              {memberRoleSelector && <TableHead>Role Assignment</TableHead>}
               <TableHead>Status</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead>Actions</TableHead>
@@ -86,6 +93,11 @@ const OrganizationMembers = ({ members = [], onChangeRole, onRemoveMember }: Org
                     {member.role}
                   </Badge>
                 </TableCell>
+                {memberRoleSelector && (
+                  <TableCell>
+                    {memberRoleSelector}
+                  </TableCell>
+                )}
                 <TableCell>
                   <Badge variant={member.status === 'active' ? "success" : "destructive"}>
                     {member.status}

@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import OrganizationMembers from "@/components/organization/OrganizationMembers";
 import PendingApprovals from "@/components/organization/PendingApprovals";
 import { useDataMode } from "@/contexts/DataModeContext";
+import { Link } from 'react-router-dom';
+import { Users, Shield } from 'lucide-react';
 
 // Mock data for organization members
 const MOCK_MEMBERS = [
@@ -246,6 +248,54 @@ const Organization = () => {
                     onCheckedChange={handleRemoveDataModeToggle}
                     disabled={permanentRealData} // Once enabled, can't be disabled
                   />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Role Management</CardTitle>
+              <CardDescription>Configure roles and permissions for users in your organization</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Create custom roles and define granular permissions for different features in the application.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="border rounded-lg p-4 flex items-start space-x-3">
+                    <div className="bg-primary/10 p-2 rounded-full">
+                      <Shield className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Custom Roles</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Create roles with specific access levels to different features
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="border rounded-lg p-4 flex items-start space-x-3">
+                    <div className="bg-primary/10 p-2 rounded-full">
+                      <Users className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">User Assignment</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Assign users to specific roles with appropriate permissions
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="pt-4">
+                  <Button asChild>
+                    <Link to="/organization/roles">
+                      Manage Roles
+                    </Link>
+                  </Button>
                 </div>
               </div>
             </CardContent>

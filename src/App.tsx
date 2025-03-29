@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -35,6 +34,7 @@ import Website from './pages/Website';
 import NotFound from './pages/NotFound';
 import ChatbotAdmin from './pages/ChatbotAdmin';
 import MainLayout from './components/layout/MainLayout';
+import RolesManagement from './pages/Organization/RolesManagement';
 
 const App = () => {
   return (
@@ -77,6 +77,14 @@ const App = () => {
           element={
             <MainLayout>
               <Organization />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/organization/roles" 
+          element={
+            <MainLayout>
+              <RolesManagement />
             </MainLayout>
           } 
         />
