@@ -1,5 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DataModeContextType {
   isRealData: boolean;
@@ -20,31 +22,53 @@ const DataModeContext = createContext<DataModeContextType>(initialContext);
 
 export const DataModeProvider = ({ children }: { children: React.ReactNode }) => {
   const [isRealData, setIsRealDataState] = useState(false);
-  // Simulate user and organization IDs for filtering data
-  const [userId] = useState('demo-user-001');
-  const [organizationId] = useState('demo-org-001');
+  // Get the real user ID if available
+  const { user } = useAuth();
+  
+  // Use real user ID or fallback to demo ID
+  const [userId] = useState(() => user?.id || 'demo-user-001');
+  const [organizationId] = useState('demo-org-001'); // This would come from user's organization in a real app
 
   // Load preference from localStorage on mount
   useEffect(() => {
     const storedPreference = localStorage.getItem('zenithDataMode');
-    if (storedPreference) {
+    console.log('Stored data mode preference:', storedPreference);
+    
+    // Check if permanent real data is enabled
+    const permanentRealData = localStorage.getItem('permanentRealData') === 'true';
+    
+    if (permanentRealData) {
+      console.log('Permanent real data mode is enabled');
+      setIsRealDataState(true);
+    } else if (storedPreference) {
       setIsRealDataState(storedPreference === 'real');
     }
   }, []);
 
   // Custom setter that ensures the state is updated and persisted
   const setIsRealData = (value: boolean) => {
+    console.log('Setting data mode to:', value ? 'real' : 'demo');
     setIsRealDataState(value);
     localStorage.setItem('zenithDataMode', value ? 'real' : 'demo');
     
+    toast({
+      title: value ? "Using real data" : "Using demo data",
+      description: value ? 
+        "The application is now showing real data from your connected systems." : 
+        "The application is now showing demo data for demonstration purposes.",
+      duration: 3000
+    });
+    
     // Force a reload of the page to ensure all components pick up the new data mode
-    window.location.reload();
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   const contextValue = {
     isRealData,
     setIsRealData,
-    userId,
+    userId: user?.id || userId,
     organizationId
   };
 

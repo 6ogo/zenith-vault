@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -63,6 +64,7 @@ const Profile = () => {
       if (!user) return;
       
       try {
+        console.log('Fetching profile for user:', user.id);
         // Fetch user profile data
         const { data, error } = await supabase
           .from('profiles')
@@ -74,6 +76,8 @@ const Profile = () => {
           console.error('Error fetching profile:', error);
           return;
         }
+        
+        console.log('Profile data fetched:', data);
         
         // Explicitly type the data with all our custom fields
         const typedData: ProfileData = {
@@ -108,14 +112,18 @@ const Profile = () => {
     if (!user) return;
     
     setIsLoading(true);
+    console.log('Updating profile with values:', values);
+    
     try {
       // Update auth user metadata
-      await updateProfile({
+      const authUpdateResult = await updateProfile({
         fullName: values.fullName,
       });
       
+      console.log('Auth profile update result:', authUpdateResult);
+      
       // Update profile in profiles table
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({
           full_name: values.fullName,
@@ -124,15 +132,34 @@ const Profile = () => {
           phone_number: values.phoneNumber,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating profile in Supabase:', error);
+        throw error;
+      }
+      
+      console.log('Profile updated in Supabase:', data);
+      
+      // Update local state
+      if (profileData) {
+        setProfileData({
+          ...profileData,
+          full_name: values.fullName,
+          job_title: values.jobTitle,
+          department: values.department,
+          phone_number: values.phoneNumber,
+          updated_at: new Date().toISOString(),
+        });
+      }
       
       toast({
         title: 'Profile updated',
         description: 'Your profile has been updated successfully',
       });
     } catch (error: any) {
+      console.error('Profile update error:', error);
       toast({
         title: 'Error updating profile',
         description: error.message || 'An unexpected error occurred',

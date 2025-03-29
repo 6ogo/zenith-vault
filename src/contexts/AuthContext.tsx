@@ -1,4 +1,3 @@
-
 import React, {
   createContext,
   useState,
@@ -264,6 +263,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateProfile = async (details: any) => {
     setIsLoading(true);
     try {
+      console.log("Updating user metadata in auth:", details);
       const { data, error } = await supabase.auth.updateUser({
         data: {
           full_name: details.fullName,
@@ -272,26 +272,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) {
+        console.error("Error updating auth user metadata:", error);
         throw error;
       }
       
+      console.log("Auth user metadata updated:", data);
+      
       if (user) {
+        console.log("Updating profile in profiles table for user:", user.id);
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({
             id: user.id,
             full_name: details.fullName,
             updated_at: new Date().toISOString()
+          }, { 
+            onConflict: 'id',
+            ignoreDuplicates: false
           });
         
         if (profileError) {
           console.warn('Profile table update failed, but auth metadata was updated:', profileError);
+        } else {
+          console.log("Profile updated successfully in profiles table");
         }
       }
       
       return data;
     } catch (error: any) {
-      console.log(error);
+      console.error("Error in updateProfile:", error);
       throw error;
     } finally {
       setIsLoading(false);
