@@ -34,7 +34,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Demo organization data
 const organizationData = {
   name: "Acme Corporation",
   plan: "Enterprise",
@@ -44,7 +43,6 @@ const organizationData = {
   logo: "",
 };
 
-// Demo members data
 const membersData = [
   {
     id: "user-001",
@@ -93,7 +91,6 @@ const membersData = [
   },
 ];
 
-// Demo roles data
 const rolesData = [
   {
     id: "role-001",
@@ -157,7 +154,6 @@ const rolesData = [
   }
 ];
 
-// Demo sidebar apps data
 const sidebarAppsData = [
   { id: "app-001", name: "Dashboard", enabled: true, icon: "LayoutDashboard", visibleTo: ["All roles"] },
   { id: "app-002", name: "Sales", enabled: true, icon: "BarChart", visibleTo: ["Admin", "Member", "Sales"] },
@@ -177,8 +173,9 @@ const Organization = () => {
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [isAddRoleDialogOpen, setIsAddRoleDialogOpen] = useState(false);
   const [isAddAppDialogOpen, setIsAddAppDialogOpen] = useState(false);
+  const [isRemoveDataModeDialogOpen, setIsRemoveDataModeDialogOpen] = useState(false);
+  const { isRealData, setIsRealData } = useDataMode();
 
-  // Filtered members based on search
   const filteredMembers = membersData.filter(member =>
     member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -207,6 +204,18 @@ const Organization = () => {
       description: "The custom app has been added to the sidebar",
     });
     setIsAddAppDialogOpen(false);
+  };
+
+  const handleRemoveDataModeConfirm = (confirmed: boolean) => {
+    if (confirmed) {
+      setIsRealData(true);
+      localStorage.setItem('zenithDataModeRemoved', 'true');
+      toast({
+        title: "Data mode removed",
+        description: "Your dashboard will now only show real data from your systems.",
+      });
+    }
+    setIsRemoveDataModeDialogOpen(false);
   };
 
   return (
@@ -640,6 +649,27 @@ const Organization = () => {
               </div>
               
               <div className="space-y-4 pt-4 border-t">
+                <h3 className="text-lg font-medium">Data Display Settings</h3>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Remove Data Mode Toggle</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Permanently remove the demo data toggle and only show real data from your systems
+                    </p>
+                  </div>
+                  <Switch 
+                    checked={isRealData && localStorage.getItem('zenithDataModeRemoved') === 'true'} 
+                    onCheckedChange={() => {
+                      if (!isRealData || localStorage.getItem('zenithDataModeRemoved') !== 'true') {
+                        setIsRemoveDataModeDialogOpen(true);
+                      }
+                    }}
+                    disabled={isRealData && localStorage.getItem('zenithDataModeRemoved') === 'true'}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-4 pt-4 border-t">
                 <h3 className="text-lg font-medium">Security Settings</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -696,9 +726,33 @@ const Organization = () => {
               <Button>Save Changes</Button>
             </CardFooter>
           </Card>
+          
+          <Dialog open={isRemoveDataModeDialogOpen} onOpenChange={setIsRemoveDataModeDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Remove Demo Data Mode?</DialogTitle>
+                <DialogDescription>
+                  Have you set up your integrations and are ready to transform your organization?
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <p className="text-sm text-muted-foreground">
+                  This will permanently remove the demo data toggle from your dashboard and will only show real data from your connected systems.
+                </p>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="outline" onClick={() => handleRemoveDataModeConfirm(false)}>
+                  No, we're not completely ready yet
+                </Button>
+                <Button onClick={() => handleRemoveDataModeConfirm(true)}>
+                  Yes, only show our data
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
       </Tabs>
-    </div >
+    </div>
   );
 };
 

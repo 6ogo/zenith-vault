@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useDataMode } from "@/contexts/DataModeContext";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -30,6 +31,7 @@ interface SidebarProps {
 
 const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
   const location = useLocation();
+  const { isRealData } = useDataMode();
 
   const routes = [
     {
