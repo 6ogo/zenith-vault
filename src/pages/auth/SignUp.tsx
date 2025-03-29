@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -118,34 +119,33 @@ const SignUp = () => {
       return;
     }
     
-    if (provider === 'google') {
-      setGoogleLoading(true);
-      try {
-        const { error } = await signInWithGoogle();
+    try {
+      if (provider === 'google') {
+        setGoogleLoading(true);
+        console.log("Attempting to sign in with Google");
+        const { data, error } = await signInWithGoogle();
+        console.log("Google sign in response:", data, error);
+        
         if (error) throw error;
-      } catch (error: any) {
-        console.error("Google signup error:", error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to sign up with Google. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setGoogleLoading(false);
+      } else if (provider === 'linkedin') {
+        setLinkedinLoading(true);
+        console.log("Attempting to sign in with LinkedIn");
+        const { data, error } = await signInWithLinkedIn();
+        console.log("LinkedIn sign in response:", data, error);
+        
+        if (error) throw error;
       }
-    } else if (provider === 'linkedin') {
-      setLinkedinLoading(true);
-      try {
-        const { error } = await signInWithLinkedIn();
-        if (error) throw error;
-      } catch (error: any) {
-        console.error("LinkedIn signup error:", error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to sign up with LinkedIn. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
+    } catch (error: any) {
+      console.error(`${provider} signup error:`, error);
+      toast({
+        title: "Error",
+        description: error.message || `Failed to sign up with ${provider}. Please try again.`,
+        variant: "destructive",
+      });
+    } finally {
+      if (provider === 'google') {
+        setGoogleLoading(false);
+      } else if (provider === 'linkedin') {
         setLinkedinLoading(false);
       }
     }

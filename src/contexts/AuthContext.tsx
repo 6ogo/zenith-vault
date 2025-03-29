@@ -38,7 +38,6 @@ type SignUpDetails = {
   isCreatingOrg?: boolean;
 };
 
-// Create a context for authentication
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuth = () => {
@@ -155,14 +154,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInWithGoogle = async () => {
     setIsLoading(true);
     try {
+      console.log("Starting Google OAuth flow");
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (error) {
+        console.error("Error initiating Google sign in:", error);
         throw error;
       }
 
+      console.log("Google sign in response:", data);
       return data;
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
@@ -175,14 +180,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInWithLinkedIn = async () => {
     setIsLoading(true);
     try {
+      console.log("Starting LinkedIn OAuth flow");
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (error) {
+        console.error("Error initiating LinkedIn sign in:", error);
         throw error;
       }
 
+      console.log("LinkedIn sign in response:", data);
       return data;
     } catch (error: any) {
       console.error("Error signing in with LinkedIn:", error);
