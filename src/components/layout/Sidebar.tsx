@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -98,7 +97,10 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
       "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
       isCollapsed ? "w-16" : "w-64"
     )}>
-      <div className="flex items-center h-16 px-4 border-b border-border">
+      <div className={cn(
+        "flex items-center h-16 px-4 border-b border-border",
+        isCollapsed ? "justify-center" : "justify-start"
+      )}>
         <span className="font-bold text-lg text-white">
           {isCollapsed ? "AC" : "Admin Console"}
         </span>

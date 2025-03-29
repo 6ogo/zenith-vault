@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
@@ -12,6 +11,7 @@ const MainLayout = () => {
   const headerRef = useRef<HTMLElement | null>(null);
   const location = useLocation();
   const [footerHeight, setFooterHeight] = useState(0);
+  const [headerHeight, setHeaderHeight] = useState(0);
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -22,65 +22,63 @@ const MainLayout = () => {
   };
 
   useEffect(() => {
-    const updateFooterHeight = () => {
+    const updateElementHeights = () => {
       if (footerRef.current) {
         setFooterHeight(footerRef.current.offsetHeight);
       }
+      if (headerRef.current) {
+        setHeaderHeight(headerRef.current.offsetHeight);
+      }
     };
 
-    updateFooterHeight();
-    window.addEventListener('resize', updateFooterHeight);
+    updateElementHeights();
+    window.addEventListener('resize', updateElementHeights);
     
     return () => {
-      window.removeEventListener('resize', updateFooterHeight);
+      window.removeEventListener('resize', updateElementHeights);
     };
   }, []);
   
-  // Define styling for the sidebar to ensure consistent behavior across all pages
-  const getSidebarStyle = () => {
-    return {
-      position: "fixed",
-      top: "64px", // height of header (h-16)
-      height: `calc(100vh - 64px)`,
-      overflowY: "auto",
-      maxHeight: `calc(100vh - 64px - ${footerHeight}px)`, // Account for header and footer
-      zIndex: 20
-    } as React.CSSProperties;
-  };
-  
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Regular header - normal flow, not fixed */}
-      <Header ref={headerRef} toggleSidebar={toggleSidebar} className="w-full z-40" />
+      {/* Fixed header at the top */}
+      <Header ref={headerRef} toggleSidebar={toggleSidebar} className="fixed top-0 left-0 w-full z-40" />
       
-      {/* Content area */}
-      <div className="flex flex-1 relative">
-        {/* Mobile sidebar */}
+      {/* Content area with appropriate padding to account for fixed header */}
+      <div className="flex flex-1 relative" style={{ marginTop: `${headerHeight}px` }}>
+        {/* Mobile sidebar - absolute positioning */}
         <div className={`fixed inset-0 z-30 transform md:hidden ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out`}>
+        } transition-transform duration-300 ease-in-out`} style={{ top: `${headerHeight}px` }}>
           <div className="relative h-full w-64 max-w-xs">
             <div className="h-full">
               <Sidebar isCollapsed={false} onToggleCollapse={toggleSidebarCollapse} />
             </div>
-            <div className="absolute inset-0 -right-10 w-screen bg-black/50"
-              onClick={toggleSidebar}></div>
+            <div 
+              className="absolute inset-0 -right-10 w-screen bg-black/50"
+              onClick={toggleSidebar}
+            ></div>
           </div>
         </div>
         
-        {/* Desktop sidebar - fixed with top adjusted to header height */}
+        {/* Desktop sidebar - fixed positioning */}
         <div 
-          style={getSidebarStyle()}
-          className={`hidden md:block transition-all duration-300 ${
+          className={`hidden md:block fixed top-0 left-0 h-screen transition-all duration-300 z-20 ${
             sidebarCollapsed ? "w-16" : "w-64"
           }`}
+          style={{ 
+            top: `${headerHeight}px`, 
+            height: `calc(100vh - ${headerHeight}px)`,
+          }}
         >
-          <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
+          <div className="h-full overflow-auto" style={{ maxHeight: `calc(100vh - ${headerHeight}px)` }}>
+            <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
+          </div>
         </div>
         
-        {/* Main content with margin to account for fixed sidebar */}
+        {/* Main content with margin to account for sidebar */}
         <div className="flex-1">
-          <main className={`p-4 md:p-6 w-full ${
+          <main className={`p-4 md:p-6 w-full transition-all duration-300 ${
             sidebarCollapsed ? "md:ml-16" : "md:ml-64"
           }`}>
             <Outlet />
@@ -88,7 +86,7 @@ const MainLayout = () => {
         </div>
       </div>
       
-      {/* Footer - completely outside the content area */}
+      {/* Footer */}
       <Footer ref={footerRef} />
     </div>
   );
