@@ -4,8 +4,6 @@ project_id = "edpshrimlntytiezfthj"
 [api]
 # Port to use for the API URL.
 port = 54321
-# Enable JWT verification for APIs.
-jwt_verification = false
 # Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
 # endpoints. public and storage are always included.
 schemas = ["public", "storage"]
@@ -18,11 +16,6 @@ max_rows = 1000
 [db]
 # Port to use for the local database URL.
 port = 54322
-# Schemas to shadow into the shadow database. All schemas are shadowed by default.
-shadow_schemas = ["public", "extensions", "storage"]
-# Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
-# endpoints. public and storage are always included.
-exposed_schemas = ["public", "storage"]
 
 [db.pooler]
 enabled = false
@@ -73,10 +66,7 @@ double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
 enable_confirmations = false
 
-# Run local commands after a migration has been applied.
-[hooks]
-post_migration = "supabase functions deploy knowledge-ingestion && supabase functions deploy chatbot-query && supabase functions deploy groq-ai && supabase functions deploy organization-roles"
-
+[functions]
 [functions.knowledge-ingestion]
 verify_jwt = false
 

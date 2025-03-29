@@ -74,10 +74,11 @@ async function handleAction(action: string, data: any, supabase: any) {
       
       console.log(`Fetching roles for organization: ${data.organization_id}`);
       
+      // Use raw SQL query instead of the `from` method with table name
       const { data: roles, error: rolesError } = await supabase
-        .from('org_roles')
-        .select('*')
-        .eq('organization_id', data.organization_id);
+        .rpc('get_organization_roles', {
+          organization_id: data.organization_id
+        });
         
       if (rolesError) {
         console.error("Error fetching roles:", rolesError);
@@ -96,10 +97,11 @@ async function handleAction(action: string, data: any, supabase: any) {
       
       console.log(`Fetching permissions for role: ${data.role_id}`);
       
+      // Use raw SQL query instead of the `from` method with table name
       const { data: permissions, error: permissionsError } = await supabase
-        .from('role_permissions')
-        .select('*')
-        .eq('role_id', data.role_id);
+        .rpc('get_role_permissions', {
+          role_id: data.role_id
+        });
         
       if (permissionsError) {
         console.error("Error fetching permissions:", permissionsError);
@@ -118,11 +120,10 @@ async function handleAction(action: string, data: any, supabase: any) {
       
       console.log(`Updating permissions for role: ${data.role_id}, ${data.permissions.length} permissions`);
       
+      // Execute custom SQL to delete and insert permissions
       // First delete existing permissions
-      const { error: deleteError } = await supabase
-        .from('role_permissions')
-        .delete()
-        .eq('role_id', data.role_id);
+      const deleteQuery = `DELETE FROM role_permissions WHERE role_id = '${data.role_id}'`;
+      const { error: deleteError } = await supabase.rpc('execute_sql', { query: deleteQuery });
         
       if (deleteError) {
         console.error("Error deleting existing permissions:", deleteError);
@@ -131,17 +132,12 @@ async function handleAction(action: string, data: any, supabase: any) {
       
       // Then insert the new ones
       if (data.permissions.length > 0) {
-        const permissionsToInsert = data.permissions.map((permission: any) => ({
-          role_id: data.role_id,
-          feature: permission.feature,
-          can_read: permission.can_read,
-          can_write: permission.can_write,
-          is_hidden: permission.is_hidden
-        }));
+        const insertValues = data.permissions.map((permission: any) => {
+          return `('${data.role_id}', '${permission.feature}', ${permission.can_read}, ${permission.can_write}, ${permission.is_hidden})`;
+        }).join(', ');
         
-        const { error: insertError } = await supabase
-          .from('role_permissions')
-          .insert(permissionsToInsert);
+        const insertQuery = `INSERT INTO role_permissions (role_id, feature, can_read, can_write, is_hidden) VALUES ${insertValues}`;
+        const { error: insertError } = await supabase.rpc('execute_sql', { query: insertQuery });
           
         if (insertError) {
           console.error("Error inserting new permissions:", insertError);
@@ -151,6 +147,80 @@ async function handleAction(action: string, data: any, supabase: any) {
       
       console.log("Permissions updated successfully");
       responseBody = { success: true };
+      break;
+
+    case 'create_role':
+      // Create a new role
+      if (!data.organization_id || !data.name) {
+        throw new Error('Organization ID and role name are required');
+      }
+      
+      console.log(`Creating role ${data.name} for organization: ${data.organization_id}`);
+      
+      // Use RPC function to create role
+      const { data: newRole, error: createRoleError } = await supabase
+        .rpc('create_organization_role', {
+          p_organization_id: data.organization_id,
+          p_name: data.name,
+          p_description: data.description || `${data.name} role`,
+          p_is_system_role: false
+        });
+        
+      if (createRoleError) {
+        console.error("Error creating role:", createRoleError);
+        throw createRoleError;
+      }
+      
+      console.log(`Created role: ${newRole?.id}`);
+      
+      // Create default permissions for the new role
+      const defaultFeatures = [
+        'dashboard', 'sales', 'customers', 'service', 
+        'marketing', 'analytics', 'reports', 'integrations', 
+        'website', 'organization', 'chatbot', 'settings'
+      ];
+      
+      const defaultPermissions = defaultFeatures.map(feature => {
+        return {
+          role_id: newRole.id,
+          feature,
+          can_read: true,
+          can_write: false,
+          is_hidden: false
+        };
+      });
+      
+      // Store default permissions
+      await handleAction('update_role_permissions', {
+        role_id: newRole.id,
+        permissions: defaultPermissions
+      }, supabase);
+      
+      responseBody = newRole;
+      break;
+
+    case 'update_member_role':
+      // Update a member's role
+      if (!data.member_id || !data.role_id) {
+        throw new Error('Member ID and role ID are required');
+      }
+      
+      console.log(`Updating member ${data.member_id} to role ${data.role_id}`);
+      
+      // Use RPC function to update member role
+      const { data: updatedMember, error: updateMemberError } = await supabase
+        .rpc('update_member_role', {
+          p_member_id: data.member_id,
+          p_role_id: data.role_id
+        });
+        
+      if (updateMemberError) {
+        console.error("Error updating member role:", updateMemberError);
+        throw updateMemberError;
+      }
+      
+      console.log("Member role updated successfully");
+      responseBody = { success: true, member: updatedMember };
       break;
 
     default:

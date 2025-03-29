@@ -13,7 +13,7 @@ export function useOrganizationRoles() {
       setLoading(true);
       console.log('Fetching roles for organization:', organizationId);
       
-      // First attempt to use the Supabase Edge Function
+      // Using the Edge Function instead of direct table access
       const functionResponse = await supabase.functions.invoke('organization-roles', {
         body: { 
           action: 'get_organization_roles',
@@ -39,7 +39,7 @@ export function useOrganizationRoles() {
         
         const data = await response.json();
         console.log('Fetched roles:', data);
-        return data;
+        return data as Role[];
       }
       
       console.log('Fetched roles from edge function:', functionResponse.data);
@@ -62,7 +62,7 @@ export function useOrganizationRoles() {
       setLoading(true);
       console.log('Fetching permissions for role:', roleId);
       
-      // First attempt to use the Supabase Edge Function
+      // Using the Edge Function instead of direct table access
       const functionResponse = await supabase.functions.invoke('organization-roles', {
         body: { 
           action: 'get_role_permissions',
@@ -88,7 +88,7 @@ export function useOrganizationRoles() {
         
         const data = await response.json();
         console.log('Fetched permissions:', data);
-        return data;
+        return data as Permission[];
       }
       
       console.log('Fetched permissions from edge function:', functionResponse.data);
@@ -111,7 +111,7 @@ export function useOrganizationRoles() {
       setLoading(true);
       console.log('Updating permissions for role:', roleId, permissions);
       
-      // First attempt to use the Supabase Edge Function
+      // Using the Edge Function instead of direct table access
       const functionResponse = await supabase.functions.invoke('organization-roles', {
         body: { 
           action: 'update_role_permissions',
@@ -168,30 +168,29 @@ export function useOrganizationRoles() {
       setLoading(true);
       console.log('Creating new role:', roleName, 'for organization:', organizationId);
       
-      const { data, error } = await supabase
-        .from('org_roles')
-        .insert({
-          name: roleName,
-          description: description || `${roleName} role`,
+      // Using the Edge Function instead of direct table access
+      const functionResponse = await supabase.functions.invoke('organization-roles', {
+        body: { 
+          action: 'create_role',
           organization_id: organizationId,
-          is_system_role: false
-        })
-        .select()
-        .single();
+          name: roleName,
+          description: description || `${roleName} role`
+        }
+      });
       
-      if (error) {
-        console.error('Error creating role:', error);
-        throw error;
+      if (functionResponse.error) {
+        console.error('Error invoking edge function:', functionResponse.error);
+        throw new Error('Failed to create role');
       }
       
-      console.log('Role created:', data);
+      console.log('Role created:', functionResponse.data);
       
       toast({
         title: 'Success',
         description: `Role "${roleName}" created successfully`,
       });
       
-      return data as Role;
+      return functionResponse.data as Role;
     } catch (error) {
       console.error('Error creating role:', error);
       toast({
@@ -210,14 +209,18 @@ export function useOrganizationRoles() {
       setLoading(true);
       console.log('Updating member role:', memberId, 'to role:', roleId);
       
-      const { error } = await supabase
-        .from('organization_members')
-        .update({ role_id: roleId })
-        .eq('id', memberId);
+      // Using the Edge Function instead of direct table access
+      const functionResponse = await supabase.functions.invoke('organization-roles', {
+        body: { 
+          action: 'update_member_role',
+          member_id: memberId,
+          role_id: roleId
+        }
+      });
       
-      if (error) {
-        console.error('Error updating member role:', error);
-        throw error;
+      if (functionResponse.error) {
+        console.error('Error invoking edge function:', functionResponse.error);
+        throw new Error('Failed to update member role');
       }
       
       toast({
