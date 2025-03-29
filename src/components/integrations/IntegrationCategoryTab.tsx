@@ -4,13 +4,15 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/use-toast';
 import IntegrationSetupWizard from './IntegrationSetupWizard';
-import { Plus, ExternalLink } from 'lucide-react';
+import { Plus, ExternalLink, Link2 } from 'lucide-react';
 
 interface Integration {
   id: string;
   name: string;
   logoUrl: string;
   isCustom?: boolean;
+  description?: string;
+  docsUrl?: string;
 }
 
 interface IntegrationCategoryTabProps {
@@ -64,14 +66,14 @@ const IntegrationCategoryTab = ({
               </CardHeader>
               <CardContent className="p-4 pt-2 pb-2">
                 <p className="text-sm text-muted-foreground">
-                  {integration.isCustom 
+                  {integration.description || (integration.isCustom 
                     ? `Configure a custom ${category.toLowerCase()} integration with our API.` 
-                    : `Connect your ${integration.name} account to enable AI-powered automation.`}
+                    : `Connect your ${integration.name} account to enable AI-powered automation.`)}
                 </p>
               </CardContent>
-              <CardFooter className="p-4 pt-2">
+              <CardFooter className="p-4 pt-2 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                 <Button 
-                  className="w-full" 
+                  className="w-full sm:w-auto" 
                   onClick={() => handleSetupClick(integration)}
                   variant={integration.isCustom ? "outline" : "default"}
                 >
@@ -83,10 +85,22 @@ const IntegrationCategoryTab = ({
                   ) : (
                     <>
                       <Plus className="mr-2 h-4 w-4" />
-                      Quick Connect
+                      Connect
                     </>
                   )}
                 </Button>
+                
+                {integration.docsUrl && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs"
+                    onClick={() => window.open(integration.docsUrl, '_blank')}
+                  >
+                    <Link2 className="mr-1 h-3 w-3" />
+                    Documentation
+                  </Button>
+                )}
               </CardFooter>
             </Card>
           ))}

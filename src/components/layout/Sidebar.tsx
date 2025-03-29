@@ -1,4 +1,3 @@
-
 // src/components/layout/Sidebar.tsx
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -20,7 +19,6 @@ import {
   Database,
   FileUp,
   FileText,
-  PuzzleIcon,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -80,19 +78,9 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
       label: "Data Files",
     },
     {
-      group: "Integration Suite",
-      items: [
-        {
-          path: "/integrations",
-          icon: Gitlab,
-          label: "Integrations",
-        },
-        {
-          path: "/integrations/hub",
-          icon: PuzzleIcon,
-          label: "Integration Hub",
-        }
-      ]
+      path: "/integrations",
+      icon: Gitlab,
+      label: "Integrations",
     },
     {
       path: "/organization",
