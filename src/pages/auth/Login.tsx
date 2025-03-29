@@ -61,7 +61,7 @@ export default function Login() {
     try {
       console.log("Attempting to sign in with email/password");
       await signIn(values.email, values.password);
-      navigate("/dashboard");
+      // If MFA is not required, this will navigate to dashboard
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
@@ -75,22 +75,34 @@ export default function Login() {
   const handleGoogleSignIn = async () => {
     setSocialAuthError(null);
     try {
+      console.log("Attempting to sign in with Google");
       await signInWithGoogle();
       // No navigation here - will be handled by callback
     } catch (error: any) {
       console.error("Google login error:", error);
       setSocialAuthError("Google login failed: " + error.message);
+      toast({
+        title: "Google login failed",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
   const handleLinkedInSignIn = async () => {
     setSocialAuthError(null);
     try {
+      console.log("Attempting to sign in with LinkedIn");
       await signInWithLinkedIn();
       // No navigation here - will be handled by callback
     } catch (error: any) {
       console.error("LinkedIn login error:", error);
       setSocialAuthError("LinkedIn login failed: " + error.message);
+      toast({
+        title: "LinkedIn login failed",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 

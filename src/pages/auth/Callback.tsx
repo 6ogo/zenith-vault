@@ -3,21 +3,44 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
 export default function Callback() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
         console.log("Processing auth callback");
+        
+        // Check for hash fragment in URL which might indicate an error
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const errorDescription = hashParams.get('error_description');
+        
+        if (errorDescription) {
+          console.error("Error in URL hash:", errorDescription);
+          setError(errorDescription);
+          toast({
+            title: "Authentication Error",
+            description: errorDescription,
+            variant: "destructive",
+          });
+          return;
+        }
+        
         // This gets the session from the URL fragment or cookie
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error("Error in auth callback:", error);
           setError(error.message);
+          toast({
+            title: "Authentication Error",
+            description: error.message,
+            variant: "destructive",
+          });
           return;
         }
 
@@ -29,16 +52,26 @@ export default function Callback() {
           }, 500);
         } else {
           console.log("No session found, redirecting to login");
+          toast({
+            title: "Authentication Failed",
+            description: "Unable to retrieve user session",
+            variant: "destructive",
+          });
           navigate('/auth/login');
         }
       } catch (err: any) {
         console.error("Unexpected error in auth callback:", err);
         setError(err.message || 'An unexpected error occurred');
+        toast({
+          title: "Authentication Error",
+          description: err.message || 'An unexpected error occurred',
+          variant: "destructive",
+        });
       }
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   if (error) {
     return (

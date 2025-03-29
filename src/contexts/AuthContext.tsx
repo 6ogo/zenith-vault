@@ -1,3 +1,4 @@
+
 import React, {
   createContext,
   useState,
@@ -158,7 +159,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log("Starting Google OAuth flow");
       
-      // Get the current URL for redirection after auth
+      // Get the full current URL for redirection after auth
       const redirectTo = `${window.location.origin}/auth/callback`;
       console.log("Redirect URL:", redirectTo);
       
@@ -195,7 +196,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log("Starting LinkedIn OAuth flow");
       
-      // Get the current URL for redirection after auth
+      // Get the full current URL for redirection after auth
       const redirectTo = `${window.location.origin}/auth/callback`;
       console.log("Redirect URL:", redirectTo);
       
