@@ -99,7 +99,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
       "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
       isCollapsed ? "w-16" : "w-64"
     )}>
-      <div className="flex items-center h-16 px-4 border-b border-border justify-between">
+      <div className="flex items-center h-12 px-4 border-b border-border justify-between">
         <button
           onClick={onToggleCollapse}
           className="flex items-center justify-between w-full text-sm text-sidebar-foreground hover:text-white transition-colors"
@@ -114,12 +114,10 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
           )}
         </button>
       </div>
-
-      <Separator className="my-2" />
-
+      <Separator className="my-1" />
       <div className="flex flex-col flex-grow overflow-y-auto">
         <ScrollArea className="flex-grow">
-          <div className="p-4">
+          <div className="p-2">
             <nav className="flex flex-col space-y-1">
               {routes.map((route) => (
                 <NavLink
@@ -136,7 +134,9 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
                   }
                 >
                   {isCollapsed ? (
-                    <route.icon className="w-5 h-5" />
+                    <div className="flex items-center justify-center w-full">
+                      <route.icon className="w-5 h-5" />
+                    </div>
                   ) : (
                     <>
                       <route.icon className="w-5 h-5" />
