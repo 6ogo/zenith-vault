@@ -16,7 +16,7 @@ const DataFiles = () => {
   const [activeTab, setActiveTab] = useState("upload");
   const [selectedFile, setSelectedFile] = useState<any>(null);
   const { isRealData } = useDataMode();
-  
+
   // Demo files
   const demoFiles = [
     { id: 1, name: "Sales_Q2_2023.csv", type: "CSV", size: "245 KB", owner: "You", shared: false, created: "2023-06-30" },
@@ -33,7 +33,7 @@ const DataFiles = () => {
       });
       return;
     }
-    
+
     toast({
       title: "File uploaded successfully",
       description: "Your file has been uploaded and is ready for visualization",
@@ -42,7 +42,7 @@ const DataFiles = () => {
   };
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Data Files</h1>
@@ -58,7 +58,7 @@ const DataFiles = () => {
           <TabsTrigger value="browse">My Files</TabsTrigger>
           <TabsTrigger value="shared">Shared Files</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="upload" className="mt-6">
           <Card>
             <CardHeader>
@@ -83,7 +83,7 @@ const DataFiles = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="browse" className="mt-6">
           {isRealData ? (
             <div className="text-center p-8">
@@ -154,7 +154,7 @@ const DataFiles = () => {
             </Card>
           )}
         </TabsContent>
-        
+
         <TabsContent value="shared" className="mt-6">
           {isRealData ? (
             <div className="text-center p-8">

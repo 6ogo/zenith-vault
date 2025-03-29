@@ -65,7 +65,7 @@ const Marketing = () => {
   };
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
@@ -74,7 +74,7 @@ const Marketing = () => {
           </p>
         </div>
       </div>
-
+  
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
