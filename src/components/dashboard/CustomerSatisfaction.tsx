@@ -18,10 +18,6 @@ const CustomerSatisfaction = () => {
       { label: "Very Dissatisfied", percentage: 2, count: 8 },
     ],
   };
-  
-  if (isRealData) {
-    return null; // Don't render the component in real data mode if no data is available
-  }
 
   return (
     <Card className="dashboard-card">

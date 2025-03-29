@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,6 @@ import SalesPipeline from "@/components/dashboard/SalesPipeline";
 import RecentLeads from "@/components/dashboard/RecentLeads";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDataMode } from "@/contexts/DataModeContext";
-import DataModeToggle from "@/components/dashboard/DataModeToggle";
 
 const Sales = () => {
   const { isRealData } = useDataMode();
@@ -22,7 +20,6 @@ const Sales = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <DataModeToggle />
           <Button size="sm" className="font-medium">
             <Plus className="h-4 w-4 mr-1" /> New Lead
           </Button>

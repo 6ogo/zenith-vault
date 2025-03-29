@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, ArrowRight, MessageSquare, Clock, Calendar, CheckCircle, AlertCircle, AlertTriangle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Search, MessageCircle, Mail, Phone, Clock, Plus, ArrowUpRight } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ServiceSolvedCasesPieChart from "@/components/service/ServiceSolvedCasesPieChart";
 import { useDataMode } from "@/contexts/DataModeContext";
-import DataModeToggle from "@/components/dashboard/DataModeToggle";
 
 // Demo ticket data
 const demoTickets = [
@@ -251,13 +253,11 @@ const CustomerService = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState<typeof demoTickets[0] | null>(null);
   const [filteredTickets, setFilteredTickets] = useState(demoTickets);
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("tickets");
 
-  // Filter tickets based on search query and active tab
   React.useEffect(() => {
     let filtered = demoTickets;
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(ticket => 
@@ -268,8 +268,7 @@ const CustomerService = () => {
       );
     }
     
-    // Filter by status
-    if (activeTab !== "all") {
+    if (activeTab !== "tickets") {
       filtered = filtered.filter(ticket => ticket.status === activeTab);
     }
     
@@ -280,9 +279,8 @@ const CustomerService = () => {
     setActiveTab(value);
   };
 
-  // Get counts for each status
   const counts = {
-    all: demoTickets.length,
+    tickets: demoTickets.length,
     open: demoTickets.filter(t => t.status === 'open').length,
     pending: demoTickets.filter(t => t.status === 'pending').length,
     closed: demoTickets.filter(t => t.status === 'closed').length
@@ -294,11 +292,10 @@ const CustomerService = () => {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Customer Service</h1>
           <p className="text-muted-foreground">
-            Manage support tickets and customer inquiries.
+            View and respond to customer support tickets and inquiries
           </p>
         </div>
         <div className="flex gap-3">
-          <DataModeToggle />
           <Button size="sm" className="font-medium">
             <Plus className="h-4 w-4 mr-1" /> New Ticket
           </Button>
@@ -326,12 +323,12 @@ const CustomerService = () => {
       ) : (
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-4 lg:w-[400px]">
-            <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
+            <TabsTrigger value="tickets">All ({counts.tickets})</TabsTrigger>
             <TabsTrigger value="open">Open ({counts.open})</TabsTrigger>
             <TabsTrigger value="pending">Pending ({counts.pending})</TabsTrigger>
             <TabsTrigger value="closed">Closed ({counts.closed})</TabsTrigger>
           </TabsList>
-          <TabsContent value="all" className="mt-4">
+          <TabsContent value="tickets" className="mt-4">
             {renderTicketList(filteredTickets, setSelectedTicket, isRealData)}
           </TabsContent>
           <TabsContent value="open" className="mt-4">
@@ -349,7 +346,6 @@ const CustomerService = () => {
   );
 };
 
-// Helper function to render ticket list
 const renderTicketList = (
   tickets: typeof demoTickets, 
   setSelectedTicket: React.Dispatch<React.SetStateAction<typeof demoTickets[0] | null>>,
@@ -359,7 +355,7 @@ const renderTicketList = (
     return (
       <Card className="dashboard-card p-6">
         <div className="text-center p-8">
-          <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <MessageCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">No tickets available</h3>
           <p className="text-muted-foreground mb-4">
             Connect your support system to view and manage customer tickets.
@@ -435,7 +431,6 @@ const renderTicketList = (
   );
 };
 
-// Helper components for badges
 const StatusBadge = ({ status }: { status: string }) => {
   switch (status) {
     case 'open':
@@ -462,17 +457,11 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
   }
 };
 
-// Ticket detail component
-interface TicketDetailProps {
-  ticket: typeof demoTickets[0];
-  onBack: () => void;
-}
-
-const TicketDetail = ({ ticket, onBack }: TicketDetailProps) => {
+const TicketDetail = ({ ticket, onBack }: { ticket: typeof demoTickets[0], onBack: () => void }) => {
   return (
     <div className="space-y-6">
       <Button variant="outline" onClick={onBack} className="mb-4">
-        <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
+        <ArrowUpRight className="h-4 w-4 mr-2 rotate-180" />
         Back to tickets
       </Button>
       
