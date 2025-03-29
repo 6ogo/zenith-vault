@@ -25,7 +25,7 @@ const IntegrationsHub = () => {
           </p>
         </div>
         <Button asChild>
-          <Link to="/integrations/documentation">
+          <Link to="/integrations-documentation">
             Integration Documentation
           </Link>
         </Button>
