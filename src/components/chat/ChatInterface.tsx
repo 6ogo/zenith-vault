@@ -97,13 +97,17 @@ const ChatInterface = ({ className, serviceCaseId, hideHistory }: ChatInterfaceP
       if (error) throw error;
       
       if (data && data.length > 0) {
-        const formattedMessages = data.map(msg => ({
-          id: msg.id,
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content,
-          timestamp: new Date(msg.created_at),
-          sources: msg.metadata?.sources
-        }));
+        const formattedMessages = data.map(msg => {
+          // Safely handle metadata which may not exist in some messages
+          const metadata = typeof msg.metadata === 'object' ? msg.metadata : {};
+          return {
+            id: msg.id,
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+            timestamp: new Date(msg.created_at),
+            sources: metadata?.sources || []
+          };
+        });
         
         setMessages(formattedMessages);
       } else {

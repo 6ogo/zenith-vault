@@ -78,32 +78,6 @@ export const generateEmbedding = async (text: string): Promise<number[]> => {
   }
 }
 
-export interface ChatbotQueryParams {
-  question: string;
-  conversationId?: string;
-  messageHistory?: Array<{role: 'user' | 'assistant', content: string}>;
-  organization_id?: string;
-  service_case_id?: string;
-}
-
-export const queryChatbot = async (params: ChatbotQueryParams): Promise<AIResponse> => {
-  try {
-    const { data, error } = await supabase.functions.invoke('chatbot-query', {
-      body: params
-    });
-
-    if (error) {
-      console.error('Error calling chatbot service:', error);
-      throw new Error(error.message);
-    }
-
-    return data as AIResponse;
-  } catch (error) {
-    console.error('Error in queryChatbot:', error);
-    throw error;
-  }
-}
-
 export interface KnowledgeBaseEntry {
   title: string;
   content: string;
@@ -169,7 +143,7 @@ export const ingestKnowledgeBase = async (
 /**
  * Query the chatbot with a question
  */
-export const queryChatbot = async (request: ChatbotQueryRequest): Promise<ChatbotQueryResponse> => {
+export const queryChatbot = async (request: ChatbotQueryRequest | ChatbotQueryParams): Promise<ChatbotQueryResponse> => {
   try {
     const { data, error } = await supabase.functions.invoke('chatbot-query', {
       body: request
