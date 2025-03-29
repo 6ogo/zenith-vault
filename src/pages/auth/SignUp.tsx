@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, User, Lock, EyeOff, Eye, Linkedin, Briefcase } from "lucide-react";
+import { Mail, User, Lock, EyeOff, Eye, Linkedin, Briefcase, Building } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
@@ -17,6 +18,7 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [organization, setOrganization] = useState("");
   const [role, setRole] = useState("");
+  const [isCreatingOrg, setIsCreatingOrg] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [linkedinLoading, setLinkedinLoading] = useState(false);
@@ -69,7 +71,7 @@ const SignUp = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await signUp(email, password, fullName, role, organization);
+      const { error } = await signUp(email, password, fullName, role, organization, isCreatingOrg);
       
       if (error) {
         throw error;
@@ -77,7 +79,9 @@ const SignUp = () => {
       
       toast({
         title: "Success",
-        description: "Account created successfully! Please check your email for verification.",
+        description: isCreatingOrg 
+          ? "Account and organization created successfully! Please check your email for verification."
+          : "Account created successfully! Please check your email for verification.",
       });
       
       // Redirect to login after successful signup
@@ -146,6 +150,8 @@ const SignUp = () => {
     { value: "sales", label: "Sales Representative" },
     { value: "service", label: "Customer Service" },
     { value: "marketing", label: "Marketing Manager" },
+    { value: "analyst", label: "Analyst" },
+    { value: "other", label: "Other Role" },
   ];
 
   return (
@@ -216,24 +222,53 @@ const SignUp = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="organization">Organization (Optional)</Label>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="organization">Organization</Label>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="create-organization" 
+                    checked={isCreatingOrg}
+                    onCheckedChange={(checked) => {
+                      setIsCreatingOrg(checked === true);
+                      if (checked === true) {
+                        setRole("admin");
+                      }
+                    }}
+                  />
+                  <label 
+                    htmlFor="create-organization" 
+                    className="text-sm text-muted-foreground cursor-pointer"
+                  >
+                    Create New Organization
+                  </label>
+                </div>
+              </div>
               <div className="relative">
-                <Briefcase className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="organization"
-                  placeholder="Company Name"
+                  placeholder={isCreatingOrg ? "New Organization Name" : "Existing Organization Name"}
                   value={organization}
                   onChange={(e) => setOrganization(e.target.value)}
                   className="pl-10"
                   disabled={isLoading}
                 />
               </div>
+              {isCreatingOrg && (
+                <p className="text-xs text-muted-foreground">
+                  You'll be the administrator of this new organization.
+                </p>
+              )}
             </div>
             
             {organization && (
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
-                <Select value={role} onValueChange={setRole} disabled={isLoading}>
+                <Select 
+                  value={role} 
+                  onValueChange={setRole} 
+                  disabled={isLoading || (isCreatingOrg && role === "admin")}
+                >
                   <SelectTrigger id="role">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
@@ -245,6 +280,11 @@ const SignUp = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {!isCreatingOrg && (
+                  <p className="text-xs text-muted-foreground">
+                    Your role will need to be approved by an organization administrator.
+                  </p>
+                )}
               </div>
             )}
             

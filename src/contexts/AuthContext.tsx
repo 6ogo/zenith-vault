@@ -11,7 +11,14 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signInWithGoogle: () => Promise<{ error: any | null }>;
   signInWithLinkedIn: () => Promise<{ error: any | null }>;
-  signUp: (email: string, password: string, fullName: string, role: string, organization?: string) => Promise<{ error: any | null }>;
+  signUp: (
+    email: string, 
+    password: string, 
+    fullName: string, 
+    role: string, 
+    organization?: string,
+    isCreatingOrg?: boolean
+  ) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any | null }>;
 };
@@ -88,13 +95,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, role: string, organization?: string) => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    fullName: string, 
+    role: string, 
+    organization?: string,
+    isCreatingOrg?: boolean
+  ) => {
     try {
       const userData = {
         full_name: fullName,
         role: role || null,
         organization: organization || null,
-        organization_status: organization ? 'pending' : null,
+        organization_status: organization ? (isCreatingOrg ? 'owner' : 'pending') : null,
+        is_organization_creator: isCreatingOrg || false,
       };
       
       const { error } = await supabase.auth.signUp({
@@ -104,6 +119,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           data: userData,
         },
       });
+      
+      // If creating an organization and signup was successful, create the organization in DB
+      if (!error && isCreatingOrg && organization) {
+        // This will be handled by a database trigger upon user creation
+        console.log("Organization being created:", organization);
+      }
+      
       return { error };
     } catch (error) {
       return { error };
