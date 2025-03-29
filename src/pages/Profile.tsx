@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -36,9 +35,9 @@ type ProfileData = {
   avatar_url: string | null;
   updated_at: string | null;
   is_mfa_enabled: boolean | null;
-  job_title?: string | null;
-  department?: string | null;
-  phone_number?: string | null;
+  job_title: string | null;
+  department: string | null;
+  phone_number: string | null;
 };
 
 const Profile = () => {
