@@ -5,16 +5,22 @@ interface TurnstileProps {
   siteKey: string;
   onVerify: (token: string) => void;
   onError?: (error: Error) => void;
+  onExpire?: () => void;
 }
 
-export const Turnstile: React.FC<TurnstileProps> = ({ siteKey, onVerify, onError }) => {
+export const Turnstile: React.FC<TurnstileProps> = ({
+  siteKey,
+  onVerify,
+  onError,
+  onExpire
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const widgetIdRef = useRef<number | null>(null);
-  const [isScriptLoaded, setIsScriptLoaded] = useState<boolean>(false);
+  const widgetIdRef = useRef<string | number | null>(null);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
-  // Load the Turnstile script once on component mount
+  // Load the Turnstile script
   useEffect(() => {
-    // Only load the script if it's not already loaded
+    // Check if the script is already loaded
     if (!window.turnstile && !document.getElementById("turnstile-script")) {
       const script = document.createElement("script");
       script.id = "turnstile-script";
@@ -27,12 +33,11 @@ export const Turnstile: React.FC<TurnstileProps> = ({ siteKey, onVerify, onError
       };
       
       document.body.appendChild(script);
-
+      
       return () => {
         // Only remove the script if we added it
-        const scriptElement = document.getElementById("turnstile-script");
-        if (scriptElement) {
-          document.body.removeChild(scriptElement);
+        if (document.getElementById("turnstile-script")) {
+          document.body.removeChild(script);
         }
       };
     } else if (window.turnstile) {
@@ -41,39 +46,38 @@ export const Turnstile: React.FC<TurnstileProps> = ({ siteKey, onVerify, onError
     }
   }, []);
 
-  // Handle widget rendering once the script is loaded
+  // Render the widget when the script is loaded
   useEffect(() => {
-    if (!isScriptLoaded || !containerRef.current) {
+    if (!isScriptLoaded || !containerRef.current || !window.turnstile) {
       return;
     }
 
-    // Reset previous widget if it exists
-    if (widgetIdRef.current !== null && window.turnstile) {
+    // Clean up any existing widget
+    if (widgetIdRef.current !== null) {
       try {
         window.turnstile.remove(widgetIdRef.current);
-        widgetIdRef.current = null;
       } catch (error) {
         console.error("Error removing Turnstile widget:", error);
-        onError?.(error instanceof Error ? error : new Error(String(error)));
       }
+      widgetIdRef.current = null;
     }
     
-    // Create a new widget
+    // Render a new widget
     try {
       console.log("Rendering Turnstile widget with sitekey:", siteKey);
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: siteKey,
         callback: (token: string) => {
-          console.log("Turnstile verification successful, token received");
+          console.log("Turnstile verification successful");
           onVerify(token);
         },
-        "error-callback": () => {
-          console.error("Turnstile verification failed");
-          onError?.(new Error("Turnstile verification failed"));
+        "error-callback": (errorCode: string) => {
+          console.error("Turnstile verification failed:", errorCode);
+          onError?.(new Error(`Turnstile verification failed: ${errorCode}`));
         },
         "expired-callback": () => {
           console.warn("Turnstile token expired");
-          onError?.(new Error("Turnstile token expired"));
+          onExpire?.();
         },
         theme: "light",
         size: "normal",
@@ -84,7 +88,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({ siteKey, onVerify, onError
       onError?.(error instanceof Error ? error : new Error(String(error)));
     }
 
-    // Cleanup on unmount
+    // Clean up the widget when the component unmounts
     return () => {
       if (widgetIdRef.current !== null && window.turnstile) {
         try {
@@ -94,7 +98,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({ siteKey, onVerify, onError
         }
       }
     };
-  }, [isScriptLoaded, siteKey, onVerify, onError]);
+  }, [isScriptLoaded, siteKey, onVerify, onError, onExpire]);
 
   return <div ref={containerRef} className="mt-4" data-testid="turnstile-container" />;
 };

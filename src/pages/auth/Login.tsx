@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { TwoFactorVerification } from '@/components/auth/TwoFactorVerification';
 import { Input } from "@/components/ui/input"
@@ -19,12 +19,12 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile } from '@/components/auth/Turnstile';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, RefreshCcw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// If you're using Supabase's test environment, use this key
-// For production, replace with your actual site key
-const TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
+// This is the site key for Cloudflare Turnstile - it will be replaced with the production key
+// from your Supabase captcha protection settings
+const TURNSTILE_SITE_KEY = "0x4AAAAAAAQvJy6t-TwB0Z5a";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -40,6 +40,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileError, setTurnstileError] = useState<string | null>(null);
+  const [turnstileKey, setTurnstileKey] = useState<number>(0); // Used to force re-render of Turnstile
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -56,7 +57,7 @@ export default function Login() {
   };
 
   const handleTurnstileVerify = (token: string) => {
-    console.log("Turnstile token received:", token.substring(0, 10) + "...");
+    console.log("Turnstile token received");
     setTurnstileToken(token);
     setTurnstileError(null);
   };
@@ -65,6 +66,21 @@ export default function Login() {
     console.error("Turnstile error:", error);
     setTurnstileError(error.message);
     setTurnstileToken(null);
+  };
+
+  const handleTurnstileExpire = () => {
+    console.warn("Turnstile token expired");
+    setTurnstileToken(null);
+    setTurnstileError("Verification expired. Please verify again.");
+    // Force re-render the Turnstile component
+    setTurnstileKey(prev => prev + 1);
+  };
+
+  const resetTurnstile = () => {
+    setTurnstileToken(null);
+    setTurnstileError(null);
+    // Force re-render the Turnstile component
+    setTurnstileKey(prev => prev + 1);
   };
 
   const handleSubmit = async (values: z.infer<typeof loginSchema>) => {
@@ -91,15 +107,8 @@ export default function Login() {
         variant: "destructive",
       });
       
-      // If there was an error with the captcha, reset the token
-      if (error.message.includes("captcha")) {
-        setTurnstileToken(null);
-        // Force re-render of the Turnstile component by changing the key
-        const turnstileContainer = document.querySelector('[data-testid="turnstile-container"]');
-        if (turnstileContainer) {
-          turnstileContainer.innerHTML = '';
-        }
-      }
+      // Always reset the captcha on login failure
+      resetTurnstile();
     }
   };
 
@@ -157,23 +166,47 @@ export default function Login() {
               )}
             </div>
             
-            {turnstileError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  Captcha error: {turnstileError}. Please try again.
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* Captcha Verification Section */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Captcha Verification</Label>
+                {turnstileError && (
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={resetTurnstile}
+                    className="h-8 px-2 text-xs"
+                  >
+                    <RefreshCcw className="h-3 w-3 mr-1" /> Refresh
+                  </Button>
+                )}
+              </div>
+              
+              {turnstileError && (
+                <Alert variant="destructive" className="py-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">
+                    {turnstileError}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {/* Turnstile Component with key for forced re-rendering */}
+              <Turnstile 
+                key={turnstileKey}
+                siteKey={TURNSTILE_SITE_KEY}
+                onVerify={handleTurnstileVerify}
+                onError={handleTurnstileError}
+                onExpire={handleTurnstileExpire}
+              />
+            </div>
             
-            {/* Turnstile Captcha Component */}
-            <Turnstile 
-              siteKey={TURNSTILE_SITE_KEY} 
-              onVerify={handleTurnstileVerify}
-              onError={handleTurnstileError}
-            />
-            
-            <Button disabled={isLoading || !turnstileToken} type="submit">
+            <Button 
+              disabled={isLoading || !turnstileToken} 
+              type="submit"
+              className="mt-2"
+            >
               {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
