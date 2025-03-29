@@ -70,7 +70,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
     {
       path: "/website",
       icon: Home,
-      label: "SEO",
+      label: "Website",
     },
     {
       path: "/data",
