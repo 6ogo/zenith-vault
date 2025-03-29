@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
@@ -7,7 +6,7 @@ import Sales from './pages/Sales';
 import Marketing from './pages/Marketing';
 import Service from './pages/Service';
 import Integrations from './pages/Integrations';
-import IntegrationDocumentation from './pages/IntegrationDocumentation'; // Keep the documentation page
+import IntegrationDocumentation from './pages/IntegrationDocumentation';
 import Settings from './pages/Settings';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
@@ -35,6 +34,7 @@ import Website from './pages/Website';
 import DataFiles from './pages/DataFiles';
 import Organization from "./pages/Organization";
 import Reports from './pages/Reports';
+import ChatbotAdmin from "./pages/ChatbotAdmin";
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,16 @@ const App = () => {
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               
-              {/* Main application routes with layout */}
+              {/* Admin Routes */}
+              <Route path="admin">
+                <Route path="chatbot" element={
+                  <MainLayout>
+                    <ChatbotAdmin />
+                  </MainLayout>
+                } />
+              </Route>
+              
+              {/* Regular pages */}
               <Route element={<MainLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/sales" element={<Sales />} />

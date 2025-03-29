@@ -1,68 +1,57 @@
-// src/components/layout/MainLayout.tsx
-import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import Header from "./Header";
-import Footer from "./Footer";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Header from './Header';
+import Sidebar from './Sidebar';
+import { supabase } from '@/integrations/supabase/client';
+import { useUser } from '@/contexts/UserContext';
+import ChatbotButton from "@/components/chat/ChatbotButton";
 
-const MainLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const footerRef = useRef<HTMLElement | null>(null);
-  const location = useLocation();
-  
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const navigate = useNavigate();
+  const { user, setUser } = useUser();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      setUser(currentUser);
+    };
+
+    fetchUser();
+
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        navigate('/auth/login');
+      } else if (session) {
+        setUser(session.user);
+      }
+    });
+  }, [navigate, setUser]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    navigate('/auth/login');
   };
-  
-  const toggleSidebarCollapse = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-  
-  // Add smooth transition to main content
-  const getSidebarStyle = () => {
-    return {
-      position: "sticky",
-      top: 0,
-      height: "100vh",
-      overflowY: "auto"
-    } as React.CSSProperties;
-  };
-  
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header toggleSidebar={toggleSidebar} />
-      
-      <div className="flex flex-1">
-        <div className={`fixed inset-0 z-30 transform md:hidden ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out`}>
-          <div className="relative h-full w-64 max-w-xs">
-            <div className="h-full">
-              <Sidebar isCollapsed={false} onToggleCollapse={toggleSidebarCollapse} />
-            </div>
-            <div className="absolute inset-0 -right-10 w-screen bg-black/50"
-              onClick={toggleSidebar}></div>
+    <div className="min-h-screen flex flex-col">
+      <Header user={user} onLogout={handleLogout} />
+      <div className="flex-1 flex flex-col md:flex-row">
+        <Sidebar className="w-64 hidden md:block border-r" />
+        <main className="flex-1 overflow-auto bg-background">
+          <div className="container mx-auto p-4 md:p-8">
+            {children}
           </div>
-        </div>
-        
-        <div 
-          style={getSidebarStyle()}
-          className={`hidden md:block z-20 transition-all duration-300 ${
-            sidebarCollapsed ? "w-16" : "w-64"
-          }`}
-        >
-          <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
-        </div>
-        
-        <div className="flex-1">
-          <main className="p-4 md:p-6 w-full overflow-x-auto transition-all duration-300" style={{ marginTop: "0" }}>
-            <Outlet />
-          </main>
-        </div>
+        </main>
       </div>
       
-      <Footer ref={footerRef} />
+      {/* Add chatbot button to the bottom right */}
+      <ChatbotButton className="fixed bottom-4 right-4 z-50" />
     </div>
   );
 };

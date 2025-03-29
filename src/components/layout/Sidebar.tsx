@@ -1,187 +1,178 @@
-
-// src/components/layout/Sidebar.tsx
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { cn } from "@/lib/utils";
+import React from "react";
+import { Link } from "react-router-dom";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+} from "@/components/layout/SidebarMenu";
 import {
   Home,
   LayoutDashboard,
-  BarChart,
-  Users,
-  ShoppingCart,
-  LifeBuoy,
-  Megaphone,
-  Globe,
   Settings,
-  ChevronLeft,
-  ChevronRight,
-  Gitlab,
+  Users,
   Building2,
-  Database,
-  FileUp,
-  FileText,
+  Mail,
+  TrendingUp,
+  ShoppingCart,
+  MessageCircleQuestionIcon
 } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { useDataMode } from "@/contexts/DataModeContext";
-import { Badge } from "@/components/ui/badge";
 
 interface SidebarProps {
-  isCollapsed?: boolean;
-  onToggleCollapse?: () => void;
+  className?: string;
 }
 
-const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
-  const location = useLocation();
-  const { isRealData } = useDataMode();
-  const permanentRealData = localStorage.getItem('permanentRealData') === 'true';
-
-  const routes = [
-    {
-      path: "/dashboard",
-      icon: LayoutDashboard,
-      label: "Dashboard",
-    },
-    {
-      path: "/sales",
-      icon: BarChart,
-      label: "Sales",
-    },
-    {
-      path: "/customers",
-      icon: Users,
-      label: "Customers",
-    },
-    {
-      path: "/service",
-      icon: LifeBuoy,
-      label: "Service",
-    },
-    {
-      path: "/marketing",
-      icon: Megaphone,
-      label: "Marketing",
-    },
-    {
-      path: "/analytics",
-      icon: Globe,
-      label: "Analytics",
-    },
-    {
-      path: "/reports",
-      icon: FileText,
-      label: "Reports",
-    },
-    {
-      path: "/website",
-      icon: Home,
-      label: "Website",
-    },
-    {
-      path: "/data",
-      icon: Database,
-      label: "Data Files",
-    },
-    {
-      path: "/integrations",
-      icon: Gitlab,
-      label: "Integrations",
-    },
-    {
-      path: "/organization",
-      icon: Building2,
-      label: "Organization",
-    },
-    {
-      path: "/settings",
-      icon: Settings,
-      label: "Settings",
-    },
-  ];
-
-  const renderNavLink = (route: any) => {
-    if (route.group && route.items) {
-      return (
-        <div key={route.group} className="space-y-1">
-          {!isCollapsed && (
-            <div className="px-3 py-1">
-              <span className="text-xs font-semibold text-sidebar-foreground/60">{route.group}</span>
-            </div>
-          )}
-          {route.items.map((item: any) => renderNavLink(item))}
-        </div>
-      );
-    }
-
-    return (
-      <NavLink
-        key={route.path}
-        to={route.path}
-        className={({ isActive }) =>
-          cn(
-            "flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
-            isActive
-              ? "bg-sidebar-accent text-sidebar-accent-foreground"
-              : "text-sidebar-foreground",
-            isCollapsed ? "justify-center" : "justify-start"
-          )
-        }
-      >
-        {isCollapsed ? (
-          <div className="flex items-center justify-center w-full">
-            <route.icon className="w-5 h-5" />
-          </div>
-        ) : (
-          <>
-            <route.icon className="w-5 h-5" />
-            <span className="ml-2">{route.label}</span>
-            {route.path === "/dashboard" && !permanentRealData && (
-              <Badge 
-                className={cn(
-                  "ml-auto text-[10px] px-1", 
-                  isRealData ? "bg-green-500 hover:bg-green-500/80" : "bg-blue-500 hover:bg-blue-500/80"
-                )}
-              >
-                {isRealData ? "REAL" : "DEMO"}
-              </Badge>
-            )}
-          </>
-        )}
-      </NavLink>
-    );
-  };
-
+const Sidebar = ({ className }: SidebarProps) => {
   return (
-    <div className={cn(
-      "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64"
-    )}>
-      <div className="flex items-center h-12 px-4 border-b border-border justify-between">
-        <button
-          onClick={onToggleCollapse}
-          className="flex items-center justify-between w-full text-sm text-sidebar-foreground hover:text-white transition-colors"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-5 h-5 mx-auto" />
-          ) : (
-            <>
-              <span>Collapse</span>
-              <ChevronLeft className="w-5 h-5" />
-            </>
-          )}
-        </button>
-      </div>
-      <div className="flex flex-col flex-grow overflow-y-auto">
-        <ScrollArea className="flex-grow">
-          <div className="p-2">
-            <nav className="flex flex-col space-y-1">
-              {routes.map((route) => renderNavLink(route))}
-            </nav>
-          </div>
-        </ScrollArea>
+    <div className={`hidden border-r bg-gray-100/40 dark:bg-gray-800/40 h-full flex-col fixed md:flex ${className}`}>
+      <div className="flex flex-col gap-2 px-2 py-4">
+        <SidebarGroup>
+          <SidebarGroupLabel>General</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/">
+                    <Home />
+                    <span>Home</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/dashboard">
+                    <LayoutDashboard />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Organization</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/organization/members">
+                    <Users />
+                    <span>Members</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/organization/approvals">
+                    <Building2 />
+                    <span>Pending Approvals</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Sales</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/sales/leads">
+                    <TrendingUp />
+                    <span>Leads</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/sales/deals">
+                    <ShoppingCart />
+                    <span>Deals</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Marketing</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/marketing/email">
+                    <Mail />
+                    <span>Email Campaigns</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/admin/settings">
+                    <Settings />
+                    <span>Settings</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link to="/admin/chatbot">
+                  <MessageCircleQuestionIcon />
+                  <span>Chatbot</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
       </div>
     </div>
   );
 };
 
 export default Sidebar;
+
+export const MobileSidebar = () => {
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="sm" className="md:hidden">
+          <Menu className="h-4 w-4" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-full">
+        <SheetHeader className="text-left">
+          <SheetTitle>Menu</SheetTitle>
+          <SheetDescription>
+            Navigate through the application
+          </SheetDescription>
+        </SheetHeader>
+        <Sidebar className="border-none p-0" />
+      </SheetContent>
+    </Sheet>
+  );
+};
