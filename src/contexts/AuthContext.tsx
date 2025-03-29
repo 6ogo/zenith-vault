@@ -158,8 +158,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log("Starting Google OAuth flow");
       
-      // Get the full current URL for redirection after auth
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      // Get the current URL for redirection
+      const currentUrl = window.location.origin;
+      const redirectTo = `${currentUrl}/auth/callback`;
       console.log("Redirect URL:", redirectTo);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -179,7 +180,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       console.log("Google sign in response:", data);
       
-      // Google sign-in is complete when the callback URL is invoked
       // No need to return to dashboard, as the callback will handle redirection
       return data;
     } catch (error: any) {
@@ -209,10 +209,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const resetPassword = async (email: string) => {
     setIsLoading(true);
     try {
+      // Get the current URL for redirection
+      const currentUrl = window.location.origin;
+      const redirectTo = `${currentUrl}/auth/callback`;
+      
       const { data, error } = await supabase.auth.resetPasswordForEmail(
         email,
         {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectTo,
         }
       );
       if (error) {
