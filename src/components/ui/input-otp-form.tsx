@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const otpSchema = z.object({
   otp: z.string().min(6, {
@@ -16,9 +18,10 @@ const otpSchema = z.object({
 type OTPFormProps = {
   onSubmit: (values: z.infer<typeof otpSchema>) => void;
   isLoading: boolean;
+  error?: string;
 };
 
-export function OTPForm({ onSubmit, isLoading }: OTPFormProps) {
+export function OTPForm({ onSubmit, isLoading, error }: OTPFormProps) {
   const form = useForm<z.infer<typeof otpSchema>>({
     resolver: zodResolver(otpSchema),
     defaultValues: {
@@ -29,6 +32,13 @@ export function OTPForm({ onSubmit, isLoading }: OTPFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         <FormField
           control={form.control}
           name="otp"
@@ -47,6 +57,9 @@ export function OTPForm({ onSubmit, isLoading }: OTPFormProps) {
                   </InputOTPGroup>
                 </InputOTP>
               </FormControl>
+              <div className="text-xs text-muted-foreground mt-2">
+                Open your authenticator app to view your verification code.
+              </div>
               <FormMessage />
             </FormItem>
           )}

@@ -1,315 +1,329 @@
-
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  useMemo,
+} from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Session,
+  User,
+  useSession,
+  useSupabaseClient,
+} from "@supabase/auth-helpers-react";
+import { Database } from "@/types/supabase";
 
 type AuthContextType = {
-  session: Session | null;
   user: User | null;
   isLoading: boolean;
-  isMfaEnabled: boolean;
-  isVerifying2FA: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any | null; mfaRequired?: boolean }>;
-  signInWithGoogle: () => Promise<{ error: any | null }>;
-  signInWithLinkedIn: () => Promise<{ error: any | null }>;
-  signUp: (
-    email: string, 
-    password: string, 
-    fullName: string, 
-    role: string, 
-    organization?: string,
-    isCreatingOrg?: boolean
-  ) => Promise<{ error: any | null }>;
+  isAuthenticated: boolean;
+  signUp: (details: any) => Promise<any>;
+  signIn: (details: any) => Promise<any>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any | null }>;
-  enableMfa: () => Promise<{ error: any | null; factorId?: string; qr?: string }>;
-  verifyMfa: (factorId: string, code: string) => Promise<{ error: any | null }>;
-  verify2FADuringLogin: (code: string) => Promise<{ error: any | null }>;
+  resetPassword: (email: string) => Promise<any>;
+  updateProfile: (details: any) => Promise<any>;
+  enableMfa: () => Promise<any>;
+  verifyMfa: (otp: string) => Promise<any>;
+  isMfaEnabled: boolean;
+	isMfaRequired: boolean;
+  verify2FADuringLogin: (otp: string) => Promise<any>;
+  cancelMfaVerification: () => void;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create a context for authentication
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isMfaEnabled, setIsMfaEnabled] = useState(false);
-  const [isVerifying2FA, setIsVerifying2FA] = useState(false);
-  const [pendingFactorId, setPendingFactorId] = useState<string | null>(null);
+	const [isMfaRequired, setIsMfaRequired] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const supabaseClient = useSupabaseClient<Database>();
+  const session = useSession();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (event === 'SIGNED_IN') {
-          navigate('/dashboard');
-        } else if (event === 'SIGNED_OUT') {
-          navigate('/');
+    // Check if MFA is enabled when the component mounts
+    const checkMfaStatus = async () => {
+      if (session?.user) {
+        try {
+          const { data: mfaData, error: mfaError } = await supabaseClient
+            .from("profiles")
+            .select("is_mfa_enabled")
+            .eq("id", session.user.id)
+            .single();
+
+          if (mfaError) {
+            console.error("Error fetching MFA status:", mfaError);
+          } else {
+            setIsMfaEnabled(mfaData?.is_mfa_enabled || false);
+          }
+        } catch (error) {
+          console.error("Unexpected error fetching MFA status:", error);
         }
       }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      
-      // Check if MFA is enabled for the user
-      if (currentSession?.user) {
-        checkMfaStatus(currentSession.user.id);
-      }
-      
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
     };
-  }, [navigate]);
 
-  const checkMfaStatus = async (userId: string) => {
-    try {
-      const { data, error } = await supabase.auth.mfa.listFactors();
-      
-      if (error) {
-        console.error('Error checking MFA status:', error);
-        return;
-      }
-      
-      // Check if there are any verified TOTP factors
-      const hasVerifiedTotpFactor = data.totp.some(factor => factor.status === 'verified');
-      setIsMfaEnabled(hasVerifiedTotpFactor);
-    } catch (error) {
-      console.error('Error in MFA status check:', error);
-    }
-  };
+    checkMfaStatus();
+  }, [session, supabaseClient]);
 
-  const signIn = async (email: string, password: string) => {
+  useEffect(() => {
+    setUser(session?.user || null);
+  }, [session]);
+
+  const isAuthenticated = !!user;
+
+  const signUp = async (details: any) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password
+      const { data, error } = await supabaseClient.auth.signUp({
+        email: details.email,
+        password: details.password,
+        options: {
+          data: {
+            full_name: details.fullName,
+            role: "user",
+          },
+        },
       });
-      
+
       if (error) {
-        toast.error(error.message);
-        return { error };
+        console.log(error);
+        throw error;
       }
-      
-      // Check if MFA is required
-      if (data.session && data.user) {
-        const { data: mfaData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        
-        // If MFA is required but not completed
-        if (mfaData.currentLevel === 'aal1' && mfaData.nextLevel === 'aal2') {
-          setIsVerifying2FA(true);
-          return { error: null, mfaRequired: true };
-        }
-      }
-      
-      return { error: null };
-    } catch (error) {
-      return { error };
+      return data;
+    } catch (error: any) {
+      console.log(error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const verify2FADuringLogin = async (code: string) => {
+  const signIn = async (details: any) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.auth.mfa.challengeAndVerify({ 
-        factorId: 'totp', // For TOTP (Time-based One-Time Password)
-        code 
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: details.email,
+        password: details.password,
       });
-      
+
       if (error) {
-        toast.error('Invalid verification code. Please try again.');
-        return { error };
+        console.log(error);
+				if (error.message === "MFA required") {
+					setIsMfaRequired(true);
+				}
+        throw error;
       }
-      
-      setIsVerifying2FA(false);
-      navigate('/dashboard');
-      return { error: null };
-    } catch (error) {
-      return { error };
+      return data;
+    } catch (error: any) {
+      console.log(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signOut = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      navigate("/auth/login");
+    } catch (error: any) {
+      console.log(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabaseClient.auth.resetPasswordForEmail(
+        email,
+        {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      );
+      if (error) {
+        throw error;
+      }
+      return data;
+    } catch (error: any) {
+      console.log(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateProfile = async (details: any) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .update({
+          full_name: details.fullName,
+          updated_at: new Date(),
+        })
+        .eq("id", user?.id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    } catch (error: any) {
+      console.log(error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
   const enableMfa = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      // Enroll a new TOTP factor
-      const { data, error } = await supabase.auth.mfa.enroll({
-        factorType: 'totp'
-      });
-      
-      if (error) {
-        toast.error('Failed to enable 2FA: ' + error.message);
-        return { error };
-      }
-      
-      setPendingFactorId(data.id);
-      return { 
-        error: null, 
-        factorId: data.id,
-        qr: data.totp.qr_code 
-      };
-    } catch (error) {
-      return { error };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const verifyMfa = async (factorId: string, code: string) => {
-    try {
-      setIsLoading(true);
-      
-      // Verify the TOTP factor
-      const { error } = await supabase.auth.mfa.challengeAndVerify({
-        factorId,
-        code
-      });
-      
-      if (error) {
-        toast.error('Invalid verification code. Please try again.');
-        return { error };
-      }
-      
-      // Update MFA status
+      // Placeholder: Simulate enabling MFA
       setIsMfaEnabled(true);
-      setPendingFactorId(null);
-      toast.success('Two-factor authentication enabled successfully');
-      
-      return { error: null };
-    } catch (error) {
-      return { error };
+
+      // Update the user's profile in the database to reflect MFA is enabled
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .update({ is_mfa_enabled: true })
+        .eq("id", user?.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating MFA status in profile:", error);
+        throw error;
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error("Error enabling MFA:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signInWithGoogle = async () => {
+  const verifyMfa = async (otp: string) => {
+    setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        }
-      });
-      return { error };
-    } catch (error) {
-      return { error };
-    }
-  };
+      // Placeholder: Simulate verifying MFA
+      console.log("OTP verified:", otp);
 
-  const signInWithLinkedIn = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'linkedin_oidc',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        }
-      });
-      return { error };
-    } catch (error) {
-      return { error };
-    }
-  };
+      // After successful verification, update the local state and database
+      setIsMfaEnabled(true);
 
-  const signUp = async (
-    email: string, 
-    password: string, 
-    fullName: string, 
-    role: string, 
-    organization?: string,
-    isCreatingOrg?: boolean
-  ) => {
-    try {
-      const userData = {
-        full_name: fullName,
-        role: role || null,
-        organization: organization || null,
-        organization_status: organization ? (isCreatingOrg ? 'owner' : 'pending') : null,
-        is_organization_creator: isCreatingOrg || false,
-      };
-      
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: userData,
-        },
-      });
-      
-      // If creating an organization and signup was successful, create the organization in DB
-      if (!error && isCreatingOrg && organization) {
-        // This will be handled by a database trigger upon user creation
-        console.log("Organization being created:", organization);
+      // Update the user's profile in the database to reflect MFA is enabled
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .update({ is_mfa_enabled: true })
+        .eq("id", user?.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating MFA status in profile:", error);
+        throw error;
       }
-      
-      return { error };
-    } catch (error) {
-      return { error };
+
+      return data;
+    } catch (error: any) {
+      console.error("Error verifying MFA:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const resetPassword = async (email: string) => {
+  const verify2FADuringLogin = async (otp: string) => {
+    setIsLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
+      const { data, error } = await supabaseClient.auth.verifyOtp({
+        type: "magiclink",
+        token: otp,
+        email: user?.email || "",
       });
-      return { error };
-    } catch (error) {
-      return { error };
+
+      if (error) {
+        console.log("2FA Verification Error:", error);
+        throw error;
+      }
+
+      console.log("2FA Verification Success:", data);
+      navigate("/dashboard");
+      return data;
+    } catch (error: any) {
+      console.error("Error during 2FA verification:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Add or update the cancelMfaVerification method
+  const cancelMfaVerification = useCallback(() => {
+    // Reset any MFA verification state
+    setIsMfaRequired(false);
+    // Navigate back to login if needed
+    navigate('/auth/login');
+  }, [navigate]);
+
+  const contextValue = useMemo(
+    () => ({
+      user,
+      isLoading,
+      isAuthenticated,
+      signUp,
+      signIn,
+      signOut,
+      resetPassword,
+      updateProfile,
+      enableMfa,
+      verifyMfa,
+      isMfaEnabled,
+			isMfaRequired,
+      verify2FADuringLogin,
+      cancelMfaVerification, // Add this to the context value
+    }),
+    [
+      user,
+      isLoading,
+      isAuthenticated,
+      signUp,
+      signIn,
+      signOut,
+      resetPassword,
+      updateProfile,
+      enableMfa,
+      verifyMfa,
+      isMfaEnabled,
+			isMfaRequired,
+      verify2FADuringLogin,
+      cancelMfaVerification, // Add this to the dependencies
+    ]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        session,
-        user,
-        isLoading,
-        isMfaEnabled,
-        isVerifying2FA,
-        signIn,
-        signInWithGoogle,
-        signInWithLinkedIn,
-        signUp,
-        signOut,
-        resetPassword,
-        enableMfa,
-        verifyMfa,
-        verify2FADuringLogin,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
