@@ -118,13 +118,13 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
                       isActive
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
                         : "text-sidebar-foreground",
-                      isCollapsed ? "justify-center" : "justify-start" // Icon centering is correct here
+                      isCollapsed ? "justify-center" : "justify-start"
                     )
                   }
                 >
                   <route.icon className={cn(
                     "w-5 h-5", 
-                    !isCollapsed && "mr-2"
+                    isCollapsed ? "mx-auto" : "mr-2" // Changed to center icons when collapsed
                   )} />
                   {!isCollapsed && <span>{route.label}</span>}
                 </NavLink>
