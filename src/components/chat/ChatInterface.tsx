@@ -22,6 +22,22 @@ interface Message {
   }[];
 }
 
+// Define the type for chat messages from database
+interface ChatMessageFromDB {
+  id: string;
+  content: string;
+  conversation_id: string;
+  created_at: string;
+  role: string;
+  metadata?: {
+    sources?: {
+      title: string;
+      type: string;
+      similarity: number;
+    }[];
+  };
+}
+
 interface ChatInterfaceProps {
   className?: string;
   serviceCaseId?: string;
@@ -97,19 +113,18 @@ const ChatInterface = ({ className, serviceCaseId, hideHistory }: ChatInterfaceP
       if (error) throw error;
       
       if (data && data.length > 0) {
-        const formattedMessages = data.map(msg => {
+        const formattedMessages = data.map((msg: ChatMessageFromDB) => {
           // Create a base message with required fields
           const formattedMessage: Message = {
             id: msg.id,
             role: msg.role as 'user' | 'assistant',
             content: msg.content,
             timestamp: new Date(msg.created_at),
-            sources: undefined
           };
           
           // If there's a metadata field and it has sources, add them to the message
           if (msg.metadata && typeof msg.metadata === 'object') {
-            formattedMessage.sources = msg.metadata.sources || undefined;
+            formattedMessage.sources = msg.metadata.sources;
           }
           
           return formattedMessage;
@@ -334,6 +349,56 @@ const ChatInterface = ({ className, serviceCaseId, hideHistory }: ChatInterfaceP
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const createNewConversation = async () => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      
+      if (!user || !user.user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to use the chatbot",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('chat_conversations')
+        .insert({
+          user_id: user.user.id,
+          title: 'New Conversation'
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      if (data) {
+        setCurrentConversationId(data.id);
+        setMessages([{
+          id: '0',
+          role: 'assistant',
+          content: "Hello! I'm Zenith Assistant. How can I help you today?",
+          timestamp: new Date()
+        }]);
+        
+        // Update conversations list
+        fetchConversations();
+      }
+    } catch (error) {
+      console.error('Error creating new conversation:', error);
+      toast({
+        title: "Failed to create new conversation",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
