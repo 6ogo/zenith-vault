@@ -7,6 +7,7 @@ import Footer from "./Footer";
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const footerRef = useRef<HTMLElement | null>(null);
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -18,11 +19,11 @@ const MainLayout = () => {
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
+      {/* Header - fixed at top */}
       <Header toggleSidebar={toggleSidebar} />
       
       {/* Content area (between header and footer) */}
-      <div className="flex flex-1 relative">
+      <div className="flex flex-1 pt-16"> {/* Add pt-16 to account for fixed header height */}
         {/* Mobile sidebar */}
         <div
           className={`fixed inset-0 z-30 transform md:hidden ${
@@ -40,15 +41,17 @@ const MainLayout = () => {
           </div>
         </div>
         
-        {/* Desktop sidebar - sticky positioning */}
-        <div className={`hidden md:block sticky top-16 z-20 self-start h-[calc(100vh-4rem)] transition-all duration-300 ${
+        {/* Desktop sidebar - fixed position with full height */}
+        <div className={`hidden md:block fixed top-0 left-0 h-full z-20 pt-16 transition-all duration-300 ${
           sidebarCollapsed ? "w-16" : "w-72"
         }`}>
           <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
         
         {/* Main content */}
-        <div className="flex-1">
+        <div className={`flex-1 ${
+          sidebarCollapsed ? "md:ml-16" : "md:ml-72"
+        }`}>
           <main className="p-4 md:p-6 w-full overflow-x-auto">
             <Outlet />
           </main>
@@ -56,7 +59,7 @@ const MainLayout = () => {
       </div>
       
       {/* Footer - completely outside the main area, full width */}
-      <Footer />
+      <Footer ref={footerRef} />
     </div>
   );
 };
