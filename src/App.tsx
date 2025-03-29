@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Dashboard from './pages/Dashboard';
 import Sales from './pages/Sales';
@@ -22,6 +22,10 @@ import { ThemeProvider } from "@/components/ThemeProvider"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from './contexts/AuthContext';
 import { DataModeProvider } from './contexts/DataModeContext';
+import Callback from './pages/auth/Callback';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import NotFound from './pages/NotFound';
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -57,6 +61,10 @@ const App = () => {
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/auth/verify-email" element={<VerifyEmail />} />
+              <Route path="/auth/callback" element={<Callback />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </DataModeProvider>
         </ThemeProvider>
