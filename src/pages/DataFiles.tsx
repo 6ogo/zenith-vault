@@ -42,7 +42,7 @@ const DataFiles = () => {
   };
 
   return (
-    <div className="space-y-6 w-full animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Data Files</h1>
@@ -51,9 +51,9 @@ const DataFiles = () => {
           </p>
         </div>
       </div>
-
+  
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 lg:w-[400px]">
+          <TabsList className="grid grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="upload">Upload</TabsTrigger>
           <TabsTrigger value="browse">My Files</TabsTrigger>
           <TabsTrigger value="shared">Shared Files</TabsTrigger>

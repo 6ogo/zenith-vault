@@ -42,7 +42,7 @@ const Settings = () => {
   const isAdmin = user?.user_metadata?.role === 'admin';
 
   return (
-    <div className="space-y-6 w-full animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
@@ -51,9 +51,10 @@ const Settings = () => {
           </p>
         </div>
       </div>
-
+  
+  
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="w-full md:w-auto grid grid-cols-2 md:grid-cols-5 gap-1">
+          <TabsList className="w-full md:w-auto grid grid-cols-2 md:grid-cols-5 gap-1">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>

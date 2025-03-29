@@ -65,7 +65,7 @@ const Integrations = () => {
   };
 
   return (
-    <div className="space-y-6 w-full animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Integrations</h1>
