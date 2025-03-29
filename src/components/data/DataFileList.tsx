@@ -38,11 +38,10 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
     setError(null);
 
     try {
-      // Using the from method without type checking
+      // First get the files
       let query = supabase
-        .from('data_files')
-        .select('*, profiles:owner_id(full_name)');
-
+        .from('data_files');
+      
       if (mode === 'my-files') {
         // Files owned by me
         query = query.eq('owner_id', user?.id);
@@ -53,17 +52,34 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
           .or(`visibility.eq.public,visibility.eq.organization`);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data: fileData, error: fileError } = await query
+        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-
-      // Format the data
-      const formattedData = data.map(file => ({
-        ...file,
-        owner_name: file.profiles?.full_name || 'Unknown'
-      }));
-
-      setFiles(formattedData);
+      if (fileError) throw fileError;
+      
+      // Now get owner names in a separate query
+      if (fileData && fileData.length > 0) {
+        const ownerIds = fileData.map(file => file.owner_id);
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', ownerIds);
+          
+        if (profileError) throw profileError;
+        
+        // Join the data manually
+        const filesWithOwners = fileData.map(file => {
+          const ownerProfile = profileData?.find(profile => profile.id === file.owner_id);
+          return {
+            ...file,
+            owner_name: ownerProfile?.full_name || 'Unknown'
+          };
+        });
+        
+        setFiles(filesWithOwners);
+      } else {
+        setFiles([]);
+      }
     } catch (error: any) {
       console.error("Error loading files:", error);
       setError(error.message || "Failed to load files. Please try again.");
@@ -155,25 +171,6 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
       )
     : files;
 
-  const getVisibilityBadge = (visibility: string) => {
-    switch (visibility) {
-      case 'private':
-        return <Badge variant="outline">Private</Badge>;
-      case 'organization':
-        return <Badge variant="secondary">Organization</Badge>;
-      case 'public':
-        return <Badge variant="default">Public</Badge>;
-      default:
-        return <Badge variant="outline">{visibility}</Badge>;
-    }
-  };
-
-  const getFileSizeDisplay = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
   return (
     <Card className="w-full">
       <CardHeader>
@@ -228,11 +225,7 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {files.filter(file => 
-                file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                file.owner_name?.toLowerCase().includes(searchTerm.toLowerCase())
-              ).map((file) => (
+              {filteredFiles.map((file) => (
                 <TableRow key={file.id}>
                   <TableCell>
                     <div className="flex items-start gap-2">
@@ -248,17 +241,9 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
                   <TableCell>
                     <Badge variant="outline" className="uppercase">{file.file_type}</Badge>
                   </TableCell>
-                  <TableCell>{(file.size_bytes < 1024) 
-                    ? `${file.size_bytes} B` 
-                    : (file.size_bytes < 1024 * 1024) 
-                      ? `${(file.size_bytes / 1024).toFixed(1)} KB`
-                      : `${(file.size_bytes / (1024 * 1024)).toFixed(1)} MB`}</TableCell>
+                  <TableCell>{getFileSizeDisplay(file.size_bytes)}</TableCell>
                   <TableCell>
-                    {file.visibility === 'private' 
-                      ? <Badge variant="outline">Private</Badge>
-                      : file.visibility === 'organization'
-                        ? <Badge variant="secondary">Organization</Badge>
-                        : <Badge variant="default">Public</Badge>}
+                    {getVisibilityBadge(file.visibility)}
                   </TableCell>
                   <TableCell>
                     <div>
@@ -306,18 +291,111 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
       </CardContent>
       <CardFooter className="flex justify-between">
         <div className="text-sm text-muted-foreground">
-          {files.filter(file => 
-            file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            file.owner_name?.toLowerCase().includes(searchTerm.toLowerCase())
-          ).length} {files.filter(file => 
-            file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            file.owner_name?.toLowerCase().includes(searchTerm.toLowerCase())
-          ).length === 1 ? 'file' : 'files'}
+          {filteredFiles.length} {filteredFiles.length === 1 ? 'file' : 'files'}
         </div>
         <Button variant="outline" size="sm" onClick={loadFiles}>Refresh</Button>
       </CardFooter>
     </Card>
   );
+  
+  function getVisibilityBadge(visibility: string) {
+    switch (visibility) {
+      case 'private':
+        return <Badge variant="outline">Private</Badge>;
+      case 'organization':
+        return <Badge variant="secondary">Organization</Badge>;
+      case 'public':
+        return <Badge variant="default">Public</Badge>;
+      default:
+        return <Badge variant="outline">{visibility}</Badge>;
+    }
+  }
+
+  function getFileSizeDisplay(bytes: number) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function handleDeleteFile(fileId: string, filePath: string) {
+    // Check if the file exists and belongs to the user
+    const fileToDelete = files.find(file => file.id === fileId);
+    if (!fileToDelete || fileToDelete.owner_id !== user?.id) {
+      toast({
+        title: "Permission denied",
+        description: "You can only delete your own files",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Delete the file
+    (async () => {
+      try {
+        // 1. Delete the file from storage
+        const { error: storageError } = await supabase.storage
+          .from('datafiles')
+          .remove([filePath]);
+
+        if (storageError) throw storageError;
+
+        // 2. Delete the metadata from the database
+        const { error: dbError } = await supabase
+          .from('data_files')
+          .delete()
+          .eq('id', fileId);
+
+        if (dbError) throw dbError;
+
+        // 3. Update the UI
+        setFiles(files.filter(file => file.id !== fileId));
+
+        toast({
+          title: "File deleted",
+          description: "The file has been deleted successfully",
+        });
+      } catch (error: any) {
+        console.error("Error deleting file:", error);
+        toast({
+          title: "Delete failed",
+          description: error.message || "Failed to delete file. Please try again.",
+          variant: "destructive",
+        });
+      }
+    })();
+  }
+
+  function handleDownloadFile(filePath: string, fileName: string) {
+    (async () => {
+      try {
+        const { data, error } = await supabase.storage
+          .from('datafiles')
+          .download(filePath);
+
+        if (error) throw error;
+
+        // Create a download link and trigger the download
+        const url = URL.createObjectURL(data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast({
+          title: "Download started",
+          description: "Your file is being downloaded",
+        });
+      } catch (error: any) {
+        console.error("Error downloading file:", error);
+        toast({
+          title: "Download failed",
+          description: error.message || "Failed to download file. Please try again.",
+          variant: "destructive",
+        });
+      }
+    })();
+  }
 };
