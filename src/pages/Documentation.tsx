@@ -1,268 +1,277 @@
 
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info, FileText, Database, Settings, Link, HelpCircle } from "lucide-react";
+import { Helmet } from 'react-helmet-async';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Documentation = () => {
   return (
     <div className="container mx-auto py-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Documentation</h1>
-        <p className="text-muted-foreground">
-          Learn how to use and connect services to Zenith Vault
-        </p>
-      </div>
+      <Helmet>
+        <title>Documentation | Zenith Platform</title>
+      </Helmet>
       
-      <Alert className="mb-6">
-        <Info className="h-4 w-4" />
-        <AlertTitle>Documentation and Guides</AlertTitle>
-        <AlertDescription>
-          This documentation will help you understand how to use the platform, connect to external services, and get the most out of your data.
-        </AlertDescription>
-      </Alert>
+      <h1 className="text-3xl font-bold mb-6">Documentation</h1>
       
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid grid-cols-5">
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="mb-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
-          <TabsTrigger value="reports">Analytics & Reports</TabsTrigger>
-          <TabsTrigger value="api">API & Custom</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="api">API Connections</TabsTrigger>
           <TabsTrigger value="faq">FAQ</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview">
           <Card>
             <CardHeader>
-              <CardTitle>Zenith Vault Overview</CardTitle>
-              <CardDescription>
-                Understanding the platform and its capabilities
-              </CardDescription>
+              <CardTitle>Platform Overview</CardTitle>
+              <CardDescription>A comprehensive guide to the Zenith platform</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">What is Zenith Vault?</h3>
-                <p>Zenith Vault is an all-in-one online digital business platform that helps organizations manage every aspect of the customer lifecycle. From sales and customer service to marketing and website development, the platform brings together key business functions in one central hub.</p>
-              </div>
+              <h3 className="text-xl font-semibold">Introduction</h3>
+              <p>
+                The Zenith Platform is a comprehensive all-in-one online digital business platform designed to streamline
+                every aspect of your customer lifecycle. From sales and customer service to marketing and website development,
+                our solution brings together key business functions in one central hub.
+              </p>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Key Features</h3>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li><strong>Sales Management:</strong> Track leads, manage pipelines, automate follow-ups</li>
-                  <li><strong>Customer Service:</strong> Support case management, self-service knowledge bases</li>
-                  <li><strong>Marketing Automation:</strong> Create and manage personalized campaigns</li>
-                  <li><strong>Customer Data Management:</strong> Centralized database for customer information</li>
-                  <li><strong>Website Development:</strong> Templates and customization options</li>
-                  <li><strong>Integration & Analytics:</strong> Connect with external services and get insights</li>
-                </ul>
-              </div>
+              <h3 className="text-xl font-semibold mt-6">Key Features</h3>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong>Sales Management:</strong> Track leads, manage pipelines, and automate follow-ups with AI-powered insights.</li>
+                <li><strong>Customer Service:</strong> Handle support cases, implement chatbots, and utilize sentiment analysis.</li>
+                <li><strong>Marketing Automation:</strong> Create and manage personalized campaigns with real-time analytics.</li>
+                <li><strong>Website Development:</strong> Build and maintain your web presence using templates or custom solutions.</li>
+                <li><strong>Integrations:</strong> Connect with third-party services including CRMs, ERPs, and marketing tools.</li>
+                <li><strong>Analytics & Reporting:</strong> Generate insights with comprehensive data visualization and reporting.</li>
+              </ul>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Demo vs Real Mode</h3>
-                <p>Zenith Vault offers two operational modes:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li><strong>Demo Mode:</strong> Shows sample data to help you understand the platform's capabilities</li>
-                  <li><strong>Real Mode:</strong> Displays your actual organization data from connected systems</li>
-                </ul>
-                <p>You can toggle between these modes using the Data Mode switch on applicable pages.</p>
-              </div>
+              <h3 className="text-xl font-semibold mt-6">Getting Started</h3>
+              <p>
+                New users should begin by setting up their organization profile and inviting team members.
+                Then, connect your existing systems through our Integrations page and import your data.
+                For detailed step-by-step instructions, please refer to the specific module documentation.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="integrations" className="space-y-4">
+        <TabsContent value="integrations">
           <Card>
             <CardHeader>
               <CardTitle>Integration Guide</CardTitle>
-              <CardDescription>
-                How to connect external services to Zenith Vault
-              </CardDescription>
+              <CardDescription>Connect your existing systems with the Zenith platform</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Email Marketing Integrations</h3>
-                <p>Connect your email marketing tools to automate campaigns and track results:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li><strong>Mailchimp:</strong> Requires API key from your Mailchimp account</li>
-                  <li><strong>SendGrid:</strong> Requires API key from your SendGrid dashboard</li>
-                  <li><strong>Custom:</strong> Connect any email service that provides a REST API</li>
-                </ul>
-              </div>
+              <h3 className="text-xl font-semibold">Available Integrations</h3>
+              <p>
+                The Zenith Platform supports integration with a wide range of systems:
+              </p>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">CRM Integrations</h3>
-                <p>Sync your customer relationship management data:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li><strong>Salesforce:</strong> OAuth connection through your Salesforce account</li>
-                  <li><strong>HubSpot:</strong> API key from your HubSpot developer settings</li>
-                  <li><strong>Custom:</strong> Connect any CRM that provides API access</li>
-                </ul>
-              </div>
+              <h4 className="text-lg font-medium mt-4">Email Marketing</h4>
+              <ul className="list-disc pl-6">
+                <li><strong>Mailchimp:</strong> Connect via OAuth or API key</li>
+                <li><strong>SendGrid:</strong> Connect via API key</li>
+                <li><strong>Custom:</strong> Set up a custom integration using our API</li>
+              </ul>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Database Connections</h3>
-                <p>Connect directly to your databases for advanced data integration:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li><strong>MySQL:</strong> Requires host, username, password, and database name</li>
-                  <li><strong>PostgreSQL:</strong> Requires connection string with credentials</li>
-                  <li><strong>Supabase:</strong> Requires project URL and API key</li>
-                </ul>
-              </div>
+              <h4 className="text-lg font-medium mt-4">CRM Systems</h4>
+              <ul className="list-disc pl-6">
+                <li><strong>Salesforce:</strong> Connect via OAuth</li>
+                <li><strong>HubSpot:</strong> Connect via OAuth or API key</li>
+                <li><strong>Custom:</strong> Set up a custom CRM integration</li>
+              </ul>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Setting Up Custom API Connections</h3>
-                <p>To connect a custom service:</p>
-                <ol className="list-decimal pl-5 space-y-1">
-                  <li>Navigate to the Integrations page</li>
-                  <li>Select the appropriate tab for your service type</li>
-                  <li>Click on the "Custom" option</li>
-                  <li>Enter your API endpoint and authentication details</li>
-                  <li>Test the connection and save</li>
-                </ol>
-              </div>
+              <h4 className="text-lg font-medium mt-4">ERP Systems</h4>
+              <ul className="list-disc pl-6">
+                <li><strong>SAP:</strong> Connect via API</li>
+                <li><strong>NetSuite:</strong> Connect via OAuth or API key</li>
+                <li><strong>Custom:</strong> Set up a custom ERP integration</li>
+              </ul>
+              
+              <h4 className="text-lg font-medium mt-4">Databases</h4>
+              <ul className="list-disc pl-6">
+                <li><strong>MySQL:</strong> Connect via direct connection or API</li>
+                <li><strong>PostgreSQL:</strong> Connect via direct connection or API</li>
+                <li><strong>Supabase:</strong> Connect via API key</li>
+              </ul>
+              
+              <h3 className="text-xl font-semibold mt-6">Setting Up Integrations</h3>
+              <p>
+                To set up an integration, navigate to the Integrations page and select the service you wish to connect.
+                Follow the prompts to authenticate your account and authorize access. For API-based integrations,
+                you'll need to generate and provide an API key from your service provider.
+              </p>
+              
+              <h3 className="text-xl font-semibold mt-6">Custom API Connections</h3>
+              <p>
+                For systems not directly supported, you can create custom connections using our API framework.
+                Refer to the API documentation for details on endpoints, authentication methods, and data formats.
+                Our support team is available to assist with custom integration requirements.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="reports" className="space-y-4">
+        <TabsContent value="reports">
           <Card>
             <CardHeader>
-              <CardTitle>Analytics & Reporting Guide</CardTitle>
-              <CardDescription>
-                How to create and use reports from your data
-              </CardDescription>
+              <CardTitle>Reports & Analytics</CardTitle>
+              <CardDescription>Insights and reporting capabilities</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Available Report Types</h3>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li><strong>Sales Reports:</strong> Pipeline analysis, conversion rates, revenue forecasting</li>
-                  <li><strong>Customer Reports:</strong> Satisfaction metrics, support ticket analysis</li>
-                  <li><strong>Marketing Reports:</strong> Campaign performance, engagement metrics</li>
-                  <li><strong>Website Reports:</strong> Traffic analysis, SEO performance</li>
-                </ul>
-              </div>
+              <h3 className="text-xl font-semibold">Available Reports</h3>
+              <p>
+                The Zenith Platform offers a comprehensive suite of reports and analytics tools:
+              </p>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Creating Custom Reports</h3>
-                <ol className="list-decimal pl-5 space-y-1">
-                  <li>Navigate to the Reports page</li>
-                  <li>Select "Create Custom Report" tab</li>
-                  <li>Choose data sources and metrics</li>
-                  <li>Configure visualizations (charts, tables)</li>
-                  <li>Save and schedule automated delivery if needed</li>
-                </ol>
-              </div>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong>Sales Performance:</strong> Track conversion rates, pipeline stages, and sales forecasts.</li>
+                <li><strong>Customer Metrics:</strong> Monitor acquisition costs, lifetime value, and churn rates.</li>
+                <li><strong>Service Effectiveness:</strong> Analyze response times, resolution rates, and customer satisfaction.</li>
+                <li><strong>Marketing ROI:</strong> Measure campaign performance across channels and segments.</li>
+                <li><strong>Website Analytics:</strong> Track visitor behavior, conversion funnels, and engagement metrics.</li>
+              </ul>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Features in Development</h3>
-                <p>The following reporting features are currently under development:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>AI-powered predictive analytics</li>
-                  <li>Advanced cross-source correlation analysis</li>
-                  <li>Custom calculation fields</li>
-                  <li>Extended visualization options</li>
-                  <li>Team performance benchmarking</li>
-                </ul>
-              </div>
+              <h3 className="text-xl font-semibold mt-6">Creating Custom Reports</h3>
+              <p>
+                To create a custom report:
+              </p>
+              <ol className="list-decimal pl-6 space-y-2">
+                <li>Navigate to the Reports section</li>
+                <li>Click "Create New Report"</li>
+                <li>Select data sources and metrics</li>
+                <li>Configure visualizations (charts, tables, etc.)</li>
+                <li>Set up filters and parameters</li>
+                <li>Schedule automated delivery (optional)</li>
+              </ol>
+              
+              <h3 className="text-xl font-semibold mt-6">Upcoming Features</h3>
+              <p>
+                We're continuously enhancing our reporting capabilities. Features under development include:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Advanced AI-driven predictions and recommendations</li>
+                <li>Interactive dashboard builder with drag-and-drop interface</li>
+                <li>Expanded data visualization options including heatmaps and geographical displays</li>
+                <li>Enhanced mobile reporting experience</li>
+              </ul>
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="api" className="space-y-4">
+        <TabsContent value="api">
           <Card>
             <CardHeader>
-              <CardTitle>API & Custom Development</CardTitle>
-              <CardDescription>
-                Using the Zenith Vault API and custom integrations
-              </CardDescription>
+              <CardTitle>API Documentation</CardTitle>
+              <CardDescription>Technical information for developers</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">API Access</h3>
-                <p>Zenith Vault provides a comprehensive REST API for custom integrations:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>API key generation is available in Settings -> API</li>
-                  <li>Base URL: <code>https://api.zenithvault.com/v1</code></li>
-                  <li>Full API documentation available with examples and schemas</li>
-                </ul>
-              </div>
+              <h3 className="text-xl font-semibold">API Overview</h3>
+              <p>
+                The Zenith Platform offers a robust RESTful API that allows developers to access and manipulate data
+                programmatically. This enables custom integrations, automation workflows, and extending the platform's functionality.
+              </p>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Custom Data Flows</h3>
-                <p>Connect systems with custom data flows:</p>
-                <ol className="list-decimal pl-5 space-y-1">
-                  <li>Define source and destination systems</li>
-                  <li>Map data fields between systems</li>
-                  <li>Set triggers for data synchronization</li>
-                  <li>Configure transformation rules if needed</li>
-                  <li>Test and monitor the data flow</li>
-                </ol>
-              </div>
+              <h3 className="text-xl font-semibold mt-6">Authentication</h3>
+              <p>
+                All API requests require authentication using API keys or OAuth tokens. To generate an API key:
+              </p>
+              <ol className="list-decimal pl-6 space-y-2">
+                <li>Navigate to Settings {">"} API Access</li>
+                <li>Click "Generate New API Key"</li>
+                <li>Set appropriate permissions and expiration</li>
+                <li>Store your key securely - it won't be displayed again</li>
+              </ol>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">GIS Transfers</h3>
-                <p>For geographic information system (GIS) data:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Supports common GIS formats (Shapefile, GeoJSON, KML)</li>
-                  <li>API endpoints for spatial data import/export</li>
-                  <li>Coordinate system transformation capabilities</li>
-                  <li>Spatial relationship queries</li>
-                </ul>
-              </div>
+              <h3 className="text-xl font-semibold mt-6">API Endpoints</h3>
+              <p>
+                Key endpoints include:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><code>/api/v1/customers</code> - Manage customer data</li>
+                <li><code>/api/v1/sales</code> - Access and modify sales information</li>
+                <li><code>/api/v1/service</code> - Handle support tickets and cases</li>
+                <li><code>/api/v1/marketing</code> - Manage campaigns and analytics</li>
+              </ul>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Webhook Support</h3>
-                <p>Create webhooks to trigger external actions:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Configure in Settings -> Webhooks</li>
-                  <li>Available triggers for all major system events</li>
-                  <li>Custom HTTP headers and authentication</li>
-                  <li>Webhook activity monitoring and retry options</li>
-                </ul>
-              </div>
+              <h3 className="text-xl font-semibold mt-6">Rate Limits</h3>
+              <p>
+                API usage is subject to rate limits based on your subscription tier:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong>Standard:</strong> 100 requests per minute</li>
+                <li><strong>Professional:</strong> 500 requests per minute</li>
+                <li><strong>Enterprise:</strong> 2,000 requests per minute</li>
+              </ul>
+              
+              <h3 className="text-xl font-semibold mt-6">Webhooks</h3>
+              <p>
+                Subscribe to events and receive real-time notifications via webhooks:
+              </p>
+              <ol className="list-decimal pl-6 space-y-2">
+                <li>Navigate to Settings {">"} Webhooks</li>
+                <li>Click "Add Webhook"</li>
+                <li>Enter your endpoint URL</li>
+                <li>Select events to subscribe to</li>
+                <li>Configure security settings (HMAC verification recommended)</li>
+              </ol>
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="faq" className="space-y-4">
+        <TabsContent value="faq">
           <Card>
             <CardHeader>
               <CardTitle>Frequently Asked Questions</CardTitle>
-              <CardDescription>
-                Common questions and answers about Zenith Vault
-              </CardDescription>
+              <CardDescription>Common questions and answers</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">How do I switch between Demo and Real data?</h3>
-                <p>Use the Data Mode toggle available on dashboard and functional pages. This toggle affects data display across all applicable pages. Note that Integrations, Settings, and Organization pages always show real data.</p>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold">What is the difference between Demo and Real data mode?</h3>
+                <p className="mt-2">
+                  Demo mode displays sample data to help you explore platform capabilities without affecting your actual business data.
+                  Real mode shows your actual organization data pulled from your connected systems. You can toggle between modes
+                  from the Dashboard to test features or conduct training.
+                </p>
               </div>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">How secure is my data in Zenith Vault?</h3>
-                <p>Zenith Vault uses end-to-end encryption, role-based access control, and regular security audits to ensure data security. All data is encrypted both at rest and in transit.</p>
+              <div>
+                <h3 className="text-lg font-semibold">How do I add users to my organization?</h3>
+                <p className="mt-2">
+                  Navigate to Organization {">"} Members and click "Invite Member." Enter their email address and assign appropriate roles and permissions.
+                  They'll receive an invitation email with instructions to create their account.
+                </p>
               </div>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Can I export data from Zenith Vault?</h3>
-                <p>Yes, data can be exported in various formats including CSV, Excel, PDF, and API access. Export options are available on relevant pages or through the Reports section.</p>
+              <div>
+                <h3 className="text-lg font-semibold">Can I customize the dashboard for different user roles?</h3>
+                <p className="mt-2">
+                  Yes, administrators can configure role-specific dashboards from Settings {">"} Role Configurations.
+                  This allows you to tailor the information and tools available to different team members based on their responsibilities.
+                </p>
               </div>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">What if I need help connecting a service not listed?</h3>
-                <p>Use the Custom API integration option available in each integration category. If you need further assistance, contact support through the Help & Support section.</p>
+              <div>
+                <h3 className="text-lg font-semibold">How secure is my data on the platform?</h3>
+                <p className="mt-2">
+                  The platform employs robust security measures including end-to-end encryption, role-based access controls,
+                  two-factor authentication, and regular security audits. All data is encrypted both in transit and at rest,
+                  and we comply with major regulations like GDPR, CCPA, and HIPAA.
+                </p>
               </div>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">How often is Zenith Vault updated?</h3>
-                <p>The platform receives regular updates with new features, improvements, and security patches. Major updates are announced in advance through the notification system.</p>
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">How can I manage user permissions?</h3>
-                <p>User permissions are managed in the Organization section, where administrators can assign roles and specific permissions to team members based on their responsibilities.</p>
+              <div>
+                <h3 className="text-lg font-semibold">How do I get technical support?</h3>
+                <p className="mt-2">
+                  Support is available through multiple channels:
+                </p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>In-app chat support (click the help icon in the bottom right)</li>
+                  <li>Email support at support@zenithplatform.com</li>
+                  <li>Phone support for Enterprise customers</li>
+                  <li>Knowledge base at help.zenithplatform.com</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
