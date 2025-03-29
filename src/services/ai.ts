@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface AIRequestParams {
   prompt: string;
-  feature?: 'sales' | 'customer_service' | 'marketing' | 'general';
+  feature?: 'sales' | 'customer_service' | 'marketing' | 'general' | 'reports';
   model?: string;
   temperature?: number;
   maxTokens?: number;
@@ -58,3 +58,6 @@ export const analyzeCustomerSentiment = (prompt: string) =>
 
 export const generateMarketingContent = (prompt: string) => 
   generateWithAI({ prompt, feature: 'marketing' });
+
+export const generateReportInsight = (prompt: string) =>
+  generateWithAI({ prompt, feature: 'reports' });

@@ -18,6 +18,7 @@ import {
   Building2,
   Database,
   FileUp,
+  FileText,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -59,6 +60,11 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
       path: "/analytics",
       icon: Globe,
       label: "Analytics",
+    },
+    {
+      path: "/reports",
+      icon: FileText,
+      label: "Reports",
     },
     {
       path: "/website",

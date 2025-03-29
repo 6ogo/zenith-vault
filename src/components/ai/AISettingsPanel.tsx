@@ -40,6 +40,9 @@ interface AISettings {
   enabledFunctions: string[];
 }
 
+// Ensure Json-compatible type
+type JsonValue = string | number | boolean | { [key: string]: JsonValue } | JsonValue[];
+
 const AISettingsPanel = () => {
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
@@ -77,7 +80,9 @@ const AISettingsPanel = () => {
         }
         
         if (data?.settings_value) {
-          setSettings(data.settings_value as AISettings);
+          // Cast to unknown first, then to AISettings to satisfy TypeScript
+          const settingsValue = data.settings_value as unknown as AISettings;
+          setSettings(settingsValue);
         }
       } catch (error) {
         console.error('Error in loadSettings:', error);
@@ -122,13 +127,16 @@ const AISettingsPanel = () => {
     setIsSaving(true);
     try {
       // Store settings in organization_settings table
+      // Cast AISettings to a JSON-compatible value
+      const settingsValue = settings as unknown as JsonValue;
+      
       const { error } = await supabase
         .from('organization_settings')
         .upsert(
           { 
             organization_id: user.user_metadata.organization_id,
             settings_type: 'ai_configuration',
-            settings_value: settings
+            settings_value: settingsValue
           }, 
           { onConflict: 'organization_id,settings_type' }
         );

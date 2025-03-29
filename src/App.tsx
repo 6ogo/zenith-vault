@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
@@ -32,6 +33,7 @@ import Analytics from './pages/Analytics';
 import Website from './pages/Website';
 import DataFiles from './pages/DataFiles';
 import Organization from "./pages/Organization";
+import Reports from './pages/Reports';
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -74,6 +76,7 @@ const App = () => {
                 <Route path="/service" element={<Service />} />
                 <Route path="/customers" element={<Customers />} />
                 <Route path="/analytics" element={<Analytics />} />
+                <Route path="/reports" element={<Reports />} />
                 <Route path="/website" element={<Website />} />
                 <Route path="/data" element={<DataFiles />} />
                 <Route path="/integrations" element={<Integrations />} />
