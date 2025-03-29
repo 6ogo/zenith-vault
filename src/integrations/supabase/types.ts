@@ -104,6 +104,48 @@ export type Database = {
         }
         Relationships: []
       }
+      integrations: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          id: string
+          last_sync: string | null
+          provider: string
+          provider_id: string | null
+          provider_type: string | null
+          status: string
+          sync_status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          last_sync?: string | null
+          provider: string
+          provider_id?: string | null
+          provider_type?: string | null
+          status?: string
+          sync_status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          last_sync?: string | null
+          provider?: string
+          provider_id?: string | null
+          provider_type?: string | null
+          status?: string
+          sync_status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       knowledge_base: {
         Row: {
           content: string
@@ -378,6 +420,10 @@ export type Database = {
             }
             Returns: unknown
           }
+      create_integrations_table: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       halfvec_avg: {
         Args: {
           "": number[]

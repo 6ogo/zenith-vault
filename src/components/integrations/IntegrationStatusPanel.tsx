@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,40 +54,33 @@ const IntegrationStatusPanel = () => {
     setIsLoading(true);
     try {
       if (isRealData) {
-        // Check if the integrations table exists in the database
-        const { data: tablesData, error: tablesError } = await supabase
-          .from('pg_tables')
-          .select('tablename')
-          .eq('schemaname', 'public')
-          .eq('tablename', 'integrations');
-
-        // If the table doesn't exist yet, return an empty array
-        if (tablesError || !tablesData || tablesData.length === 0) {
-          console.log('Integrations table does not exist yet');
-          setIntegrations([]);
-          setIsLoading(false);
-          return;
-        }
-
-        // If the table exists, fetch the integrations
-        const { data, error } = await supabase
-          .from('integrations')
-          .select('*');
-          
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          // Map the data to the expected format
-          const formattedIntegrations = data.map((item) => ({
-            id: item.id,
-            name: item.provider,
-            provider: item.provider,
-            category: item.provider_type || getCategoryFromProvider(item.provider),
-            status: item.status as "connected" | "disconnected" | "error",
-            lastSync: item.last_sync ? new Date(item.last_sync).toLocaleDateString() : null
-          }));
-          setIntegrations(formattedIntegrations);
-        } else {
+        // Instead of checking if table exists, try to fetch data directly
+        // and handle any errors that might occur
+        try {
+          const { data, error } = await supabase
+            .from('integrations')
+            .select('*');
+            
+          if (error) {
+            // If there's an error (like table doesn't exist), return empty array
+            console.log('Error fetching integrations:', error);
+            setIntegrations([]);
+          } else if (data && data.length > 0) {
+            // Map the data to the expected format
+            const formattedIntegrations = data.map((item) => ({
+              id: item.id,
+              name: item.provider,
+              provider: item.provider,
+              category: item.provider_type || getCategoryFromProvider(item.provider),
+              status: item.status as "connected" | "disconnected" | "error",
+              lastSync: item.last_sync ? new Date(item.last_sync).toLocaleDateString() : null
+            }));
+            setIntegrations(formattedIntegrations);
+          } else {
+            setIntegrations([]);
+          }
+        } catch (error) {
+          console.error("Error accessing integrations table:", error);
           setIntegrations([]);
         }
       } else {
