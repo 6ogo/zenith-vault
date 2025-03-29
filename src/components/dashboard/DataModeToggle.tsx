@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useDataMode } from "@/contexts/DataModeContext";
 
-// We no longer need the props interface since we'll use the context directly
 const DataModeToggle = () => {
   const { isRealData, setIsRealData } = useDataMode();
   const { toast } = useToast();

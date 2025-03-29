@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import { Search, Users, Plus, Filter, BarChart, Calendar, FileText, ArrowUpDown,
 import DataModeToggle from "@/components/dashboard/DataModeToggle";
 import { useDataMode } from "@/contexts/DataModeContext";
 
-// Demo audience segments
 const audienceSegments = [
   {
     id: "segment-001",
@@ -64,7 +62,6 @@ const audienceSegments = [
   }
 ];
 
-// Demo content items
 const contentItems = [
   {
     id: "content-001",
@@ -139,7 +136,7 @@ const contentItems = [
 ];
 
 const Marketing = () => {
-  const { isRealData, setIsRealData } = useDataMode();
+  const { isRealData } = useDataMode();
   const [activeTab, setActiveTab] = useState("campaigns");
   
   const [adPlatforms, setAdPlatforms] = useState<MarketingPlatform[]>([
@@ -188,7 +185,7 @@ const Marketing = () => {
             Create and manage marketing campaigns across multiple platforms
           </p>
         </div>
-        <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
+        <DataModeToggle />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

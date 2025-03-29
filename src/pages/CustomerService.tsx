@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -248,7 +247,7 @@ const demoTickets = [
 ];
 
 const CustomerService = () => {
-  const { isRealData, setIsRealData } = useDataMode();
+  const { isRealData } = useDataMode();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState<typeof demoTickets[0] | null>(null);
   const [filteredTickets, setFilteredTickets] = useState(demoTickets);
@@ -299,7 +298,7 @@ const CustomerService = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
+          <DataModeToggle />
           <Button size="sm" className="font-medium">
             <Plus className="h-4 w-4 mr-1" /> New Ticket
           </Button>
