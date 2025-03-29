@@ -1,176 +1,195 @@
 
-import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import SalesChart from "@/components/dashboard/SalesChart";
-import CustomerSatisfaction from "@/components/dashboard/CustomerSatisfaction";
+import React, { useState } from "react";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { BarChart3, LineChart, RefreshCcw, Activity, AlertCircle, PieChart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import AnalyticsMetricCard from "@/components/analytics/AnalyticsMetricCard";
+import AnalyticsChart from "@/components/analytics/AnalyticsChart";
+import { useAnalyticsData } from "@/hooks/useAnalyticsData";
 
 const Analytics = () => {
+  const [timeframe, setTimeframe] = useState("monthly");
+  const [refreshing, setRefreshing] = useState(false);
+  const { metrics, charts, isLoading, error } = useAnalyticsData();
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    
+    // Simulate refresh
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  };
+
+  const getIconForMetric = (id: string) => {
+    switch (id) {
+      case 'total-sales':
+        return <BarChart3 className="h-5 w-5" />;
+      case 'conversion-rate':
+        return <LineChart className="h-5 w-5" />;
+      case 'customer-satisfaction':
+        return <PieChart className="h-5 w-5" />;
+      case 'active-users':
+        return <Activity className="h-5 w-5" />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Analytics & Reporting</h1>
-        <p className="text-muted-foreground">
-          View detailed statistics and generate reports.
-        </p>
+    <div className="container mx-auto py-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+          <p className="text-muted-foreground mt-1">
+            Monitor your business performance metrics in real-time
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <Select value={timeframe} onValueChange={setTimeframe}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Select timeframe" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Daily</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectItem value="quarterly">Quarterly</SelectItem>
+              <SelectItem value="yearly">Yearly</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button 
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </div>
       
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 lg:w-[500px]">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="sales">Sales</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
-          <TabsTrigger value="marketing">Marketing</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <AnalyticsMetricCard 
+                key={i}
+                title=""
+                value=""
+                isLoading={true}
+              />
+            ))
+          : metrics.map((metric) => (
+              <AnalyticsMetricCard
+                key={metric.id}
+                title={metric.title}
+                value={metric.value}
+                change={metric.change}
+                icon={getIconForMetric(metric.id)}
+              />
+            ))
+        }
+      </div>
+      
+      <Tabs defaultValue="charts" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="charts">Charts</TabsTrigger>
+          <TabsTrigger value="real-time">Real-Time</TabsTrigger>
         </TabsList>
-        <TabsContent value="overview" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SalesChart />
-            <CustomerSatisfaction />
+        
+        <TabsContent value="charts" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {isLoading
+              ? Array.from({ length: 2 }).map((_, i) => (
+                  <AnalyticsChart
+                    key={i}
+                    title=""
+                    data={[]}
+                    dataKeys={{ xAxis: '', yAxis: [], colors: [] }}
+                    isLoading={true}
+                  />
+                ))
+              : charts.slice(0, 2).map((chart) => (
+                  <AnalyticsChart
+                    key={chart.id}
+                    title={chart.title}
+                    description={chart.description}
+                    data={chart.data}
+                    dataKeys={chart.dataKeys}
+                    type={chart.type}
+                    valueFormatter={chart.valueFormatter}
+                  />
+                ))
+            }
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <Card className="dashboard-card">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold">Sales By Region</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">North America</span>
-                      <span className="text-sm font-medium">42%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-salescraft-600 h-2.5 rounded-full" style={{ width: "42%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">Europe</span>
-                      <span className="text-sm font-medium">28%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-salescraft-600 h-2.5 rounded-full" style={{ width: "28%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">Asia Pacific</span>
-                      <span className="text-sm font-medium">18%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-salescraft-600 h-2.5 rounded-full" style={{ width: "18%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">Latin America</span>
-                      <span className="text-sm font-medium">8%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-salescraft-600 h-2.5 rounded-full" style={{ width: "8%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">Middle East & Africa</span>
-                      <span className="text-sm font-medium">4%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-salescraft-600 h-2.5 rounded-full" style={{ width: "4%" }}></div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="dashboard-card">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold">Sales By Product</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">Basic Plan</span>
-                      <span className="text-sm font-medium">48%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-salescraft-600 h-2.5 rounded-full" style={{ width: "48%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">Pro Plan</span>
-                      <span className="text-sm font-medium">32%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-salescraft-600 h-2.5 rounded-full" style={{ width: "32%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">Enterprise Plan</span>
-                      <span className="text-sm font-medium">20%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-salescraft-600 h-2.5 rounded-full" style={{ width: "20%" }}></div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="dashboard-card">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold">Key Metrics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center pb-2 border-b">
-                    <span className="text-sm font-medium">Avg. Deal Size</span>
-                    <span className="font-semibold">$15,789</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 border-b">
-                    <span className="text-sm font-medium">Sales Cycle</span>
-                    <span className="font-semibold">24 days</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 border-b">
-                    <span className="text-sm font-medium">Customer Acq. Cost</span>
-                    <span className="font-semibold">$1,250</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 border-b">
-                    <span className="text-sm font-medium">LTV</span>
-                    <span className="font-semibold">$54,000</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Churn Rate</span>
-                    <span className="font-semibold">3.2%</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 gap-6">
+            {isLoading
+              ? <AnalyticsChart
+                  title=""
+                  data={[]}
+                  dataKeys={{ xAxis: '', yAxis: [], colors: [] }}
+                  isLoading={true}
+                />
+              : charts.slice(2, 3).map((chart) => (
+                  <AnalyticsChart
+                    key={chart.id}
+                    title={chart.title}
+                    description={chart.description}
+                    data={chart.data}
+                    dataKeys={chart.dataKeys}
+                    type={chart.type}
+                    valueFormatter={chart.valueFormatter}
+                  />
+                ))
+            }
           </div>
         </TabsContent>
-        <TabsContent value="sales" className="mt-4">
-          <div className="p-8 text-center text-muted-foreground">
-            Detailed sales analytics will be available in the next update.
-          </div>
-        </TabsContent>
-        <TabsContent value="customers" className="mt-4">
-          <div className="p-8 text-center text-muted-foreground">
-            Detailed customer analytics will be available in the next update.
-          </div>
-        </TabsContent>
-        <TabsContent value="marketing" className="mt-4">
-          <div className="p-8 text-center text-muted-foreground">
-            Detailed marketing analytics will be available in the next update.
-          </div>
-        </TabsContent>
-        <TabsContent value="reports" className="mt-4">
-          <div className="p-8 text-center text-muted-foreground">
-            Custom report generation will be available in the next update.
+        
+        <TabsContent value="real-time">
+          <div className="space-y-6">
+            <AnalyticsChart
+              title="Real-Time User Activity"
+              description="Live tracking of user actions in the last 30 minutes"
+              data={[
+                { time: "Now", users: 42, actions: 78 },
+                { time: "-5m", users: 39, actions: 68 },
+                { time: "-10m", users: 35, actions: 52 },
+                { time: "-15m", users: 31, actions: 44 },
+                { time: "-20m", users: 28, actions: 36 },
+                { time: "-25m", users: 26, actions: 29 },
+                { time: "-30m", users: 24, actions: 25 },
+              ]}
+              dataKeys={{
+                xAxis: "time",
+                yAxis: ["users", "actions"],
+                colors: ["#003366", "#00CC66"]
+              }}
+              type="line"
+            />
           </div>
         </TabsContent>
       </Tabs>

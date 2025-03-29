@@ -11,7 +11,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signInWithGoogle: () => Promise<{ error: any | null }>;
   signInWithLinkedIn: () => Promise<{ error: any | null }>;
-  signUp: (email: string, password: string, fullName: string, role: string) => Promise<{ error: any | null }>;
+  signUp: (email: string, password: string, fullName: string, role: string, organization?: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any | null }>;
 };
@@ -88,16 +88,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, role: string) => {
+  const signUp = async (email: string, password: string, fullName: string, role: string, organization?: string) => {
     try {
+      const userData = {
+        full_name: fullName,
+        role: role || null,
+        organization: organization || null,
+        organization_status: organization ? 'pending' : null,
+      };
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            full_name: fullName,
-            role: role,
-          },
+          data: userData,
         },
       });
       return { error };

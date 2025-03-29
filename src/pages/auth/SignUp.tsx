@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, User, Lock, EyeOff, Eye, Linkedin } from "lucide-react";
+import { Mail, User, Lock, EyeOff, Eye, Linkedin, Briefcase } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "@/components/ui/separator";
 
@@ -15,6 +15,7 @@ const SignUp = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [organization, setOrganization] = useState("");
   const [role, setRole] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -31,22 +32,44 @@ const SignUp = () => {
     }
   }, [user, navigate]);
 
+  // Reset role when organization is empty
+  useEffect(() => {
+    if (!organization) {
+      setRole("");
+    }
+  }, [organization]);
+
+  const validateForm = () => {
+    if (!fullName || !email || !password) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (organization && !role) {
+      toast({
+        title: "Error",
+        description: "Role is required when an organization is specified",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!fullName || !email || !password || !role) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!validateForm()) return;
     
     setIsLoading(true);
     
     try {
-      const { error } = await signUp(email, password, fullName, role);
+      const { error } = await signUp(email, password, fullName, role, organization);
       
       if (error) {
         throw error;
@@ -74,45 +97,47 @@ const SignUp = () => {
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    setGoogleLoading(true);
-    
-    try {
-      const { error } = await signInWithGoogle();
-      
-      if (error) {
-        throw error;
-      }
-    } catch (error: any) {
-      console.error("Google signup error:", error);
+  const handleSocialSignUp = async (provider: 'google' | 'linkedin') => {
+    // Validate organization/role combination first
+    if (organization && !role) {
       toast({
         title: "Error",
-        description: error.message || "Failed to sign up with Google. Please try again.",
+        description: "Role is required when an organization is specified",
         variant: "destructive",
       });
-    } finally {
-      setGoogleLoading(false);
+      return;
     }
-  };
-
-  const handleLinkedInSignUp = async () => {
-    setLinkedinLoading(true);
     
-    try {
-      const { error } = await signInWithLinkedIn();
-      
-      if (error) {
-        throw error;
+    if (provider === 'google') {
+      setGoogleLoading(true);
+      try {
+        const { error } = await signInWithGoogle();
+        if (error) throw error;
+      } catch (error: any) {
+        console.error("Google signup error:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to sign up with Google. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setGoogleLoading(false);
       }
-    } catch (error: any) {
-      console.error("LinkedIn signup error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to sign up with LinkedIn. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLinkedinLoading(false);
+    } else if (provider === 'linkedin') {
+      setLinkedinLoading(true);
+      try {
+        const { error } = await signInWithLinkedIn();
+        if (error) throw error;
+      } catch (error: any) {
+        console.error("LinkedIn signup error:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to sign up with LinkedIn. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLinkedinLoading(false);
+      }
     }
   };
 
@@ -148,6 +173,7 @@ const SignUp = () => {
                 />
               </div>
             </div>
+            
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -163,6 +189,7 @@ const SignUp = () => {
                 />
               </div>
             </div>
+            
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -187,21 +214,40 @@ const SignUp = () => {
                 </Button>
               </div>
             </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={setRole} disabled={isLoading}>
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((role) => (
-                    <SelectItem key={role.value} value={role.value}>
-                      {role.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="organization">Organization (Optional)</Label>
+              <div className="relative">
+                <Briefcase className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="organization"
+                  placeholder="Company Name"
+                  value={organization}
+                  onChange={(e) => setOrganization(e.target.value)}
+                  className="pl-10"
+                  disabled={isLoading}
+                />
+              </div>
             </div>
+            
+            {organization && (
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select value={role} onValueChange={setRole} disabled={isLoading}>
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
             <Button 
               type="submit" 
               className="w-full bg-primary hover:bg-primary/90" 
@@ -225,7 +271,7 @@ const SignUp = () => {
               type="button" 
               variant="outline" 
               className="w-full" 
-              onClick={handleGoogleSignUp}
+              onClick={() => handleSocialSignUp('google')}
               disabled={googleLoading || linkedinLoading}
             >
               {googleLoading ? "Connecting..." : "Sign up with Google"}
@@ -235,7 +281,7 @@ const SignUp = () => {
               type="button" 
               variant="outline" 
               className="w-full flex items-center gap-2" 
-              onClick={handleLinkedInSignUp}
+              onClick={() => handleSocialSignUp('linkedin')}
               disabled={linkedinLoading || googleLoading}
             >
               <Linkedin className="h-4 w-4" />

@@ -1,174 +1,120 @@
-
-import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
-import ZenithLogo from "../common/ZenithLogo";
-import { 
-  LayoutDashboard, 
-  Users, 
-  ShoppingCart, 
-  MessageSquare, 
-  BarChart3, 
-  Mail, 
-  Laptop, 
+import {
+  Home,
+  LayoutDashboard,
+  BarChart,
+  Users,
+  ShoppingCart,
+  LifeBuoy,
+  Megaphone,
+  Globe,
   Settings,
-  LogOut
+  ToggleLeft,
+  ToggleRight,
+  Gitlab,
+  Building2,
 } from "lucide-react";
 
-type NavItem = {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
-};
+interface SidebarProps {
+  isCollapsed?: boolean;
+}
 
-const mainNavItems: NavItem[] = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: <LayoutDashboard className="h-5 w-5" />,
-  },
-  {
-    label: "Sales",
-    href: "/sales",
-    icon: <ShoppingCart className="h-5 w-5" />,
-  },
-  {
-    label: "Customers",
-    href: "/customers",
-    icon: <Users className="h-5 w-5" />,
-  },
-  {
-    label: "Service",
-    href: "/service",
-    icon: <MessageSquare className="h-5 w-5" />,
-  },
-  {
-    label: "Marketing",
-    href: "/marketing",
-    icon: <Mail className="h-5 w-5" />,
-  },
-  {
-    label: "Analytics",
-    href: "/analytics",
-    icon: <BarChart3 className="h-5 w-5" />,
-  },
-  {
-    label: "Website",
-    href: "/website",
-    icon: <Laptop className="h-5 w-5" />,
-  },
-];
-
-const secondaryNavItems: NavItem[] = [
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: <Settings className="h-5 w-5" />,
-  },
-];
-
-const Sidebar = () => {
+const Sidebar = ({ isCollapsed }: SidebarProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-  
-  const isActiveRoute = (path: string) => {
-    if (path === "/dashboard" && location.pathname === "/dashboard") {
-      return true;
-    }
-    return location.pathname.startsWith(path) && path !== "/dashboard";
-  };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
-
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    if (!user) return "ZV";
-    
-    const name = user.user_metadata?.full_name || user.email || "";
-    if (!name) return "ZV";
-    
-    if (name.includes('@')) {
-      return name.substring(0, 2).toUpperCase();
-    }
-    
-    const parts = name.split(' ');
-    if (parts.length > 1) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    
-    return name.substring(0, 2).toUpperCase();
-  };
+  const routes = [
+    {
+      path: "/dashboard",
+      icon: LayoutDashboard,
+      label: "Dashboard",
+    },
+    {
+      path: "/sales",
+      icon: BarChart,
+      label: "Sales",
+    },
+    {
+      path: "/customers",
+      icon: Users,
+      label: "Customers",
+    },
+    {
+      path: "/service",
+      icon: LifeBuoy,
+      label: "Service",
+    },
+    {
+      path: "/marketing",
+      icon: Megaphone,
+      label: "Marketing",
+    },
+    {
+      path: "/analytics",
+      icon: Globe,
+      label: "Analytics",
+    },
+    {
+      path: "/website",
+      icon: Home,
+      label: "Website",
+    },
+    {
+      path: "/integrations",
+      icon: Gitlab,
+      label: "Integrations",
+    },
+    {
+      path: "/organization",
+      icon: Building2,
+      label: "Organization",
+    },
+    {
+      path: "/settings",
+      icon: Settings,
+      label: "Settings",
+    },
+  ];
 
   return (
-    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
-      <div className="p-4 border-b border-sidebar-border">
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <ZenithLogo width={32} height={32} className="text-sidebar-primary-foreground" />
-          <div className="font-semibold text-sidebar-foreground">Zenith Vault</div>
-        </Link>
+    <div className={cn(
+      "flex flex-col w-full h-full bg-secondary border-r border-border",
+      isCollapsed ? "w-16" : "w-72"
+    )}>
+      <div className="flex items-center h-16 px-4 border-b border-border">
+        <span className="font-bold text-lg">
+          {isCollapsed ? "AC" : "Admin Console"}
+        </span>
       </div>
-      
-      <div className="flex-1 py-4 flex flex-col">
-        <nav className="px-2 space-y-1">
-          {mainNavItems.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className={cn(
-                "nav-item",
-                isActiveRoute(item.href) ? "nav-item-active" : "nav-item-inactive"
-              )}
+      <div className="flex-grow p-4">
+        <nav className="flex flex-col space-y-1">
+          {routes.map((route) => (
+            <NavLink
+              key={route.path}
+              to={route.path}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-muted hover:text-foreground transition-colors",
+                  isActive
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground",
+                  isCollapsed ? "justify-center" : "justify-start"
+                )
+              }
             >
-              {item.icon}
-              {item.label}
-            </Link>
+              <route.icon className="w-4 h-4 mr-2" />
+              {!isCollapsed && <span>{route.label}</span>}
+            </NavLink>
           ))}
         </nav>
-        
-        <div className="mt-auto">
-          <div className="px-3 py-2 text-xs font-semibold text-sidebar-foreground/60 uppercase">
-            Admin
-          </div>
-          <nav className="px-2 space-y-1">
-            {secondaryNavItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={cn(
-                  "nav-item",
-                  isActiveRoute(item.href) ? "nav-item-active" : "nav-item-inactive"
-                )}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
       </div>
-      
-      <div className="p-3 border-t border-sidebar-border">
-        <div className="flex items-center justify-between px-2 py-2">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-sidebar-primary flex items-center justify-center text-white font-medium">
-              {getUserInitials()}
-            </div>
-            <div>
-              <div className="text-sm font-medium">{user?.user_metadata?.full_name || "User"}</div>
-              <div className="text-xs text-sidebar-foreground/70">{user?.user_metadata?.role || "User"}</div>
-            </div>
-          </div>
-          <button 
-            className="text-sidebar-foreground/70 hover:text-sidebar-foreground"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+      <div className="p-4 border-t border-border">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {isCollapsed ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4 mr-2" />}
+            {!isCollapsed && "Collapse"}
+          </span>
         </div>
       </div>
     </div>

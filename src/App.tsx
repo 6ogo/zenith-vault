@@ -29,6 +29,9 @@ import SalesManagement from "./pages/features/SalesManagement";
 import CustomerService from "./pages/features/CustomerService";
 import MarketingAutomation from "./pages/features/MarketingAutomation";
 import WebsiteDevelopment from "./pages/features/WebsiteDevelopment";
+// New pages
+import Integrations from "./pages/Integrations";
+import Organization from "./pages/Organization";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -80,6 +83,8 @@ const AppWithAuth = () => {
           <Route path="/marketing" element={<Marketing />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/website" element={<Website />} />
+          <Route path="/integrations" element={<Integrations />} />
+          <Route path="/organization" element={<Organization />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
         
