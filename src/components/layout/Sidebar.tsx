@@ -114,7 +114,6 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
           )}
         </button>
       </div>
-      <Separator className="my-1" />
       <div className="flex flex-col flex-grow overflow-y-auto">
         <ScrollArea className="flex-grow">
           <div className="p-2">
