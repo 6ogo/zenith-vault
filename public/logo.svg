@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- Deep blue Z shape that more accurately matches the reference image -->
+  <path d="M75 120 L285 120 L285 160 L160 280 L285 280 L285 320 L75 320 L75 280 L200 160 L75 160 Z" fill="#003366" rx="5" ry="5" style="stroke-linejoin: round;"/>
+  
+  <!-- Properly proportioned green triangle that matches the reference image -->
+  <path d="M230 60 L285 120 L175 120 Z" fill="#00CC66"/>
+</svg>
