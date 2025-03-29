@@ -1,14 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Trash2, Save, X } from "lucide-react";
+import { PlusCircle, Trash2, FileCode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ingestKnowledgeBase } from "@/services/ai";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
+import { populateIntegrationDocs } from '@/utils/documentationExtractor';
 
 interface KnowledgeEntry {
   id: number;
@@ -109,6 +111,34 @@ const KnowledgeBaseManager = () => {
     }
   };
 
+  const handleAddIntegrationDocs = async () => {
+    setIsLoading(true);
+    try {
+      const result = await populateIntegrationDocs();
+      
+      if (result.success) {
+        toast({
+          title: "Integration docs added",
+          description: `Added ${result.processed} out of ${result.total} integration documentation entries`,
+        });
+        
+        // Refresh the list
+        fetchKnowledgeEntries();
+      } else {
+        throw new Error("Failed to add integration documentation");
+      }
+    } catch (error) {
+      console.error('Error adding integration documentation:', error);
+      toast({
+        title: "Failed to add integration docs",
+        description: "There was an error adding the integration documentation to the knowledge base",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleDeleteEntry = async (id: number) => {
     try {
       setIsLoading(true);
@@ -178,7 +208,15 @@ const KnowledgeBaseManager = () => {
             />
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex justify-between">
+          <Button 
+            onClick={handleAddIntegrationDocs}
+            disabled={isLoading}
+            variant="outline"
+          >
+            <FileCode className="h-4 w-4 mr-2" />
+            Add Integration Docs
+          </Button>
           <Button 
             onClick={handleAddEntry}
             disabled={isLoading || !newTitle.trim() || !newContent.trim()}

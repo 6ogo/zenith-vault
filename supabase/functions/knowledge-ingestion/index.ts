@@ -67,7 +67,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'text-embedding-ada-002',
+            model: 'llama3-70b-8192', // Using LLaMA 3 model for embeddings
             input: embeddingText
           }),
         });

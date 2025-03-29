@@ -36,6 +36,18 @@ export const extractIntegrationDocumentation = () => {
     {
       title: "Custom API Integrations",
       content: "Create custom integrations with any system that provides an API, including RESTful, GraphQL, SOAP/XML, and webhook integrations. Administrators can develop custom integrations by defining integration requirements, configuring connection settings, creating data mappings, configuring synchronization logic, implementing error handling, and testing before deployment."
+    },
+    {
+      title: "Setting Up GROQ API Integration",
+      content: "To integrate GROQ API with Zenith Vault, go to Project Settings > Edge Functions Secrets and add your GROQ API key as 'GROQ_API_KEY'. The chatbot uses GROQ's LLaMA 3 model for embeddings and responses. Make sure to use a valid API key from your GROQ account dashboard."
+    },
+    {
+      title: "Integration Authentication Methods",
+      content: "The platform supports various authentication methods for integrations including OAuth 2.0, API keys, JWT tokens, and basic authentication. Each method has specific configuration requirements and security considerations. OAuth 2.0 is recommended for user-centric integrations, while API keys are suitable for server-to-server communications."
+    },
+    {
+      title: "Webhook Integration Setup",
+      content: "To configure webhook integrations, use the Integrations Hub to define webhook endpoints, event triggers, payload structures, and security settings. The platform provides built-in webhook verification with HMAC signatures and replay protection. Test webhooks in the development environment before deploying to production."
     }
   ];
 
@@ -43,6 +55,30 @@ export const extractIntegrationDocumentation = () => {
     title: item.title,
     content: item.content
   }));
+};
+
+/**
+ * Helper function to populate the knowledge base with integration documentation
+ */
+export const populateIntegrationDocs = async () => {
+  try {
+    const entries = extractIntegrationDocumentation();
+    
+    // Use the knowledge-ingestion function to add entries
+    const { data, error } = await supabase.functions.invoke('knowledge-ingestion', {
+      body: { 
+        entries: entries, 
+        type: 'documentation'
+      }
+    });
+    
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error('Error populating integration documentation:', error);
+    throw error;
+  }
 };
 
 /**

@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
@@ -38,7 +39,7 @@ serve(async (req) => {
     
     console.log(`Processing question: "${question.substring(0, 50)}..."`);
     
-    // Generate embedding for the question
+    // Generate embedding for the question using GROQ's embedding model
     const embeddingResponse = await fetch('https://api.groq.com/openai/v1/embeddings', {
       method: 'POST',
       headers: {
@@ -46,7 +47,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'text-embedding-ada-002',
+        model: 'llama3-70b-8192', // Using LLaMA 3 model for embeddings
         input: question
       }),
     });
