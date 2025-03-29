@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,7 +87,7 @@ const Organization = () => {
           role,
           status,
           joined_at,
-          profiles:profiles!user_id(full_name)
+          profiles(full_name)
         `)
         .eq('organization_id', organizationId)
         .eq('status', 'pending');
@@ -118,7 +119,7 @@ const Organization = () => {
           role,
           status,
           joined_at,
-          profiles:profiles!user_id(full_name)
+          profiles(full_name)
         `)
         .eq('organization_id', organizationId)
         .eq('status', 'active');
