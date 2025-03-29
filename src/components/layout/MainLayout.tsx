@@ -19,11 +19,11 @@ const MainLayout = () => {
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Regular header - scrolls with content */}
-      <Header toggleSidebar={toggleSidebar} />
+      {/* Fixed header */}
+      <Header toggleSidebar={toggleSidebar} className="fixed top-0 left-0 right-0 z-40" />
       
-      {/* Content area */}
-      <div className="flex flex-1">
+      {/* Content area - with padding to account for fixed header */}
+      <div className="flex flex-1 mt-16"> {/* 16 = 4rem (header height) */}
         {/* Mobile sidebar */}
         <div className={`fixed inset-0 z-30 transform md:hidden ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -37,7 +37,7 @@ const MainLayout = () => {
           </div>
         </div>
         
-        {/* Desktop sidebar - sticky with top-0 */}
+        {/* Desktop sidebar - sticky with negative top */}
         <div className={`hidden md:block sticky top-0 h-screen z-20 transition-all duration-300 ${
           sidebarCollapsed ? "w-16" : "w-72"
         }`}>
