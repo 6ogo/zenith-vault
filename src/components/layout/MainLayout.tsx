@@ -1,5 +1,4 @@
-
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -9,7 +8,6 @@ const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const footerRef = useRef<HTMLElement | null>(null);
-  const [sidebarHeight, setSidebarHeight] = useState<string>("calc(100vh - 4rem)");
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -18,36 +16,6 @@ const MainLayout = () => {
   const toggleSidebarCollapse = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
-
-  // Adjust sidebar height when footer position changes
-  useEffect(() => {
-    const updateSidebarHeight = () => {
-      if (footerRef.current) {
-        const footerTop = footerRef.current.getBoundingClientRect().top;
-        const headerHeight = 64; // 4rem or 64px
-        const viewportHeight = window.innerHeight;
-        
-        // If footer is in view, adjust sidebar height
-        if (footerTop < viewportHeight) {
-          const newHeight = footerTop - headerHeight;
-          setSidebarHeight(`${newHeight}px`);
-        } else {
-          // Footer not in view, sidebar can take full height minus header
-          setSidebarHeight("calc(100vh - 4rem)");
-        }
-      }
-    };
-
-    // Run on mount and when window is resized or scrolled
-    updateSidebarHeight();
-    window.addEventListener("resize", updateSidebarHeight);
-    window.addEventListener("scroll", updateSidebarHeight);
-
-    return () => {
-      window.removeEventListener("resize", updateSidebarHeight);
-      window.removeEventListener("scroll", updateSidebarHeight);
-    };
-  }, []);
   
   return (
     <div className="flex min-h-screen bg-background flex-col">
@@ -73,21 +41,22 @@ const MainLayout = () => {
           </div>
         </div>
         
-        {/* Sidebar for desktop - positioned below header with dynamic height */}
-        <div className={`hidden md:block sticky top-16 z-20 transition-all duration-300 ${
+        {/* Desktop sidebar - fixed position instead of sticky */}
+        <div className={`hidden md:block fixed top-16 left-0 h-[calc(100vh-4rem)] overflow-y-auto z-20 transition-all duration-300 ${
           sidebarCollapsed ? "w-16" : "w-72"
-        }`} style={{ height: sidebarHeight }}>
-          <div className="flex flex-col w-full h-full">
-            <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
-          </div>
+        }`}>
+          <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
         
-        {/* Main content - full width */}
-        <div className="flex flex-col flex-1 w-full">
-          <main className="flex-1 p-4 md:p-6 w-full max-w-full overflow-x-auto">
+        {/* Main content with margin to accommodate sidebar */}
+        <div className={`flex flex-col flex-1 w-full ${
+          sidebarCollapsed ? "md:ml-16" : "md:ml-72"
+        }`}>
+          <main className="flex-1 p-4 md:p-6 max-w-full overflow-x-auto">
             <Outlet />
           </main>
           
+          {/* Footer - now full width relative to the main content area */}
           <Footer ref={footerRef} />
         </div>
       </div>
