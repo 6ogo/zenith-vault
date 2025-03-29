@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -178,16 +177,18 @@ const Organization = () => {
         </TabsList>
         
         <TabsContent value="members" className="mt-6 space-y-4">
-          <PendingApprovals 
-            approvals={pendingApprovals} 
-            onApprove={handleApproveRequest} 
-            onReject={handleRejectRequest} 
-          />
-          <OrganizationMembers 
-            members={members} 
-            onChangeRole={handleChangeRole} 
-            onRemoveMember={handleRemoveMember} 
-          />
+          <div className="space-y-4">
+            <PendingApprovals 
+              approvals={pendingApprovals} 
+              onApprove={handleApproveRequest} 
+              onReject={handleRejectRequest} 
+            />
+            <OrganizationMembers 
+              members={members} 
+              onChangeRole={handleChangeRole} 
+              onRemoveMember={handleRemoveMember} 
+            />
+          </div>
         </TabsContent>
         
         <TabsContent value="settings" className="mt-6 space-y-4">
