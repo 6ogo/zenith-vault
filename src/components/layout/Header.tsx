@@ -28,8 +28,8 @@ const Header: React.FC<HeaderProps> = ({ onLogout, toggleSidebar }) => {
         <div className="flex flex-1 items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link to="/" className="flex items-center space-x-2">
-              <img src="/logo.svg" alt="Logo" className="h-8 w-8" />
-              <span className="hidden font-bold sm:inline-block">Zenith Platform</span>
+              <img src="/logo.svg" alt="Zenith Vault Logo" className="h-8 w-8" />
+              <span className="hidden font-bold sm:inline-block">Zenith Vault</span>
             </Link>
           </div>
           <div className="flex items-center space-x-2">
