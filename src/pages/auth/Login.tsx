@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { TwoFactorVerification } from '@/components/auth/TwoFactorVerification';
@@ -45,22 +46,19 @@ export default function Login() {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: z.infer<typeof loginSchema>) => {
     if (isLoading) return;
 
-    const { error, mfaRequired } = await signIn(values.email, values.password);
-    
-    if (error) {
+    try {
+      await signIn(values.email, values.password);
+      navigate("/dashboard");
+    } catch (error: any) {
       toast({
         title: "Login failed",
         description: error.message,
         variant: "destructive",
-      })
-      return;
+      });
     }
-    
-    // Note: If mfaRequired is true, the isVerifying2FA state in AuthContext will be set to true
-    // and the component will render the TwoFactorVerification component
   };
 
   // If 2FA verification is required, show the verification screen
@@ -130,7 +128,7 @@ export default function Login() {
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Button onClick={() => signInWithGoogle()} variant="outline">Google</Button>
             <Button onClick={() => signInWithLinkedIn()} variant="outline">LinkedIn</Button>
           </div>

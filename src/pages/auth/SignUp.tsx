@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, User, Lock, EyeOff, Eye, Linkedin, Briefcase, Building } from "lucide-react";
+import { Mail, User, Lock, EyeOff, Eye, Linkedin, Building } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -71,7 +70,14 @@ const SignUp = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await signUp(email, password, fullName, role, organization, isCreatingOrg);
+      const { error } = await signUp({
+        email,
+        password, 
+        fullName,
+        role,
+        organization,
+        isCreatingOrg
+      });
       
       if (error) {
         throw error;

@@ -13,14 +13,17 @@ export const TwoFactorSetup = () => {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [factorId, setFactorId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleEnableMfa = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const { error, qr, factorId: newFactorId } = await enableMfa();
       
       if (error) {
         toast.error('Failed to start 2FA setup: ' + error.message);
+        setError('Failed to start 2FA setup: ' + error.message);
         return;
       }
       
@@ -29,9 +32,10 @@ export const TwoFactorSetup = () => {
         setFactorId(newFactorId);
         setIsSettingUp(true);
       }
-    } catch (error) {
+    } catch (err: any) {
       toast.error('An unexpected error occurred');
-      console.error(error);
+      setError('An unexpected error occurred');
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -41,19 +45,24 @@ export const TwoFactorSetup = () => {
     if (!factorId) return;
     
     setIsLoading(true);
+    setError(null);
     try {
       const { error } = await verifyMfa(factorId, values.otp);
       
       if (error) {
+        toast.error('Failed to verify code: ' + error.message);
+        setError('Failed to verify code: ' + error.message);
         return;
       }
       
+      toast.success('Two-factor authentication enabled successfully!');
       setIsSettingUp(false);
       setQrCode(null);
       setFactorId(null);
-    } catch (error) {
+    } catch (err: any) {
       toast.error('An unexpected error occurred');
-      console.error(error);
+      setError('An unexpected error occurred');
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +95,7 @@ export const TwoFactorSetup = () => {
                 <img src={qrCode} alt="QR Code for 2FA" className="w-48 h-48" />
               </div>
             </div>
-            <OTPForm onSubmit={handleVerifyMfa} isLoading={isLoading} />
+            <OTPForm onSubmit={handleVerifyMfa} isLoading={isLoading} error={error || undefined} />
           </div>
         ) : (
           <div className="space-y-2">
