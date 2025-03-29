@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,13 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Code, Database, FileJson, Upload, Save, Play, BarChart, PieChart, LineChart, Search, User, Users } from "lucide-react";
+import { CheckCircle2, Code, Database, FileJson, Upload, Save, Play, BarChart, PieChart, LineChart, Search, User, Users, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Role, Permission } from "@/types/organization";
 import { ComboboxPopover } from "@/components/ui/combobox";
 import { useDataMode } from "@/contexts/DataModeContext";
 
-// Report template definitions
 interface ReportTemplate {
   id: string;
   name: string;
@@ -161,8 +159,7 @@ export const CustomReportBuilder = () => {
   const [codeEditorContent, setCodeEditorContent] = useState("-- Write your SQL query here\nSELECT * FROM sales\nWHERE created_at > NOW() - INTERVAL '30 days'\nORDER BY amount DESC\nLIMIT 10;");
   const [pythonEditorContent, setPythonEditorContent] = useState("# Python script for data analysis\nimport pandas as pd\nimport numpy as np\n\n# Load data\n# This is just a placeholder, in production this would access your data\ndf = pd.read_csv('sales_data.csv')\n\n# Perform analysis\nmonthly_sales = df.groupby(pd.Grouper(key='date', freq='M'))['amount'].sum()\n\n# Output results\nprint(monthly_sales)");
   const [rEditorContent, setREditorContent] = useState("# R script for statistical analysis\n\n# Load libraries\nlibrary(tidyverse)\nlibrary(lubridate)\n\n# Load data\n# This is just a placeholder\ndata <- read.csv('customer_data.csv')\n\n# Analyze data\nmonthly_summary <- data %>%\n  mutate(month = floor_date(as.Date(date), 'month')) %>%\n  group_by(month) %>%\n  summarise(total_sales = sum(amount),\n            avg_order = mean(amount),\n            customer_count = n_distinct(customer_id))\n\n# Plot results\nggplot(monthly_summary, aes(x = month, y = total_sales)) +\n  geom_line() +\n  theme_minimal() +\n  labs(title = 'Monthly Sales Trend',\n       x = 'Month',\n       y = 'Total Sales')");
-  
-  // Access control states
+
   const [specificRoles, setSpecificRoles] = useState<string[]>([]);
   const [specificPersons, setSpecificPersons] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -171,9 +168,7 @@ export const CustomReportBuilder = () => {
   const [organizationMembers, setOrganizationMembers] = useState<{id: string, name: string}[]>([]);
   const { isRealData } = useDataMode();
 
-  // Fetch roles and members (simplified for demo)
   useEffect(() => {
-    // In a real implementation, fetch from API
     setAvailableRoles([
       { id: '1', name: 'Admin', is_system_role: true, organization_id: '1' },
       { id: '2', name: 'Manager', is_system_role: false, organization_id: '1' },
@@ -208,7 +203,6 @@ export const CustomReportBuilder = () => {
       return;
     }
 
-    // In a real app, this would save to Supabase with the access control settings
     toast({
       title: "Report Saved",
       description: "Your custom report has been saved successfully.",
@@ -221,7 +215,6 @@ export const CustomReportBuilder = () => {
   };
 
   const handleRunReport = () => {
-    // This would normally execute the query or script
     toast({
       title: "Report Executed",
       description: `Your ${reportType.toUpperCase()} code is now running. Results will appear soon.`,
@@ -590,7 +583,6 @@ export const CustomReportBuilder = () => {
         </Card>
       </div>
 
-      {/* Template Selection Dialog */}
       {showTemplates && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-background rounded-lg shadow-lg w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
