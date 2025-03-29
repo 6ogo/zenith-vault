@@ -45,11 +45,11 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen h-screen w-screen overflow-hidden dark:bg-gray-950 flex flex-col relative">
+    <div className="min-h-screen w-screen overflow-x-hidden overflow-y-auto dark:bg-gray-950 flex flex-col relative">
       <DataFlowBackground />
       
-      {/* Header for landing page */}
-      <header className="py-4 px-4 md:px-8 lg:px-12 border-b relative z-10">
+      {/* Header for landing page - removed border-b */}
+      <header className="py-4 px-4 md:px-8 lg:px-12 relative z-10">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <ZenithLogo width={40} height={40} />
@@ -88,7 +88,6 @@ const Index = () => {
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-primary dark:text-primary">Welcome to Zenith Vault</h1>
             
-            {/* Switched paragraphs as requested */}
             <p className="text-lg md:text-xl max-w-3xl mb-6 text-muted-foreground dark:text-muted-foreground">
               Transform Your Business with the Platform. Manage your business securely and efficiently with AI-driven insights.
             </p>
@@ -118,7 +117,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Section - pushed below fold */}
+      {/* Features Section */}
       <section className="py-20 px-4 md:px-8 bg-muted/50 dark:bg-gray-900 relative z-10 mt-auto">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
