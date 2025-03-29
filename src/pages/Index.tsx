@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Shield, ArrowRight, BarChart, MessageSquare, Mail, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,34 +7,28 @@ import { useAuth } from "@/contexts/AuthContext";
 import ZenithLogo from "@/components/common/ZenithLogo";
 import Footer from "@/components/layout/Footer";
 import DataFlowBackground from "@/components/common/DataFlowBackground";
-
 const Index = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const features = [
-    {
-      title: "Sales Management",
-      description: "Track leads, manage pipelines, and forecast sales with AI-powered tools.",
-      icon: <BarChart className="h-8 w-8 text-secondary" />
-    },
-    {
-      title: "Customer Service",
-      description: "Resolve issues faster with automated case management and sentiment analysis.",
-      icon: <MessageSquare className="h-8 w-8 text-secondary" />
-    },
-    {
-      title: "Marketing Automation",
-      description: "Create personalized campaigns and track engagement in real-time.",
-      icon: <Mail className="h-8 w-8 text-secondary" />
-    },
-    {
-      title: "Website Development",
-      description: "Build and host your site with easy-to-use templates or full customization.",
-      icon: <Code className="h-8 w-8 text-secondary" />
-    }
-  ];
-
+  const {
+    user
+  } = useAuth();
+  const features = [{
+    title: "Sales Management",
+    description: "Track leads, manage pipelines, and forecast sales with AI-powered tools.",
+    icon: <BarChart className="h-8 w-8 text-secondary" />
+  }, {
+    title: "Customer Service",
+    description: "Resolve issues faster with automated case management and sentiment analysis.",
+    icon: <MessageSquare className="h-8 w-8 text-secondary" />
+  }, {
+    title: "Marketing Automation",
+    description: "Create personalized campaigns and track engagement in real-time.",
+    icon: <Mail className="h-8 w-8 text-secondary" />
+  }, {
+    title: "Website Development",
+    description: "Build and host your site with easy-to-use templates or full customization.",
+    icon: <Code className="h-8 w-8 text-secondary" />
+  }];
   const handleGetStarted = () => {
     if (user) {
       navigate("/dashboard");
@@ -43,9 +36,7 @@ const Index = () => {
       navigate("/auth/signup");
     }
   };
-
-  return (
-    <div className="min-h-screen w-screen overflow-x-hidden overflow-y-auto dark:bg-gray-950 flex flex-col relative">
+  return <div className="min-h-screen w-screen overflow-x-hidden overflow-y-auto dark:bg-gray-950 flex flex-col relative">
       <DataFlowBackground />
       
       {/* Header for landing page - removed border-b */}
@@ -56,31 +47,22 @@ const Index = () => {
             <h1 className="text-xl font-bold text-primary">Zenith Vault</h1>
           </div>
           <div className="flex gap-4">
-            {!user ? (
-              <>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => navigate("/auth/login")}
-                >
+            {!user ? <>
+                <Button variant="ghost" onClick={() => navigate("/auth/login")}>
                   Log in
                 </Button>
-                <Button 
-                  onClick={() => navigate("/auth/signup")}
-                >
+                <Button onClick={() => navigate("/auth/signup")}>
                   Sign up
                 </Button>
-              </>
-            ) : (
-              <Button onClick={() => navigate("/dashboard")}>
+              </> : <Button onClick={() => navigate("/dashboard")}>
                 Dashboard
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="py-16 md:py-24 px-4 md:px-8 flex-1 relative z-10">
+      <section className="py-16 px-4 md:px-8 flex-1 relative z-10 md:py-[122px]">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col items-center text-center animate-fade-in">
             <div className="mb-6">
@@ -94,24 +76,13 @@ const Index = () => {
             <p className="text-xl md:text-2xl font-medium text-secondary mb-10 dark:text-secondary">Secure, Streamline, Succeed</p>
             
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
-              <Button 
-                size="lg"
-                className="bg-primary hover:bg-primary/90 text-white font-medium"
-                onClick={handleGetStarted}
-              >
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-medium" onClick={handleGetStarted}>
                 {user ? "Go to Dashboard" : "Start Your Free Trial"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              {!user && (
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="border-primary text-primary hover:bg-primary/10 dark:border-primary dark:text-primary"
-                  onClick={() => navigate("/auth/login")}
-                >
+              {!user && <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary/10 dark:border-primary dark:text-primary" onClick={() => navigate("/auth/login")}>
                   Sign In
-                </Button>
-              )}
+                </Button>}
             </div>
           </div>
         </div>
@@ -129,8 +100,7 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="border border-border hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
+            {features.map((feature, index) => <Card key={index} className="border border-border hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
                 <CardContent className="p-6 flex flex-col items-center text-center">
                   <div className="mb-4">
                     {feature.icon}
@@ -138,8 +108,7 @@ const Index = () => {
                   <h3 className="text-xl font-semibold mb-2 text-foreground dark:text-foreground">{feature.title}</h3>
                   <p className="text-muted-foreground dark:text-muted-foreground">{feature.description}</p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -175,11 +144,7 @@ const Index = () => {
             <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-8 flex items-center justify-center dark:from-primary/5 dark:to-secondary/5">
               <div className="text-center">
                 <h3 className="text-2xl font-semibold mb-6 dark:text-gray-200">Ready to experience the zenith of business efficiency?</h3>
-                <Button 
-                  size="lg"
-                  className="bg-primary hover:bg-primary/90 text-white font-medium"
-                  onClick={handleGetStarted}
-                >
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-medium" onClick={handleGetStarted}>
                   {user ? "Go to Dashboard" : "Start Your Free Trial Today"}
                 </Button>
               </div>
@@ -190,8 +155,6 @@ const Index = () => {
 
       {/* Footer */}
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
