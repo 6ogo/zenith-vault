@@ -41,6 +41,7 @@ serve(async (req) => {
         throw new Error("No text provided for embedding generation");
       }
       
+      // Use the appropriate embedding endpoint
       const response = await fetch('https://api.groq.com/openai/v1/embeddings', {
         method: 'POST',
         headers: {
@@ -48,7 +49,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: "text-embedding-ada-002", // OpenAI-compatible embedding model
+          model: "embedding-model-e5", // Using Groq's recommended embedding model
           input: embeddingInput
         }),
       });
@@ -65,7 +66,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           embedding: data.data[0].embedding,
-          model: "text-embedding-ada-002",
+          model: data.model,
           usage: data.usage
         }),
         { 
