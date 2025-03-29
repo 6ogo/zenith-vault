@@ -9,7 +9,7 @@ import { useDataMode } from "@/contexts/DataModeContext";
 import DataModeToggle from "@/components/dashboard/DataModeToggle";
 
 const Website = () => {
-  const { isRealData, setIsRealData } = useDataMode();
+  const { isRealData } = useDataMode();
   const [activeTab, setActiveTab] = useState("seo");
 
   // Demo SEO issues
@@ -31,7 +31,7 @@ const Website = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
+          <DataModeToggle />
           <Button size="sm" className="font-medium">
             <Plus className="h-4 w-4 mr-1" /> Add Website
           </Button>

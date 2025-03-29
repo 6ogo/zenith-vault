@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +24,7 @@ const demoSources = [
 
 const Analytics = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const { isRealData, setIsRealData } = useDataMode();
+  const { isRealData } = useDataMode();
 
   return (
     <div className="space-y-6">
@@ -36,7 +35,7 @@ const Analytics = () => {
             Visualize your business performance and customer insights
           </p>
         </div>
-        <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
+        <DataModeToggle />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

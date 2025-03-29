@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +16,7 @@ const DataFiles = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("upload");
   const [selectedFile, setSelectedFile] = useState<any>(null);
-  const { isRealData, setIsRealData } = useDataMode();
+  const { isRealData } = useDataMode();
   
   // Demo files
   const demoFiles = [
@@ -52,7 +51,7 @@ const DataFiles = () => {
             Upload, manage, and visualize your data files
           </p>
         </div>
-        <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
+        <DataModeToggle />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

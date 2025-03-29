@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -59,7 +58,6 @@ const tickets = [
   },
 ];
 
-// Demo data for the solved cases pie chart
 const demoSolvedCases = [
   { name: "John Doe", value: 32, color: "#8884d8" },
   { name: "Jane Smith", value: 24, color: "#82ca9d" },
@@ -67,7 +65,6 @@ const demoSolvedCases = [
   { name: "Sarah Williams", value: 12, color: "#ff8042" },
 ];
 
-// Demo data for the ticket types pie chart
 const demoTicketTypes = [
   { name: "Organization", value: 35, color: "#0088FE" },
   { name: "Customer", value: 65, color: "#00C49F" },
@@ -89,7 +86,7 @@ const Service = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const { isRealData, setIsRealData } = useDataMode();
+  const { isRealData } = useDataMode();
   const { user } = useAuth();
   
   const handleTicketCreated = () => {
@@ -108,7 +105,7 @@ const Service = () => {
         </div>
         
         <div className="flex gap-3">
-          <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
+          <DataModeToggle />
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="font-medium">
@@ -178,7 +175,6 @@ const Service = () => {
         </Card>
       </div>
       
-      {/* Charts for ticket analysis */}
       {!isRealData && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ServiceSolvedCasesPieChart data={demoSolvedCases} />

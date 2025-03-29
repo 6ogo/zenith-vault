@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +13,7 @@ import { useDataMode } from "@/contexts/DataModeContext";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { isRealData, setIsRealData } = useDataMode();
+  const { isRealData } = useDataMode();
   
   const userWelcomeName = user?.user_metadata?.full_name || user?.email || "User";
 
@@ -27,7 +26,7 @@ const Dashboard = () => {
         </p>
       </div>
 
-      <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
+      <DataModeToggle />
 
       <Alert className="bg-secondary/20 border-secondary">
         <Check className="h-4 w-4 text-secondary" />

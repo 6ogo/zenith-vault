@@ -10,7 +10,7 @@ import { useDataMode } from "@/contexts/DataModeContext";
 import DataModeToggle from "@/components/dashboard/DataModeToggle";
 
 const Sales = () => {
-  const { isRealData, setIsRealData } = useDataMode();
+  const { isRealData } = useDataMode();
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -22,7 +22,7 @@ const Sales = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
+          <DataModeToggle />
           <Button size="sm" className="font-medium">
             <Plus className="h-4 w-4 mr-1" /> New Lead
           </Button>
