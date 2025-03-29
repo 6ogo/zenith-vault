@@ -1,3 +1,4 @@
+
 // src/components/layout/Sidebar.tsx
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -23,6 +24,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useDataMode } from "@/contexts/DataModeContext";
+import { Badge } from "@/components/ui/badge";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -32,6 +34,7 @@ interface SidebarProps {
 const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
   const location = useLocation();
   const { isRealData } = useDataMode();
+  const permanentRealData = localStorage.getItem('permanentRealData') === 'true';
 
   const routes = [
     {
@@ -132,6 +135,16 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
           <>
             <route.icon className="w-5 h-5" />
             <span className="ml-2">{route.label}</span>
+            {route.path === "/dashboard" && !permanentRealData && (
+              <Badge 
+                className={cn(
+                  "ml-auto text-[10px] px-1", 
+                  isRealData ? "bg-green-500 hover:bg-green-500/80" : "bg-blue-500 hover:bg-blue-500/80"
+                )}
+              >
+                {isRealData ? "REAL" : "DEMO"}
+              </Badge>
+            )}
           </>
         )}
       </NavLink>

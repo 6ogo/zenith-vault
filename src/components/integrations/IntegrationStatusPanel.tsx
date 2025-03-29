@@ -1,272 +1,187 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { RefreshCcw, Settings, Trash2 } from "lucide-react";
-import { useToast } from '@/hooks/use-toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { RefreshCw, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { useDataMode } from "@/contexts/DataModeContext";
 
-interface IntegrationStatus {
+export interface IntegrationStatus {
   id: string;
   name: string;
+  provider: string;
   category: string;
-  status: 'connected' | 'error' | 'syncing';
-  lastSync: string;
+  status: "connected" | "disconnected" | "error";
+  lastSync: string | null;
 }
 
+const demoIntegrations: IntegrationStatus[] = [
+  {
+    id: "1",
+    name: "Salesforce CRM",
+    provider: "Salesforce",
+    category: "crm",
+    status: "connected",
+    lastSync: "2 hours ago"
+  },
+  {
+    id: "2",
+    name: "Mailchimp",
+    provider: "Mailchimp",
+    category: "marketing",
+    status: "connected",
+    lastSync: "1 day ago"
+  },
+  {
+    id: "3",
+    name: "Stripe Payments",
+    provider: "Stripe",
+    category: "payments",
+    status: "error",
+    lastSync: "3 days ago"
+  }
+];
+
 const IntegrationStatusPanel = () => {
-  const { toast } = useToast();
-  const { isRealData } = useDataMode();
   const [integrations, setIntegrations] = useState<IntegrationStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+  const { isRealData } = useDataMode();
 
-  useEffect(() => {
-    const fetchIntegrations = async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('integrations')
-          .select('*');
-        
-        if (error) {
-          console.error('Error fetching integrations:', error);
-          setIntegrations([]);
-        } else {
-          setIntegrations(data || []);
-        }
-      } catch (err) {
-        console.error('Failed to fetch integrations:', err);
-        setIntegrations([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchIntegrations();
-  }, []);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-
-  const handleSyncClick = async (integrationId: string) => {
-    // Update UI to show syncing state
-    setIntegrations(prev => 
-      prev.map(integration => 
-        integration.id === integrationId 
-          ? { ...integration, status: 'syncing' as const } 
-          : integration
-      )
-    );
-
-    toast({
-      title: "Sync initiated",
-      description: "Synchronizing data, this might take a few moments.",
-    });
-
+  // Function to fetch integrations from Supabase
+  const fetchIntegrations = async () => {
+    setIsLoading(true);
     try {
-      // Make API call to sync the integration
-      const { data, error } = await supabase
-        .from('integrations')
-        .update({ 
-          status: 'connected',
-          lastSync: new Date().toISOString()
-        })
-        .eq('id', integrationId)
-        .select();
-      
-      if (error) {
-        throw error;
-      }
-
-      // Update local state with the response
-      setIntegrations(prev => 
-        prev.map(integration => 
-          integration.id === integrationId 
-            ? { 
-                ...integration, 
-                status: 'connected' as const,
-                lastSync: new Date().toISOString()
-              } 
-            : integration
-        )
-      );
-
+      // Since there's no 'integrations' table yet in the database, 
+      // we'll return an empty array for real data mode
+      // In a production app, this would fetch from a real 'integrations' table
+      setIntegrations([]);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching integrations:", error);
       toast({
-        title: "Sync completed",
-        description: "Data has been successfully synchronized.",
-      });
-    } catch (err) {
-      console.error('Sync failed:', err);
-      
-      // Revert to previous state but with error status
-      setIntegrations(prev => 
-        prev.map(integration => 
-          integration.id === integrationId 
-            ? { ...integration, status: 'error' as const } 
-            : integration
-        )
-      );
-
-      toast({
-        title: "Sync failed",
-        description: "There was an error synchronizing your data. Please try again.",
+        title: "Error",
+        description: "Failed to load integrations. Please try again.",
         variant: "destructive",
       });
+      setIntegrations([]);
+      setIsLoading(false);
     }
   };
 
-  const handleRemoveClick = async (integrationId: string) => {
-    toast({
-      title: "Confirm deletion",
-      description: "This will remove the integration. Are you sure?",
-      action: (
-        <Button 
-          variant="destructive" 
-          onClick={async () => {
-            try {
-              const { error } = await supabase
-                .from('integrations')
-                .delete()
-                .eq('id', integrationId);
-              
-              if (error) {
-                throw error;
-              }
+  // Load integrations on component mount
+  useEffect(() => {
+    if (isRealData) {
+      fetchIntegrations();
+    } else {
+      // Use demo data when in demo mode
+      setIntegrations(demoIntegrations);
+      setIsLoading(false);
+    }
+  }, [isRealData]);
 
-              setIntegrations(prev => prev.filter(i => i.id !== integrationId));
-              
-              toast({
-                title: "Integration removed",
-                description: "The integration has been successfully removed.",
-              });
-            } catch (err) {
-              console.error('Failed to remove integration:', err);
-              
-              toast({
-                title: "Removal failed",
-                description: "There was an error removing the integration. Please try again.",
-                variant: "destructive",
-              });
-            }
-          }}
-        >
-          Remove
-        </Button>
-      )
-    });
+  const refreshIntegrations = () => {
+    if (isRealData) {
+      fetchIntegrations();
+      toast({
+        title: "Refreshing integrations",
+        description: "Checking for the latest integration status...",
+      });
+    } else {
+      // Simulate refresh for demo mode
+      setIsLoading(true);
+      setTimeout(() => {
+        setIsLoading(false);
+        toast({
+          title: "Integrations refreshed",
+          description: "All integration statuses are up to date.",
+        });
+      }, 1000);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "connected":
+        return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
+      case "disconnected":
+        return "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20";
+      case "error":
+        return "bg-red-500/10 text-red-500 hover:bg-red-500/20";
+      default:
+        return "bg-slate-500/10 text-slate-500 hover:bg-slate-500/20";
+    }
   };
 
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Active Integrations</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-xl font-bold">Active Integrations</CardTitle>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1"
+          onClick={refreshIntegrations}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            Loading integrations...
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {integrations.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No active integrations. Connect a service to get started.
-              </p>
-            ) : (
-              integrations.map((integration) => (
-                <div 
-                  key={integration.id} 
-                  className="p-3 border rounded-md flex items-center justify-between"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium">{integration.name}</span>
-                      <Badge 
-                        variant={
-                          integration.status === 'connected' ? 'success' : 
-                          integration.status === 'error' ? 'destructive' : 
-                          'outline'
-                        }
-                        className="text-xs"
-                      >
-                        {integration.status === 'connected' ? 'Connected' : 
-                         integration.status === 'error' ? 'Error' : 
-                         'Syncing...'}
-                      </Badge>
-                    </div>
-                    <div className="text-xs text-muted-foreground flex items-center space-x-1">
-                      <span>Last sync:</span>
-                      <span>{formatDate(integration.lastSync)}</span>
-                    </div>
+        {!isRealData && integrations.length > 0 ? (
+          <div className="space-y-4">
+            {integrations.map((integration) => (
+              <div
+                key={integration.id}
+                className="flex items-center justify-between rounded-lg border p-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="rounded-md border p-2">
+                    {integration.category === "crm" && "👥"}
+                    {integration.category === "marketing" && "📧"}
+                    {integration.category === "payments" && "💳"}
                   </div>
-                  <div className="flex space-x-1">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-7 w-7"
-                            onClick={() => handleSyncClick(integration.id)}
-                            disabled={integration.status === 'syncing'}
-                          >
-                            <RefreshCcw className={`h-4 w-4 ${integration.status === 'syncing' ? 'animate-spin' : ''}`} />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Sync data</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-7 w-7"
-                          >
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Configure</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                            onClick={() => handleRemoveClick(integration.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Remove</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div>
+                    <div className="font-medium">{integration.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Last synced: {integration.lastSync || "Never"}
+                    </div>
                   </div>
                 </div>
-              ))
-            )}
+                <div className="flex items-center gap-2">
+                  <Badge
+                    className={`${getStatusColor(
+                      integration.status
+                    )} capitalize`}
+                  >
+                    {integration.status}
+                  </Badge>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="sr-only">Manage</span>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="mb-3 text-4xl">🔌</div>
+            <h3 className="mb-1 text-lg font-medium">No active integrations</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              {isRealData 
+                ? "Connect your first integration to start syncing your data."
+                : "You're viewing real data mode, but no integrations have been set up yet."}
+            </p>
+            <Button
+              onClick={() => window.location.href = "/integrations"}
+              className="gap-1"
+            >
+              <ExternalLink className="h-4 w-4" /> Set up integrations
+            </Button>
           </div>
         )}
       </CardContent>

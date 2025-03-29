@@ -15,7 +15,8 @@ import { useDataMode } from "@/contexts/DataModeContext";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { isRealData } = useDataMode();
+  const { isRealData, userId, organizationId } = useDataMode();
+  const permanentRealData = localStorage.getItem('permanentRealData') === 'true';
   
   const userWelcomeName = user?.user_metadata?.full_name || user?.email || "User";
 
@@ -28,7 +29,7 @@ const Dashboard = () => {
         </p>
       </div>
 
-      <DataModeToggle />
+      {!permanentRealData && <DataModeToggle />}
 
       <Alert className="bg-secondary/20 border-secondary">
         <Check className="h-4 w-4 text-secondary" />
