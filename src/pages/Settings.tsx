@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +51,7 @@ const Settings = () => {
           </p>
         </div>
       </div>
+  
   
       <Tabs defaultValue="profile" className="w-full">
           <TabsList className="w-full md:w-auto grid grid-cols-2 md:grid-cols-5 gap-1">
