@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useDataMode } from "@/contexts/DataModeContext";
@@ -135,6 +135,13 @@ const Service = () => {
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const [closeReason, setCloseReason] = useState('');
 
+  const solvedCasesData = [
+    { name: 'John Doe', value: 42, color: '#4f46e5' },
+    { name: 'Jane Smith', value: 28, color: '#10b981' },
+    { name: 'Mike Johnson', value: 15, color: '#f59e0b' },
+    { name: 'Sarah Wilson', value: 10, color: '#6366f1' }
+  ];
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
@@ -175,16 +182,12 @@ const Service = () => {
       messages: [...selectedTicket.messages, newMessage]
     };
     
-    // Update the tickets array with the new message
     setTickets(tickets.map(t => t.id === selectedTicket.id ? updatedTicket : t));
     
-    // Update the selected ticket
     setSelectedTicket(updatedTicket);
     
-    // Clear the reply text
     setReplyText('');
     
-    // Show success toast
     toast({
       title: "Reply sent",
       description: "Your reply has been sent to the customer.",
@@ -199,7 +202,6 @@ const Service = () => {
   const handleCloseTicket = () => {
     if (!selectedTicket) return;
     
-    // Add the closing note as a message
     const closingMessage = {
       id: `M-${Date.now()}`,
       sender: 'agent' as const,
@@ -214,16 +216,12 @@ const Service = () => {
       messages: [...selectedTicket.messages, closingMessage]
     };
     
-    // Update the tickets array with the closed ticket
     setTickets(tickets.map(t => t.id === selectedTicket.id ? updatedTicket : t));
     
-    // Update the selected ticket
     setSelectedTicket(updatedTicket);
     
-    // Close the dialog
     setShowCloseDialog(false);
     
-    // Show success toast
     toast({
       title: "Ticket closed",
       description: "The ticket has been closed successfully.",
@@ -387,7 +385,7 @@ const Service = () => {
                     <div>
                       <h4 className="text-sm font-medium mb-2">Tickets by Status</h4>
                       <div className="h-[200px]">
-                        <ServiceSolvedCasesPieChart />
+                        <ServiceSolvedCasesPieChart data={solvedCasesData} />
                       </div>
                     </div>
                     
@@ -589,7 +587,6 @@ const Service = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Ticket dialog */}
       {selectedTicket && (
         <Dialog open={showTicketDialog} onOpenChange={setShowTicketDialog}>
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
@@ -683,7 +680,6 @@ const Service = () => {
         </Dialog>
       )}
 
-      {/* Close ticket dialog */}
       <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
         <DialogContent>
           <DialogHeader>

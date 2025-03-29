@@ -15,13 +15,17 @@ interface UserApproval {
 }
 
 interface PendingApprovalsProps {
-  approvals: UserApproval[];
+  approvals?: UserApproval[];
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
 }
 
 const PendingApprovals = ({ approvals = [], onApprove, onReject }: PendingApprovalsProps) => {
-  if (!approvals || approvals.length === 0) {
+  // This null check is already being handled by the default parameter, but we'll add an additional check
+  // to be extra safe and clear about the intent
+  const hasApprovals = approvals && approvals.length > 0;
+
+  if (!hasApprovals) {
     return (
       <Card>
         <CardHeader>

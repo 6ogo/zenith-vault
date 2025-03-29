@@ -24,13 +24,17 @@ interface Member {
 }
 
 interface OrganizationMembersProps {
-  members: Member[];
+  members?: Member[];
   onChangeRole: (id: string, newRole: string) => void;
   onRemoveMember: (id: string) => void;
 }
 
 const OrganizationMembers = ({ members = [], onChangeRole, onRemoveMember }: OrganizationMembersProps) => {
-  if (!members || members.length === 0) {
+  // This null check is already being handled by the default parameter, but we'll add an additional check
+  // to be extra safe and clear about the intent
+  const hasMembers = members && members.length > 0;
+
+  if (!hasMembers) {
     return (
       <Card>
         <CardHeader>
