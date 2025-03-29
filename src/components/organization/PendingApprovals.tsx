@@ -20,8 +20,8 @@ interface PendingApprovalsProps {
   onReject: (id: string) => void;
 }
 
-const PendingApprovals = ({ approvals, onApprove, onReject }: PendingApprovalsProps) => {
-  if (approvals.length === 0) {
+const PendingApprovals = ({ approvals = [], onApprove, onReject }: PendingApprovalsProps) => {
+  if (!approvals || approvals.length === 0) {
     return (
       <Card>
         <CardHeader>

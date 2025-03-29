@@ -29,7 +29,25 @@ interface OrganizationMembersProps {
   onRemoveMember: (id: string) => void;
 }
 
-const OrganizationMembers = ({ members, onChangeRole, onRemoveMember }: OrganizationMembersProps) => {
+const OrganizationMembers = ({ members = [], onChangeRole, onRemoveMember }: OrganizationMembersProps) => {
+  if (!members || members.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Organization Members</CardTitle>
+          <CardDescription>
+            Manage the members of your organization
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center items-center py-8 text-muted-foreground">
+            No members in your organization
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>

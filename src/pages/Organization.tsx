@@ -14,6 +14,54 @@ import OrganizationMembers from "@/components/organization/OrganizationMembers";
 import PendingApprovals from "@/components/organization/PendingApprovals";
 import { useDataMode } from "@/contexts/DataModeContext";
 
+// Mock data for organization members
+const MOCK_MEMBERS = [
+  {
+    id: "1",
+    name: "Jane Cooper",
+    email: "jane.cooper@example.com",
+    role: "admin",
+    status: "active" as const,
+    joinedAt: "2023-01-10T08:00:00Z"
+  },
+  {
+    id: "2",
+    name: "Alex Johnson",
+    email: "alex.johnson@example.com",
+    role: "user",
+    status: "active" as const,
+    joinedAt: "2023-02-15T09:30:00Z"
+  },
+  {
+    id: "3",
+    name: "Michael Brown",
+    email: "michael.brown@example.com",
+    role: "user",
+    status: "inactive" as const,
+    joinedAt: "2023-03-20T14:45:00Z"
+  }
+];
+
+// Mock data for pending approvals
+const MOCK_APPROVALS = [
+  {
+    id: "101",
+    name: "Sarah Wilson",
+    email: "sarah.wilson@example.com",
+    organization: "Zenith Technologies Inc.",
+    role: "user",
+    requestedAt: "2023-04-05T10:15:00Z"
+  },
+  {
+    id: "102",
+    name: "David Martinez",
+    email: "david.martinez@example.com",
+    organization: "Zenith Technologies Inc.",
+    role: "user",
+    requestedAt: "2023-04-07T16:30:00Z"
+  }
+];
+
 const Organization = () => {
   const [activeTab, setActiveTab] = useState("members");
   const { toast } = useToast();
@@ -22,6 +70,8 @@ const Organization = () => {
   const [permanentRealData, setPermanentRealData] = useState(() => {
     return localStorage.getItem('permanentRealData') === 'true';
   });
+  const [members, setMembers] = useState(MOCK_MEMBERS);
+  const [pendingApprovals, setPendingApprovals] = useState(MOCK_APPROVALS);
 
   useEffect(() => {
     // Check if permanent real data mode is enabled
@@ -29,6 +79,59 @@ const Organization = () => {
       setIsRealData(true);
     }
   }, [permanentRealData, setIsRealData]);
+
+  const handleChangeRole = (id: string, newRole: string) => {
+    setMembers(members.map(member => 
+      member.id === id ? { ...member, role: newRole } : member
+    ));
+    toast({
+      title: "Role updated",
+      description: `User role has been updated to ${newRole}`,
+      duration: 3000
+    });
+  };
+
+  const handleRemoveMember = (id: string) => {
+    setMembers(members.filter(member => member.id !== id));
+    toast({
+      title: "Member removed",
+      description: "The member has been removed from your organization",
+      duration: 3000
+    });
+  };
+
+  const handleApproveRequest = (id: string) => {
+    const approvedUser = pendingApprovals.find(approval => approval.id === id);
+    if (approvedUser) {
+      // Add to members list
+      setMembers([...members, {
+        id: approvedUser.id,
+        name: approvedUser.name,
+        email: approvedUser.email,
+        role: approvedUser.role,
+        status: "active" as const,
+        joinedAt: new Date().toISOString()
+      }]);
+      
+      // Remove from pending approvals
+      setPendingApprovals(pendingApprovals.filter(approval => approval.id !== id));
+      
+      toast({
+        title: "User approved",
+        description: `${approvedUser.name} has been added to your organization`,
+        duration: 3000
+      });
+    }
+  };
+
+  const handleRejectRequest = (id: string) => {
+    setPendingApprovals(pendingApprovals.filter(approval => approval.id !== id));
+    toast({
+      title: "Request rejected",
+      description: "The membership request has been rejected",
+      duration: 3000
+    });
+  };
 
   const handleRemoveDataModeToggle = (checked: boolean) => {
     if (checked) {
@@ -75,8 +178,16 @@ const Organization = () => {
         </TabsList>
         
         <TabsContent value="members" className="mt-6 space-y-4">
-          <PendingApprovals />
-          <OrganizationMembers />
+          <PendingApprovals 
+            approvals={pendingApprovals} 
+            onApprove={handleApproveRequest} 
+            onReject={handleRejectRequest} 
+          />
+          <OrganizationMembers 
+            members={members} 
+            onChangeRole={handleChangeRole} 
+            onRemoveMember={handleRemoveMember} 
+          />
         </TabsContent>
         
         <TabsContent value="settings" className="mt-6 space-y-4">
