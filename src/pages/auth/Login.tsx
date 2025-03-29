@@ -19,8 +19,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile } from '@/components/auth/Turnstile';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Cloudflare Turnstile site key - replace with your actual site key
+// If you're using Supabase's test environment, use this key
+// For production, replace with your actual site key
 const TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
 
 const loginSchema = z.object({
@@ -36,8 +39,9 @@ export default function Login() {
   const { signIn, signInWithGoogle, signInWithLinkedIn, isLoading, isVerifying2FA } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -52,7 +56,15 @@ export default function Login() {
   };
 
   const handleTurnstileVerify = (token: string) => {
+    console.log("Turnstile token received:", token.substring(0, 10) + "...");
     setTurnstileToken(token);
+    setTurnstileError(null);
+  };
+
+  const handleTurnstileError = (error: Error) => {
+    console.error("Turnstile error:", error);
+    setTurnstileError(error.message);
+    setTurnstileToken(null);
   };
 
   const handleSubmit = async (values: z.infer<typeof loginSchema>) => {
@@ -68,14 +80,26 @@ export default function Login() {
     }
 
     try {
+      console.log("Attempting to sign in with captcha token");
       await signIn(values.email, values.password, turnstileToken);
       navigate("/dashboard");
     } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message,
         variant: "destructive",
       });
+      
+      // If there was an error with the captcha, reset the token
+      if (error.message.includes("captcha")) {
+        setTurnstileToken(null);
+        // Force re-render of the Turnstile component by changing the key
+        const turnstileContainer = document.querySelector('[data-testid="turnstile-container"]');
+        if (turnstileContainer) {
+          turnstileContainer.innerHTML = '';
+        }
+      }
     }
   };
 
@@ -133,10 +157,20 @@ export default function Login() {
               )}
             </div>
             
+            {turnstileError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Captcha error: {turnstileError}. Please try again.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             {/* Turnstile Captcha Component */}
             <Turnstile 
               siteKey={TURNSTILE_SITE_KEY} 
-              onVerify={handleTurnstileVerify} 
+              onVerify={handleTurnstileVerify}
+              onError={handleTurnstileError}
             />
             
             <Button disabled={isLoading || !turnstileToken} type="submit">
