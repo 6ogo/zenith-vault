@@ -46,7 +46,7 @@ const contentItems: ContentItem[] = [
 const Marketing = () => {
   const { isRealData } = useDataMode();
   const [activeTab, setActiveTab] = useState("campaigns");
-  
+
   const [adPlatforms, setAdPlatforms] = useState<MarketingPlatform[]>([
     { id: "google-ads", name: "Google Ads", connected: false },
     { id: "facebook-ads", name: "Facebook Ads", connected: false },
@@ -65,12 +65,12 @@ const Marketing = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 w-full">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Marketing Hub</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
           <p className="text-muted-foreground">
-            Create and manage marketing campaigns across multiple platforms
+            Manage your account settings and preferences
           </p>
         </div>
       </div>

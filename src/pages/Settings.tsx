@@ -17,21 +17,21 @@ const Settings = () => {
   const userEmail = user?.email || "Not available";
   const userRole = user?.user_metadata?.role || "user";
   const userName = user?.user_metadata?.full_name || "User";
-  
+
   const handleSaveProfile = () => {
     toast({
       title: "Profile Updated",
       description: "Your profile information has been saved."
     });
   };
-  
+
   const handleSavePreferences = () => {
     toast({
       title: "Preferences Updated",
       description: "Your preferences have been saved."
     });
   };
-  
+
   const handleSaveSecurity = () => {
     toast({
       title: "Security Settings Updated",
@@ -42,14 +42,17 @@ const Settings = () => {
   const isAdmin = user?.user_metadata?.role === 'admin';
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings and preferences
-        </p>
+    <div className="space-y-6 w-full">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your account settings and preferences
+          </p>
+        </div>
       </div>
-      
+
+
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="w-full md:w-auto grid grid-cols-2 md:grid-cols-5 gap-1">
           <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -58,7 +61,7 @@ const Settings = () => {
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           {isAdmin && <TabsTrigger value="ai-settings">AI Settings</TabsTrigger>}
         </TabsList>
-        
+
         <TabsContent value="profile" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
@@ -72,16 +75,16 @@ const Settings = () => {
                 <div className="flex-1 space-y-4">
                   <div className="grid w-full items-center gap-1.5">
                     <Label htmlFor="fullName">Full Name</Label>
-                    <Input 
-                      id="fullName" 
-                      defaultValue={userName} 
+                    <Input
+                      id="fullName"
+                      defaultValue={userName}
                     />
                   </div>
-                  
+
                   <div className="grid w-full items-center gap-1.5">
                     <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
+                    <Input
+                      id="email"
                       defaultValue={userEmail}
                       disabled
                     />
@@ -89,11 +92,11 @@ const Settings = () => {
                       Email cannot be changed.
                     </p>
                   </div>
-                  
+
                   <div className="grid w-full items-center gap-1.5">
                     <Label htmlFor="role">Role</Label>
-                    <Input 
-                      id="role" 
+                    <Input
+                      id="role"
                       defaultValue={userRole}
                       disabled
                     />
@@ -102,7 +105,7 @@ const Settings = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <Label>Profile Photo</Label>
                   <div className="flex flex-col items-center gap-2">
@@ -123,14 +126,14 @@ const Settings = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-end">
                 <Button onClick={handleSaveProfile}>Save Changes</Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="preferences" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
@@ -145,29 +148,29 @@ const Settings = () => {
                   <Label htmlFor="email-notifications">Email Notifications</Label>
                   <Switch id="email-notifications" defaultChecked />
                 </div>
-                
+
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="sales-alerts">Sales Alerts</Label>
                   <Switch id="sales-alerts" defaultChecked />
                 </div>
-                
+
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="marketing-updates">Marketing Updates</Label>
                   <Switch id="marketing-updates" defaultChecked />
                 </div>
-                
+
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="customer-service-alerts">Customer Service Alerts</Label>
                   <Switch id="customer-service-alerts" defaultChecked />
                 </div>
-                
+
                 <div className="flex justify-end">
                   <Button onClick={handleSavePreferences}>Save Preferences</Button>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Interface Preferences</CardTitle>
@@ -181,12 +184,12 @@ const Settings = () => {
                   <Label htmlFor="dark-mode">Dark Mode</Label>
                   <Switch id="dark-mode" defaultChecked />
                 </div>
-                
+
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="reduced-motion">Reduced Motion</Label>
                   <Switch id="reduced-motion" />
                 </div>
-                
+
                 <div className="flex justify-end">
                   <Button onClick={handleSavePreferences}>Save Preferences</Button>
                 </div>
@@ -194,7 +197,7 @@ const Settings = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="security" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
@@ -208,23 +211,23 @@ const Settings = () => {
                 <Label htmlFor="current-password">Current Password</Label>
                 <Input id="current-password" type="password" />
               </div>
-              
+
               <div className="grid w-full items-center gap-1.5">
                 <Label htmlFor="new-password">New Password</Label>
                 <Input id="new-password" type="password" />
               </div>
-              
+
               <div className="grid w-full items-center gap-1.5">
                 <Label htmlFor="confirm-password">Confirm New Password</Label>
                 <Input id="confirm-password" type="password" />
               </div>
-              
+
               <div className="flex justify-end">
                 <Button onClick={handleSaveSecurity}>Update Password</Button>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Two-Factor Authentication</CardTitle>
@@ -242,17 +245,17 @@ const Settings = () => {
                 </div>
                 <Switch id="two-factor" />
               </div>
-              
+
               <div className="flex justify-end">
                 <Button onClick={handleSaveSecurity}>Save Security Settings</Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="integrations" className="space-y-4 mt-4">
           <AIConfigSection />
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Connected Services</CardTitle>
@@ -275,7 +278,7 @@ const Settings = () => {
                 </div>
                 <Button variant="outline" size="sm">Configure</Button>
               </div>
-              
+
               <div className="flex items-center justify-between space-x-2 p-2 border rounded-md">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
@@ -290,7 +293,7 @@ const Settings = () => {
                 </div>
                 <Button variant="outline" size="sm">Configure</Button>
               </div>
-              
+
               <div className="flex items-center justify-between space-x-2 p-2 border rounded-md">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
@@ -308,7 +311,7 @@ const Settings = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         {isAdmin && (
           <TabsContent value="ai-settings" className="space-y-4 mt-4">
             <AISettingsPanel />

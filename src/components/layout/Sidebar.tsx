@@ -103,12 +103,13 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
           {isCollapsed ? "AC" : "Admin Console"}
         </span>
       </div>
-      
+
       <div className="flex flex-col flex-grow overflow-y-auto">
         <ScrollArea className="flex-grow">
           <div className="p-4">
             <nav className="flex flex-col space-y-1">
               {routes.map((route) => (
+                // Update the NavLink JSX structure starting around line 100
                 <NavLink
                   key={route.path}
                   to={route.path}
@@ -122,20 +123,19 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
                     )
                   }
                 >
-                  <route.icon className={cn(
-                    "w-5 h-5", 
-                    !isCollapsed && "mr-2"
-                  )} />
-                  {!isCollapsed && <span>{route.label}</span>}
+                  <div className={cn("flex items-center", isCollapsed ? "justify-center w-full" : "")}>
+                    <route.icon className="w-5 h-5 flex-shrink-0" />
+                    {!isCollapsed && <span className="ml-2">{route.label}</span>}
+                  </div>
                 </NavLink>
               ))}
             </nav>
           </div>
         </ScrollArea>
       </div>
-      
+
       <div className="p-4 border-t border-sidebar-border bg-[#003366]">
-        <button 
+        <button
           onClick={onToggleCollapse}
           className="flex items-center justify-between w-full text-sm text-sidebar-foreground hover:text-white transition-colors"
         >
