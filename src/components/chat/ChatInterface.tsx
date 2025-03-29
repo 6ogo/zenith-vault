@@ -351,56 +351,6 @@ const ChatInterface = ({ className, serviceCaseId, hideHistory }: ChatInterfaceP
     }
   };
 
-  const createNewConversation = async () => {
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      
-      if (!user || !user.user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to use the chatbot",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('chat_conversations')
-        .insert({
-          user_id: user.user.id,
-          title: 'New Conversation'
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      if (data) {
-        setCurrentConversationId(data.id);
-        setMessages([{
-          id: '0',
-          role: 'assistant',
-          content: "Hello! I'm Zenith Assistant. How can I help you today?",
-          timestamp: new Date()
-        }]);
-        
-        // Update conversations list
-        fetchConversations();
-      }
-    } catch (error) {
-      console.error('Error creating new conversation:', error);
-      toast({
-        title: "Failed to create new conversation",
-        description: "Please try again later",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <Card className={`flex flex-col h-[calc(100vh-2rem)] overflow-hidden ${className}`}>
       <CardHeader className="bg-background border-b shadow-sm flex flex-row items-center gap-4 p-4">
