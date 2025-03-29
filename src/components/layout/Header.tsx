@@ -1,9 +1,8 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Menu, Bell, Sun, Moon, LogOut, User, HelpCircle } from "lucide-react";
+import { Menu, Bell, Sun, Moon, LogOut, User } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import ZenithLogo from "../common/ZenithLogo";
 import {
@@ -34,10 +33,6 @@ const Header = ({ toggleSidebar, className }: HeaderProps) => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const handleHelpClick = () => {
-    navigate('/documentation');
-  };
-
   return (
     <header className={`h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950 w-full z-40 ${className || ''}`}>
       <div className="flex items-center gap-4">
@@ -55,15 +50,6 @@ const Header = ({ toggleSidebar, className }: HeaderProps) => {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleHelpClick}
-          aria-label="Help & Documentation"
-        >
-          <HelpCircle className="h-5 w-5" />
-        </Button>
-        
         <Button
           variant="ghost"
           size="icon"

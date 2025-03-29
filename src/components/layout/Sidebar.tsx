@@ -72,7 +72,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
       label: "Website",
     },
     {
-      path: "/data-files",
+      path: "/data",
       icon: Database,
       label: "Data Files",
     },

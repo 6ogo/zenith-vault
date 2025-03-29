@@ -1,170 +1,100 @@
 
-import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import Dashboard from './pages/Dashboard';
+import Sales from './pages/Sales';
+import Marketing from './pages/Marketing';
+import Service from './pages/Service';
+import Integrations from './pages/Integrations';
+import Settings from './pages/Settings';
+import Login from './pages/auth/Login';
+import SignUp from './pages/auth/SignUp';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import VerifyEmail from './pages/auth/VerifyEmail';
+import Profile from './pages/Profile';
+import CustomerService from './pages/features/CustomerService';
+import SalesManagement from './pages/features/SalesManagement';
+import MarketingAutomation from './pages/features/MarketingAutomation';
+import { Toaster } from "@/components/ui/toaster"
+import { ThemeProvider } from "@/components/ThemeProvider"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { DataModeProvider } from '@/contexts/DataModeContext';
-import LoadingScreen from '@/components/LoadingScreen';
-import Index from '@/pages/Index';
-import SignUp from '@/pages/auth/SignUp';
-import Login from '@/pages/auth/Login';
-import ForgotPassword from '@/pages/auth/ForgotPassword';
-import ResetPassword from '@/pages/auth/ResetPassword';
-import VerifyEmail from '@/pages/auth/VerifyEmail';
-import Callback from '@/pages/auth/Callback';
-import Dashboard from '@/pages/Dashboard';
-import Sales from '@/pages/Sales';
-import Customers from '@/pages/Customers';
-import Service from '@/pages/Service';
-import Marketing from '@/pages/Marketing';
-import Analytics from '@/pages/Analytics';
-import Reports from '@/pages/Reports';
-import Website from '@/pages/Website';
-import DataFiles from '@/pages/DataFiles';
-import Integrations from '@/pages/Integrations';
-import Organization from '@/pages/Organization';
-import Settings from '@/pages/Settings';
-import NotFound from '@/pages/NotFound';
-import Protected from '@/components/Protected';
-import MainLayout from '@/components/layout/MainLayout';
-import Documentation from '@/pages/Documentation';
+import { useAuth } from './contexts/AuthContext';
+import { DataModeProvider } from './contexts/DataModeContext';
+import Callback from './pages/auth/Callback';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import NotFound from './pages/NotFound';
+import MainLayout from './components/layout/MainLayout';
+import Index from './pages/Index';
+import Customers from './pages/Customers';
+import Analytics from './pages/Analytics';
+import Website from './pages/Website';
+import DataFiles from './pages/DataFiles';
+import Organization from "./pages/Organization";
+import Reports from './pages/Reports';
 
 const App = () => {
-  const queryClient = new QueryClient();
+  const [loading, setLoading] = useState(true);
+  const [queryClient] = useState(() => new QueryClient());
   
+  useEffect(() => {
+    // Simulate loading
+    setTimeout(() => {
+      setLoading(false);
+    }, 500);
+  }, []);
+
   return (
-    <HelmetProvider>
-      <ThemeProvider defaultTheme="light" storageKey="zenith-theme">
-        <AuthProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="dark" storageKey="theme">
+          <Toaster />
           <DataModeProvider>
-            <QueryClientProvider client={queryClient}>
-              <Suspense fallback={<LoadingScreen />}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth/signup" element={<SignUp />} />
-                  <Route path="/auth/login" element={<Login />} />
-                  <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/auth/reset-password" element={<ResetPassword />} />
-                  <Route path="/auth/verify-email" element={<VerifyEmail />} />
-                  <Route path="/auth/callback" element={<Callback />} />
-                  
-                  {/* Protected Routes with MainLayout */}
-                  <Route path="/documentation" element={
-                    <Protected>
-                      <MainLayout>
-                        <Documentation />
-                      </MainLayout>
-                    </Protected>
-                  } />
-  
-                  <Route path="/dashboard" element={
-                    <Protected>
-                      <MainLayout>
-                        <Dashboard />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/sales" element={
-                    <Protected>
-                      <MainLayout>
-                        <Sales />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/customers" element={
-                    <Protected>
-                      <MainLayout>
-                        <Customers />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/service" element={
-                    <Protected>
-                      <MainLayout>
-                        <Service />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/marketing" element={
-                    <Protected>
-                      <MainLayout>
-                        <Marketing />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/analytics" element={
-                    <Protected>
-                      <MainLayout>
-                        <Analytics />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/reports" element={
-                    <Protected>
-                      <MainLayout>
-                        <Reports />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/website" element={
-                    <Protected>
-                      <MainLayout>
-                        <Website />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/data-files" element={
-                    <Protected>
-                      <MainLayout>
-                        <DataFiles />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/integrations" element={
-                    <Protected>
-                      <MainLayout>
-                        <Integrations />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/organization" element={
-                    <Protected>
-                      <MainLayout>
-                        <Organization />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="/settings" element={
-                    <Protected>
-                      <MainLayout>
-                        <Settings />
-                      </MainLayout>
-                    </Protected>
-                  } />
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-              <Toaster />
-            </QueryClientProvider>
+            <Routes>
+              {/* Auth routes */}
+              <Route path="/auth/login" element={<Login />} />
+              <Route path="/auth/signup" element={<SignUp />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/verify-email" element={<VerifyEmail />} />
+              <Route path="/auth/callback" element={<Callback />} />
+              
+              {/* Landing page */}
+              <Route path="/" element={<Index />} />
+              
+              {/* Public pages */}
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              
+              {/* Main application routes with layout */}
+              <Route element={<MainLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/sales" element={<Sales />} />
+                <Route path="/marketing" element={<Marketing />} />
+                <Route path="/service" element={<Service />} />
+                <Route path="/customers" element={<Customers />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/website" element={<Website />} />
+                <Route path="/data" element={<DataFiles />} />
+                <Route path="/integrations" element={<Integrations />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/features/customer-service" element={<CustomerService />} />
+                <Route path="/features/sales-management" element={<SalesManagement />} />
+                <Route path="/features/marketing-automation" element={<MarketingAutomation />} />
+                <Route path="/organization" element={<Organization />} />
+              </Route>
+              
+              {/* Fallback route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </DataModeProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </HelmetProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 };
 
