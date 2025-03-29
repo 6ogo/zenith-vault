@@ -39,10 +39,10 @@ const MainLayout = () => {
         </div>
         
         {/* Sidebar for desktop (fixed) */}
-        <div className={`hidden md:flex h-screen md:flex-shrink-0 transition-all duration-300 ${
+        <div className={`hidden md:block md:flex-shrink-0 transition-all duration-300 h-screen sticky top-0 ${
           sidebarCollapsed ? "md:w-16" : "md:w-72"
         }`}>
-          <div className="flex flex-col w-full">
+          <div className="flex flex-col w-full h-full">
             <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
           </div>
         </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import {
@@ -89,7 +89,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
 
   return (
     <div className={cn(
-      "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300 sticky top-0",
+      "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
       isCollapsed ? "w-16" : "w-72"
     )}>
       <div className="flex items-center h-16 px-4 border-b border-border">
@@ -98,7 +98,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
         </span>
       </div>
       
-      <ScrollArea className="flex-grow">
+      <ScrollArea className="flex-grow flex-shrink overflow-y-auto">
         <div className="p-4">
           <nav className="flex flex-col space-y-1">
             {routes.map((route) => (
@@ -126,7 +126,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
         </div>
       </ScrollArea>
       
-      <div className="sticky bottom-0 p-4 border-t border-sidebar-border bg-[#003366]">
+      <div className="p-4 border-t border-sidebar-border bg-[#003366]">
         <button 
           onClick={onToggleCollapse}
           className="flex items-center justify-between w-full text-sm text-sidebar-foreground hover:text-white transition-colors"

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
@@ -32,6 +31,7 @@ import Customers from './pages/Customers';
 import Analytics from './pages/Analytics';
 import Website from './pages/Website';
 import DataFiles from './pages/DataFiles';
+import Organization from "./pages/Organization";
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -82,6 +82,7 @@ const App = () => {
                 <Route path="/features/customer-service" element={<CustomerService />} />
                 <Route path="/features/sales-management" element={<SalesManagement />} />
                 <Route path="/features/marketing-automation" element={<MarketingAutomation />} />
+                <Route path="/organization" element={<Organization />} />
               </Route>
               
               {/* Fallback route */}
