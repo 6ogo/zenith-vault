@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Database, Trash2, PlusCircle } from "lucide-react";
+import { Upload, Database, Trash2, PlusCircle, Building } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ingestKnowledgeBase } from "@/services/ai";
+import { extractIntegrationDocumentation } from "@/utils/documentationExtractor";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface KnowledgeEntry {
   id: number;
@@ -19,6 +21,7 @@ interface KnowledgeEntry {
   content: string;
   type: 'faq' | 'documentation';
   created_at: string;
+  organization_id: string | null;
 }
 
 const KnowledgeBaseManager = () => {
@@ -31,8 +34,12 @@ const KnowledgeBaseManager = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [bulkData, setBulkData] = useState('');
+  const [isOrganizationSpecific, setIsOrganizationSpecific] = useState(false);
   
   const { toast } = useToast();
+  const { user } = useAuth();
+  const organizationId = user?.user_metadata?.organization_id;
+  const isAdmin = user?.user_metadata?.role === 'admin';
 
   useEffect(() => {
     fetchEntries();
@@ -41,10 +48,20 @@ const KnowledgeBaseManager = () => {
   const fetchEntries = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('knowledge_base')
-        .select('id, title, content, type, created_at')
+        .select('id, title, content, type, created_at, organization_id')
         .order('created_at', { ascending: false });
+      
+      // If user is admin with an organization, show both org-specific and general entries
+      if (isAdmin && organizationId) {
+        query = query.or(`organization_id.eq.${organizationId},organization_id.is.null`);
+      } else {
+        // For non-admins or admins without org, show only general entries
+        query = query.is('organization_id', null);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       
@@ -77,12 +94,16 @@ const KnowledgeBaseManager = () => {
       setIsLoading(true);
       
       // Use the knowledge-ingestion function to add a single entry
-      const result = await ingestKnowledgeBase([{ title, content }], entryType);
+      const result = await ingestKnowledgeBase(
+        [{ title, content }], 
+        entryType, 
+        isOrganizationSpecific && organizationId ? organizationId : undefined
+      );
       
       if (result.success) {
         toast({
           title: "Entry added successfully",
-          description: `The ${entryType} entry was added to the knowledge base`,
+          description: `The ${entryType} entry was added to the knowledge base${isOrganizationSpecific ? ' for your organization' : ''}`,
           variant: "default"
         });
         
@@ -206,7 +227,11 @@ const KnowledgeBaseManager = () => {
       }));
       
       // Use the knowledge-ingestion function to add entries
-      const result = await ingestKnowledgeBase(formattedData, entryType);
+      const result = await ingestKnowledgeBase(
+        formattedData, 
+        entryType, 
+        isOrganizationSpecific && organizationId ? organizationId : undefined
+      );
       
       toast({
         title: "Bulk import completed",
@@ -231,12 +256,47 @@ const KnowledgeBaseManager = () => {
     }
   };
 
+  const handleImportIntegrationDocs = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Get integration documentation content
+      const integrationDocs = extractIntegrationDocumentation();
+      
+      // Use the knowledge-ingestion function to add entries
+      const result = await ingestKnowledgeBase(
+        integrationDocs, 
+        'documentation', 
+        isOrganizationSpecific && organizationId ? organizationId : undefined
+      );
+      
+      toast({
+        title: "Integration Documentation Imported",
+        description: `Successfully processed ${result.processed} out of ${result.total} entries`,
+        variant: "default"
+      });
+      
+      // Refresh entries
+      fetchEntries();
+    } catch (error) {
+      console.error('Error importing integration documentation:', error);
+      toast({
+        title: "Failed to import integration documentation",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Knowledge Base Manager</CardTitle>
         <CardDescription>
           Manage the knowledge base used by the Zenith Assistant chatbot
+          {isAdmin && organizationId && " for your organization"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -245,6 +305,7 @@ const KnowledgeBaseManager = () => {
             <TabsTrigger value="view">View Entries</TabsTrigger>
             <TabsTrigger value="add">Add Entry</TabsTrigger>
             <TabsTrigger value="bulk">Bulk Import</TabsTrigger>
+            <TabsTrigger value="docs">Import Documentation</TabsTrigger>
           </TabsList>
           
           <TabsContent value="view" className="space-y-4">
@@ -273,6 +334,7 @@ const KnowledgeBaseManager = () => {
                       <TableHead className="w-[200px]">Title</TableHead>
                       <TableHead>Content</TableHead>
                       <TableHead>Type</TableHead>
+                      {isAdmin && organizationId && <TableHead>Scope</TableHead>}
                       <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -288,6 +350,20 @@ const KnowledgeBaseManager = () => {
                             {entry.type}
                           </Badge>
                         </TableCell>
+                        {isAdmin && organizationId && (
+                          <TableCell>
+                            {entry.organization_id ? (
+                              <Badge variant="outline" className="bg-primary/10">
+                                <Building className="h-3 w-3 mr-1" />
+                                Organization
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline">
+                                Global
+                              </Badge>
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell>
                           <Button
                             variant="ghost"
@@ -335,6 +411,27 @@ const KnowledgeBaseManager = () => {
                   </div>
                 </div>
               </div>
+              
+              {isAdmin && organizationId && (
+                <div className="grid gap-2">
+                  <Label htmlFor="organization-specific">Scope</Label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="organization-specific"
+                      checked={isOrganizationSpecific}
+                      onChange={(e) => setIsOrganizationSpecific(e.target.checked)}
+                      className="mr-2"
+                    />
+                    <Label htmlFor="organization-specific">Organization-specific content</Label>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {isOrganizationSpecific 
+                      ? "This content will only be visible to your organization's users" 
+                      : "This content will be visible to all users"}
+                  </p>
+                </div>
+              )}
               
               <div className="grid gap-2">
                 <Label htmlFor="title">
@@ -393,6 +490,27 @@ const KnowledgeBaseManager = () => {
                 </div>
               </div>
               
+              {isAdmin && organizationId && (
+                <div className="grid gap-2">
+                  <Label htmlFor="bulk-organization-specific">Scope</Label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="bulk-organization-specific"
+                      checked={isOrganizationSpecific}
+                      onChange={(e) => setIsOrganizationSpecific(e.target.checked)}
+                      className="mr-2"
+                    />
+                    <Label htmlFor="bulk-organization-specific">Organization-specific content</Label>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {isOrganizationSpecific 
+                      ? "This content will only be visible to your organization's users" 
+                      : "This content will be visible to all users"}
+                  </p>
+                </div>
+              )}
+              
               <div className="grid gap-2">
                 <Label htmlFor="bulk-data">JSON Data</Label>
                 <Textarea
@@ -416,6 +534,60 @@ const KnowledgeBaseManager = () => {
                     : '[\n  {\n    "title": "Section title",\n    "content": "Section content"\n  },\n  ...\n]'
                   }
                 </pre>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="docs" className="space-y-4">
+            <div className="grid gap-4">
+              <div>
+                <h3 className="text-lg font-medium">Import Integration Documentation</h3>
+                <p className="text-muted-foreground mt-1">
+                  Add the integration documentation content to the knowledge base to help users with API integrations and custom solutions.
+                </p>
+              </div>
+              
+              {isAdmin && organizationId && (
+                <div className="grid gap-2">
+                  <Label htmlFor="docs-organization-specific">Scope</Label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="docs-organization-specific"
+                      checked={isOrganizationSpecific}
+                      onChange={(e) => setIsOrganizationSpecific(e.target.checked)}
+                      className="mr-2"
+                    />
+                    <Label htmlFor="docs-organization-specific">Organization-specific content</Label>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {isOrganizationSpecific 
+                      ? "This content will only be visible to your organization's users" 
+                      : "This content will be visible to all users"}
+                  </p>
+                </div>
+              )}
+              
+              <div className="mt-4">
+                <Button
+                  onClick={handleImportIntegrationDocs}
+                  disabled={isLoading}
+                >
+                  Import Integration Documentation
+                </Button>
+              </div>
+              
+              <div className="text-sm text-muted-foreground mt-2">
+                <p>This will import the following documentation sections:</p>
+                <ul className="list-disc pl-6 mt-2 space-y-1">
+                  <li>Integration Framework Overview</li>
+                  <li>Integration Architecture</li>
+                  <li>Email Marketing Integrations</li>
+                  <li>CRM Integrations</li>
+                  <li>ERP Integrations</li>
+                  <li>Database Integrations</li>
+                  <li>Custom API Integrations</li>
+                </ul>
               </div>
             </div>
           </TabsContent>

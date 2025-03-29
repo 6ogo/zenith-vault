@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface AIRequestParams {
@@ -81,6 +82,8 @@ export interface ChatbotQueryParams {
   question: string;
   conversationId?: string;
   messageHistory?: Array<{role: 'user' | 'assistant', content: string}>;
+  organization_id?: string;
+  service_case_id?: string;
 }
 
 export const queryChatbot = async (params: ChatbotQueryParams): Promise<AIResponse> => {
@@ -132,6 +135,8 @@ export interface ChatbotQueryRequest {
   question: string;
   conversationId?: string;
   messageHistory?: { role: 'user' | 'assistant', content: string }[];
+  organization_id?: string;
+  service_case_id?: string;
 }
 
 /**
@@ -139,11 +144,12 @@ export interface ChatbotQueryRequest {
  */
 export const ingestKnowledgeBase = async (
   entries: { title: string; content: string }[],
-  type: 'faq' | 'documentation'
+  type: 'faq' | 'documentation',
+  organization_id?: string
 ): Promise<IngestKnowledgeBaseResponse> => {
   try {
     const { data, error } = await supabase.functions.invoke('knowledge-ingestion', {
-      body: { entries, type }
+      body: { entries, type, organization_id }
     });
     
     if (error) throw error;

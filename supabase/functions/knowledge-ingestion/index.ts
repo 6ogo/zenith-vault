@@ -29,7 +29,7 @@ serve(async (req) => {
     );
     
     // Get the request body
-    const { entries, type } = await req.json();
+    const { entries, type, organization_id } = await req.json();
     
     if (!entries || !Array.isArray(entries) || entries.length === 0) {
       throw new Error('No entries provided or invalid format');
@@ -39,7 +39,7 @@ serve(async (req) => {
       throw new Error('Invalid entry type. Must be "faq" or "documentation"');
     }
     
-    console.log(`Processing ${entries.length} entries of type '${type}'`);
+    console.log(`Processing ${entries.length} entries of type '${type}'${organization_id ? ` for organization ${organization_id}` : ''}`);
     
     // Process results
     const results = {
@@ -81,14 +81,17 @@ serve(async (req) => {
         const embedding = embeddingData.data[0].embedding;
         
         // Store in Supabase
+        const insertData = {
+          title: entry.title,
+          content: entry.content,
+          type: type,
+          embedding: embedding,
+          organization_id: organization_id || null
+        };
+        
         const { error: insertError } = await supabase
           .from('knowledge_base')
-          .insert({
-            title: entry.title,
-            content: entry.content,
-            type: type,
-            embedding: embedding
-          });
+          .insert(insertData);
         
         if (insertError) {
           throw new Error(`Error inserting into Supabase: ${insertError.message}`);

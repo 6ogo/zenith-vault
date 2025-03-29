@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { queryChatbot } from "@/services/ai";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Message {
   id: string;
@@ -23,9 +24,11 @@ interface Message {
 
 interface ChatInterfaceProps {
   className?: string;
+  serviceCaseId?: string;
+  hideHistory?: boolean;
 }
 
-const ChatInterface = ({ className }: ChatInterfaceProps) => {
+const ChatInterface = ({ className, serviceCaseId, hideHistory }: ChatInterfaceProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([{
@@ -38,11 +41,14 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Fetch conversations on mount
   useEffect(() => {
-    fetchConversations();
-  }, []);
+    if (!hideHistory) {
+      fetchConversations();
+    }
+  }, [hideHistory]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -51,10 +57,12 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
 
   const fetchConversations = async () => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from('chat_conversations')
         .select('id, title')
-        .eq('user_id', supabase.auth.getUser().then(res => res.data.user?.id))
+        .eq('user_id', userData.user?.id)
         .order('updated_at', { ascending: false });
       
       if (error) throw error;
@@ -93,7 +101,8 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
           id: msg.id,
           role: msg.role as 'user' | 'assistant',
           content: msg.content,
-          timestamp: new Date(msg.created_at)
+          timestamp: new Date(msg.created_at),
+          sources: msg.metadata?.sources
         }));
         
         setMessages(formattedMessages);
@@ -181,9 +190,15 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
         return;
       }
       
+      // Get user's organization
+      let organizationId = null;
+      if (userData.user.user_metadata?.organization_id) {
+        organizationId = userData.user.user_metadata.organization_id;
+      }
+      
       // Create or get conversation ID
       let conversationId = currentConversationId;
-      if (!conversationId) {
+      if (!conversationId && !hideHistory) {
         try {
           const { data, error } = await supabase
             .from('chat_conversations')
@@ -236,8 +251,10 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
         // Call API
         const response = await queryChatbot({
           question: input,
-          conversationId: conversationId!,
-          messageHistory
+          conversationId: hideHistory ? undefined : conversationId!,
+          messageHistory,
+          organization_id: organizationId,
+          service_case_id: serviceCaseId
         });
         
         // Create assistant message
@@ -251,22 +268,24 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
 
         setMessages(prevMessages => [...prevMessages, assistantMessage]);
         
-        // Update conversation title if it's 'New Conversation'
-        const currentConversation = conversations.find(c => c.id === conversationId);
-        if (currentConversation && currentConversation.title === 'New Conversation') {
-          // Use the first user message as the conversation title (truncated)
-          const newTitle = input.length > 30 ? input.substring(0, 30) + '...' : input;
-          
-          const { error } = await supabase
-            .from('chat_conversations')
-            .update({ title: newTitle })
-            .eq('id', conversationId);
-          
-          if (error) {
-            console.error('Error updating conversation title:', error);
-          } else {
-            // Update local conversations list
-            fetchConversations();
+        // Update conversation title if it's 'New Conversation' and not in hideHistory mode
+        if (!hideHistory && conversationId) {
+          const currentConversation = conversations.find(c => c.id === conversationId);
+          if (currentConversation && currentConversation.title === 'New Conversation') {
+            // Use the first user message as the conversation title (truncated)
+            const newTitle = input.length > 30 ? input.substring(0, 30) + '...' : input;
+            
+            const { error } = await supabase
+              .from('chat_conversations')
+              .update({ title: newTitle })
+              .eq('id', conversationId);
+            
+            if (error) {
+              console.error('Error updating conversation title:', error);
+            } else {
+              // Update local conversations list
+              fetchConversations();
+            }
           }
         }
       } catch (error) {
@@ -314,40 +333,44 @@ const ChatInterface = ({ className }: ChatInterfaceProps) => {
           <CardTitle className="text-xl">Zenith Assistant</CardTitle>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={createNewConversation}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            New Chat
-          </Button>
+          {!hideHistory && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={createNewConversation}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              New Chat
+            </Button>
+          )}
         </div>
       </CardHeader>
-      <div className="grid grid-cols-5 h-full">
-        <div className="col-span-1 border-r overflow-auto p-2 hidden md:block">
-          <div className="space-y-2">
-            {conversations.map(conversation => (
-              <Button
-                key={conversation.id}
-                variant={conversation.id === currentConversationId ? "secondary" : "ghost"} 
-                className="w-full justify-start text-left overflow-hidden text-ellipsis whitespace-nowrap"
-                onClick={() => {
-                  setCurrentConversationId(conversation.id);
-                  fetchMessages(conversation.id);
-                }}
-              >
-                {conversation.title}
-              </Button>
-            ))}
-            {conversations.length === 0 && (
-              <div className="text-muted-foreground text-sm p-2">
-                No conversations yet
-              </div>
-            )}
+      <div className={`grid ${hideHistory ? 'grid-cols-1' : 'grid-cols-5'} h-full`}>
+        {!hideHistory && (
+          <div className="col-span-1 border-r overflow-auto p-2 hidden md:block">
+            <div className="space-y-2">
+              {conversations.map(conversation => (
+                <Button
+                  key={conversation.id}
+                  variant={conversation.id === currentConversationId ? "secondary" : "ghost"} 
+                  className="w-full justify-start text-left overflow-hidden text-ellipsis whitespace-nowrap"
+                  onClick={() => {
+                    setCurrentConversationId(conversation.id);
+                    fetchMessages(conversation.id);
+                  }}
+                >
+                  {conversation.title}
+                </Button>
+              ))}
+              {conversations.length === 0 && (
+                <div className="text-muted-foreground text-sm p-2">
+                  No conversations yet
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="col-span-5 md:col-span-4 flex flex-col h-full">
+        )}
+        <div className={`col-span-${hideHistory ? '1' : '5 md:col-span-4'} flex flex-col h-full`}>
           <CardContent className="flex-1 overflow-auto p-4 space-y-4">
             {messages.map((message) => (
               <div 
