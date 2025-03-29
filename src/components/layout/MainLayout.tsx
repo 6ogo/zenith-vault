@@ -19,10 +19,13 @@ const MainLayout = () => {
   
   return (
     <div className="flex min-h-screen bg-background flex-col">
+      {/* Header - now full width above everything */}
+      <Header toggleSidebar={toggleSidebar} />
+      
       <div className="flex flex-1">
         {/* Sidebar for mobile (absolutely positioned) */}
         <div
-          className={`fixed inset-0 z-40 transform md:hidden ${
+          className={`fixed inset-0 z-30 transform md:hidden ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } transition-transform duration-300 ease-in-out`}
         >
@@ -38,8 +41,8 @@ const MainLayout = () => {
           </div>
         </div>
         
-        {/* Sidebar for desktop (fixed) */}
-        <div className={`hidden md:block sticky top-0 h-screen z-10 transition-all duration-300 ${
+        {/* Sidebar for desktop (sticky) - positioned below header */}
+        <div className={`hidden md:block sticky top-16 h-[calc(100vh-4rem)] z-20 transition-all duration-300 ${
           sidebarCollapsed ? "w-16" : "w-72"
         }`}>
           <div className="flex flex-col w-full h-full">
@@ -47,13 +50,9 @@ const MainLayout = () => {
           </div>
         </div>
         
-        {/* Main content */}
-        <div className={`flex flex-col flex-1 ${
-          sidebarCollapsed ? "md:ml-16" : "md:ml-72"
-        }`}>
-          <Header toggleSidebar={toggleSidebar} />
-          
-          <main className="flex-1 p-4 md:p-6">
+        {/* Main content - full width */}
+        <div className="flex flex-col flex-1 w-full">
+          <main className="flex-1 p-4 md:p-6 w-full max-w-full overflow-x-auto">
             <Outlet />
           </main>
           

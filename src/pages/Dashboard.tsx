@@ -19,7 +19,7 @@ const Dashboard = () => {
   const userWelcomeName = user?.user_metadata?.full_name || user?.email || "User";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       <div className="flex flex-col gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Welcome, {userWelcomeName}</h1>
         <p className="text-muted-foreground">
