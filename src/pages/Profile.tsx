@@ -74,6 +74,11 @@ const Profile = () => {
         
         if (error) {
           console.error('Error fetching profile:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load profile information',
+            variant: 'destructive',
+          });
           return;
         }
         
@@ -102,11 +107,16 @@ const Profile = () => {
         });
       } catch (error) {
         console.error('Error fetching profile:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load profile information',
+          variant: 'destructive',
+        });
       }
     };
     
     fetchProfile();
-  }, [user, form]);
+  }, [user, form, toast]);
   
   const onSubmit = async (values: ProfileFormValues) => {
     if (!user) return;

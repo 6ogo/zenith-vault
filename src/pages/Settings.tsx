@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,30 +10,180 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import AIConfigSection from "@/components/ai/AIConfigSection";
 import AISettingsPanel from "@/components/ai/AISettingsPanel";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const { user } = useAuth();
-  const userEmail = user?.email || "Not available";
-  const userRole = user?.user_metadata?.role || "user";
-  const userName = user?.user_metadata?.full_name || "User";
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [profileSettings, setProfileSettings] = useState({
+    fullName: "",
+    email: "",
+    role: ""
+  });
+  const [notificationSettings, setNotificationSettings] = useState({
+    emailNotifications: true,
+    salesAlerts: true,
+    marketingUpdates: true,
+    customerServiceAlerts: true
+  });
+  const [interfaceSettings, setInterfaceSettings] = useState({
+    darkMode: true,
+    reducedMotion: false
+  });
 
-  const handleSaveProfile = () => {
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved."
-    });
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!user) return;
+      
+      try {
+        // Fetch profile from Supabase
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+          
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        } else {
+          setProfileSettings({
+            fullName: profileData.full_name || "",
+            email: user.email || "",
+            role: user.user_metadata?.role || "user"
+          });
+        }
+        
+        // Fetch user settings from Supabase
+        const { data: settingsData, error: settingsError } = await supabase
+          .from('user_settings')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+          
+        if (settingsError && settingsError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+          console.error('Error fetching settings:', settingsError);
+        } else if (settingsData) {
+          // Update notification settings if available
+          if (settingsData.notification_preferences) {
+            setNotificationSettings(settingsData.notification_preferences);
+          }
+          
+          // Update interface settings if available
+          if (settingsData.interface_preferences) {
+            setInterfaceSettings(settingsData.interface_preferences);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    
+    fetchSettings();
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      // Update profile in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profileSettings.fullName,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved."
+      });
+    } catch (error: any) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSavePreferences = () => {
-    toast({
-      title: "Preferences Updated",
-      description: "Your preferences have been saved."
-    });
+  const handleSavePreferences = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      // Check if user settings exist
+      const { data, error: checkError } = await supabase
+        .from('user_settings')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+        
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+      
+      const settingsData = {
+        user_id: user.id,
+        notification_preferences: notificationSettings,
+        interface_preferences: interfaceSettings,
+        updated_at: new Date().toISOString()
+      };
+      
+      let error;
+      
+      if (data) {
+        // Update existing settings
+        const result = await supabase
+          .from('user_settings')
+          .update(settingsData)
+          .eq('user_id', user.id);
+          
+        error = result.error;
+      } else {
+        // Insert new settings
+        const result = await supabase
+          .from('user_settings')
+          .insert({
+            ...settingsData,
+            created_at: new Date().toISOString()
+          });
+          
+        error = result.error;
+      }
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Preferences Updated",
+        description: "Your preferences have been saved."
+      });
+    } catch (error: any) {
+      console.error('Error saving preferences:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update preferences",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSaveSecurity = () => {
+  const handleSaveSecurity = async () => {
+    // Handle password update logic here
     toast({
       title: "Security Settings Updated",
       description: "Your security settings have been saved."
@@ -40,6 +191,7 @@ const Settings = () => {
   };
 
   const isAdmin = user?.user_metadata?.role === 'admin';
+  const userName = profileSettings.fullName || "User";
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -51,7 +203,6 @@ const Settings = () => {
           </p>
         </div>
       </div>
-  
   
       <Tabs defaultValue="profile" className="w-full">
           <TabsList className="w-full md:w-auto grid grid-cols-2 md:grid-cols-5 gap-1">
@@ -77,7 +228,8 @@ const Settings = () => {
                     <Label htmlFor="fullName">Full Name</Label>
                     <Input
                       id="fullName"
-                      defaultValue={userName}
+                      value={profileSettings.fullName}
+                      onChange={(e) => setProfileSettings({...profileSettings, fullName: e.target.value})}
                     />
                   </div>
 
@@ -85,7 +237,7 @@ const Settings = () => {
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
-                      defaultValue={userEmail}
+                      value={profileSettings.email}
                       disabled
                     />
                     <p className="text-xs text-muted-foreground">
@@ -97,7 +249,7 @@ const Settings = () => {
                     <Label htmlFor="role">Role</Label>
                     <Input
                       id="role"
-                      defaultValue={userRole}
+                      value={profileSettings.role}
                       disabled
                     />
                     <p className="text-xs text-muted-foreground">
@@ -128,7 +280,9 @@ const Settings = () => {
               </div>
 
               <div className="flex justify-end">
-                <Button onClick={handleSaveProfile}>Save Changes</Button>
+                <Button onClick={handleSaveProfile} disabled={isLoading}>
+                  {isLoading ? 'Saving...' : 'Save Changes'}
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -146,26 +300,56 @@ const Settings = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="email-notifications">Email Notifications</Label>
-                  <Switch id="email-notifications" defaultChecked />
+                  <Switch 
+                    id="email-notifications" 
+                    checked={notificationSettings.emailNotifications}
+                    onCheckedChange={(checked) => setNotificationSettings({
+                      ...notificationSettings,
+                      emailNotifications: checked
+                    })}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="sales-alerts">Sales Alerts</Label>
-                  <Switch id="sales-alerts" defaultChecked />
+                  <Switch 
+                    id="sales-alerts" 
+                    checked={notificationSettings.salesAlerts}
+                    onCheckedChange={(checked) => setNotificationSettings({
+                      ...notificationSettings,
+                      salesAlerts: checked
+                    })}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="marketing-updates">Marketing Updates</Label>
-                  <Switch id="marketing-updates" defaultChecked />
+                  <Switch 
+                    id="marketing-updates" 
+                    checked={notificationSettings.marketingUpdates}
+                    onCheckedChange={(checked) => setNotificationSettings({
+                      ...notificationSettings,
+                      marketingUpdates: checked
+                    })}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="customer-service-alerts">Customer Service Alerts</Label>
-                  <Switch id="customer-service-alerts" defaultChecked />
+                  <Switch 
+                    id="customer-service-alerts" 
+                    checked={notificationSettings.customerServiceAlerts}
+                    onCheckedChange={(checked) => setNotificationSettings({
+                      ...notificationSettings,
+                      customerServiceAlerts: checked
+                    })}
+                  />
                 </div>
 
                 <div className="flex justify-end">
-                  <Button onClick={handleSavePreferences}>Save Preferences</Button>
+                  <Button onClick={handleSavePreferences} disabled={isLoading}>
+                    {isLoading ? 'Saving...' : 'Save Preferences'}
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -182,16 +366,32 @@ const Settings = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <Switch id="dark-mode" defaultChecked />
+                  <Switch 
+                    id="dark-mode" 
+                    checked={interfaceSettings.darkMode}
+                    onCheckedChange={(checked) => setInterfaceSettings({
+                      ...interfaceSettings,
+                      darkMode: checked
+                    })}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="reduced-motion">Reduced Motion</Label>
-                  <Switch id="reduced-motion" />
+                  <Switch 
+                    id="reduced-motion" 
+                    checked={interfaceSettings.reducedMotion}
+                    onCheckedChange={(checked) => setInterfaceSettings({
+                      ...interfaceSettings,
+                      reducedMotion: checked
+                    })}
+                  />
                 </div>
 
                 <div className="flex justify-end">
-                  <Button onClick={handleSavePreferences}>Save Preferences</Button>
+                  <Button onClick={handleSavePreferences} disabled={isLoading}>
+                    {isLoading ? 'Saving...' : 'Save Preferences'}
+                  </Button>
                 </div>
               </div>
             </CardContent>

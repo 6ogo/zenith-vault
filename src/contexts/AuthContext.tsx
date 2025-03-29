@@ -72,6 +72,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           );
           
           setIsMfaEnabled(hasVerifiedTotpFactor);
+          
+          // Also update the profile in the database if MFA status changes
+          if (hasVerifiedTotpFactor) {
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ is_mfa_enabled: hasVerifiedTotpFactor })
+              .eq('id', user.id);
+              
+            if (updateError) {
+              console.error("Error updating MFA status in profile:", updateError);
+            }
+          }
         } catch (error) {
           console.error("Unexpected error fetching MFA status:", error);
         }
@@ -119,6 +131,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log(error);
         throw error;
       }
+      
+      // Create a profile for the new user
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            full_name: details.fullName,
+            updated_at: new Date().toISOString()
+          });
+          
+        if (profileError) {
+          console.error("Error creating profile:", profileError);
+        }
+      }
+      
       return data;
     } catch (error: any) {
       console.log(error);
@@ -144,6 +172,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         throw error;
       }
+      
+      // Ensure that a profile exists for this user
+      if (data.user) {
+        const { data: profileData, error: fetchError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (fetchError && fetchError.code === 'PGRST116') { // No rows found
+          // Create a profile if it doesn't exist
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              full_name: data.user.user_metadata?.full_name || data.user.email,
+              updated_at: new Date().toISOString()
+            });
+            
+          if (insertError) {
+            console.error("Error creating profile:", insertError);
+          }
+        }
+      }
+      
       return data;
     } catch (error: any) {
       console.log(error);
@@ -317,6 +370,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       setIsMfaEnabled(true);
+      
+      // Update profile with MFA status
+      if (user) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ is_mfa_enabled: true })
+          .eq('id', user.id);
+          
+        if (updateError) {
+          console.error("Error updating MFA status in profile:", updateError);
+        }
+      }
       
       return { error: null };
     } catch (error: any) {

@@ -17,7 +17,33 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
-      setUser(currentUser);
+      if (currentUser) {
+        setUser(currentUser);
+        
+        // Check if user exists in profiles table, if not create it
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', currentUser.id)
+          .single();
+          
+        if (error && error.code === 'PGRST116') { // No rows found error code
+          // Insert new profile
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: currentUser.id,
+              full_name: currentUser.user_metadata?.full_name || currentUser.email,
+              updated_at: new Date().toISOString()
+            });
+            
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          }
+        }
+      } else {
+        setUser(null);
+      }
     };
 
     fetchUser();
