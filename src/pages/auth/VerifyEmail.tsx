@@ -1,10 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
-import { ZenithLogo } from '@/components/common/ZenithLogo';
+import ZenithLogo from '@/components/common/ZenithLogo';
 import { supabase } from '@/integrations/supabase/client';
 
 const VerifyEmail = () => {

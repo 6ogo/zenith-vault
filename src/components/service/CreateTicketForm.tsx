@@ -22,8 +22,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from "@/contexts/AuthContext";
+import { createTicket } from '@/supabase/ticketFunctions';
 
 const formSchema = z.object({
   subject: z.string().min(5, {
@@ -68,17 +68,14 @@ const CreateTicketForm = ({ onSuccess }: { onSuccess: () => void }) => {
     setIsSubmitting(true);
     
     try {
-      // Use a raw query since we can't modify the types.ts file
-      const { data, error } = await supabase.rpc('create_ticket', {
-        p_subject: values.subject,
-        p_description: values.description,
-        p_priority: values.priority,
-        p_type: values.ticketType,
-        p_customer_email: values.customerEmail || null,
-        p_status: 'open'
+      await createTicket({
+        subject: values.subject,
+        description: values.description,
+        priority: values.priority,
+        type: values.ticketType,
+        customer_email: values.customerEmail || undefined,
+        status: 'open'
       });
-      
-      if (error) throw error;
       
       toast({
         title: 'Ticket created',

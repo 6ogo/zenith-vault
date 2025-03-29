@@ -1,40 +1,32 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  CheckCircle, 
+  Clock, 
+  MessageSquare, 
+  MoreHorizontal, 
+  Loader2,
+  User
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
-  CheckCircle, 
-  Clock, 
-  MessageSquare,
-  MoreVertical, 
-  AlertCircle,
-  XCircle,
-  PauseCircle,
-  ArrowUpCircle,
-  RefreshCw
-} from 'lucide-react';
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from '@/components/ui/textarea';
+  listTickets,
+  updateTicketStatus,
+  assignTicketToMe,
+  addTicketComment,
+  getTicketComments
+} from '@/supabase/ticketFunctions';
 
 interface Ticket {
   id: string;
@@ -43,46 +35,59 @@ interface Ticket {
   status: 'open' | 'pending' | 'closed' | 'resolved';
   priority: 'low' | 'medium' | 'high';
   type: string;
-  created_at: string;
-  updated_at: string;
+  customer_email?: string;
   created_by: string;
   assigned_to?: string;
-  customer_email?: string;
-  creator_details?: {
+  created_at: string;
+  updated_at: string;
+  creator?: {
     full_name?: string;
+    avatar_url?: string;
   };
-  assignee_details?: {
+  assignee?: {
     full_name?: string;
+    avatar_url?: string;
+  };
+}
+
+interface Comment {
+  id: string;
+  ticket_id: string;
+  content: string;
+  created_by: string;
+  created_at: string;
+  commenter?: {
+    full_name?: string;
+    avatar_url?: string;
   };
 }
 
 interface TicketListProps {
-  filter?: string;
-  refreshTrigger?: number;
+  filter: 'all' | 'open' | 'pending' | 'closed' | 'mine';
+  refreshTrigger: number;
 }
 
 const statusStyles = {
   open: { color: "bg-blue-100 text-blue-800", icon: <Clock className="h-3 w-3 mr-1" /> },
-  pending: { color: "bg-yellow-100 text-yellow-800", icon: <PauseCircle className="h-3 w-3 mr-1" /> },
+  pending: { color: "bg-yellow-100 text-yellow-800", icon: <Clock className="h-3 w-3 mr-1" /> },
+  closed: { color: "bg-green-100 text-green-800", icon: <CheckCircle className="h-3 w-3 mr-1" /> },
   resolved: { color: "bg-green-100 text-green-800", icon: <CheckCircle className="h-3 w-3 mr-1" /> },
-  closed: { color: "bg-gray-100 text-gray-800", icon: <XCircle className="h-3 w-3 mr-1" /> },
 };
 
 const priorityStyles = {
-  high: { color: "bg-red-100 text-red-800", icon: <ArrowUpCircle className="h-3 w-3 mr-1" /> },
+  high: { color: "bg-red-100 text-red-800" },
   medium: { color: "bg-yellow-100 text-yellow-800" },
   low: { color: "bg-green-100 text-green-800" },
 };
 
-const TicketList = ({ filter = 'all', refreshTrigger = 0 }: TicketListProps) => {
+const TicketList: React.FC<TicketListProps> = ({ filter, refreshTrigger }) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [comment, setComment] = useState('');
-  const [includeCustomer, setIncludeCustomer] = useState(false);
+  const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
+  const [comments, setComments] = useState<Record<string, Comment[]>>({});
+  const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  
+  const [loadingComments, setLoadingComments] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -91,25 +96,15 @@ const TicketList = ({ filter = 'all', refreshTrigger = 0 }: TicketListProps) => 
   }, [filter, refreshTrigger]);
   
   const fetchTickets = async () => {
-    if (!user) return;
-    
     setLoading(true);
     try {
-      // Use the list_tickets function
-      const { data, error } = await supabase.rpc('list_tickets', {
-        p_filter: filter
-      });
-      
-      if (error) throw error;
-      
-      // Parse the JSON data
-      const ticketData = data || [];
-      setTickets(Array.isArray(ticketData) ? ticketData : []);
+      const data = await listTickets(filter);
+      setTickets(data as unknown as Ticket[]);
     } catch (error: any) {
       console.error('Error fetching tickets:', error);
       toast({
-        title: 'Failed to load tickets',
-        description: error.message || 'An unexpected error occurred',
+        title: 'Error fetching tickets',
+        description: error.message || 'Failed to load tickets',
         variant: 'destructive',
       });
     } finally {
@@ -117,103 +112,108 @@ const TicketList = ({ filter = 'all', refreshTrigger = 0 }: TicketListProps) => 
     }
   };
   
-  const updateTicketStatus = async (ticketId: string, newStatus: Ticket['status']) => {
+  const handleStatusChange = async (ticketId: string, newStatus: 'open' | 'pending' | 'closed' | 'resolved') => {
     try {
-      const { data, error } = await supabase.rpc('update_ticket_status', {
-        p_ticket_id: ticketId,
-        p_status: newStatus
-      });
+      await updateTicketStatus(ticketId, newStatus);
       
-      if (error) throw error;
-      
-      toast({
-        title: 'Ticket updated',
-        description: `Ticket status changed to ${newStatus}`,
-      });
-      
-      // Update the local state
       setTickets(tickets.map(ticket => 
         ticket.id === ticketId ? { ...ticket, status: newStatus } : ticket
       ));
       
-      // If we're viewing this ticket details, update that too
-      if (selectedTicket?.id === ticketId) {
-        setSelectedTicket({ ...selectedTicket, status: newStatus });
-      }
-    } catch (error: any) {
-      console.error('Error updating ticket:', error);
       toast({
-        title: 'Failed to update ticket',
-        description: error.message || 'An unexpected error occurred',
+        title: 'Status updated',
+        description: `Ticket status updated to ${newStatus}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error updating status',
+        description: error.message || 'Failed to update ticket status',
         variant: 'destructive',
       });
     }
   };
   
-  const assignToMe = async (ticketId: string) => {
-    if (!user) return;
-    
+  const handleAssignToMe = async (ticketId: string) => {
     try {
-      const { data, error } = await supabase.rpc('assign_ticket_to_me', {
-        p_ticket_id: ticketId
-      });
+      const updatedTicket = await assignTicketToMe(ticketId);
       
-      if (error) throw error;
+      setTickets(tickets.map(ticket => 
+        ticket.id === ticketId ? { ...ticket, assigned_to: user!.id } : ticket
+      ));
       
       toast({
         title: 'Ticket assigned',
         description: 'Ticket has been assigned to you',
       });
-      
-      // Refetch to get updated assignee details
-      fetchTickets();
     } catch (error: any) {
-      console.error('Error assigning ticket:', error);
       toast({
-        title: 'Failed to assign ticket',
-        description: error.message || 'An unexpected error occurred',
+        title: 'Error assigning ticket',
+        description: error.message || 'Failed to assign ticket',
         variant: 'destructive',
       });
     }
   };
   
-  const addComment = async () => {
-    if (!selectedTicket || !comment.trim() || !user) return;
+  const toggleExpandTicket = async (ticketId: string) => {
+    if (expandedTicket === ticketId) {
+      setExpandedTicket(null);
+      return;
+    }
+    
+    setExpandedTicket(ticketId);
+    
+    if (!comments[ticketId]) {
+      setLoadingComments(true);
+      try {
+        const commentsData = await getTicketComments(ticketId);
+        setComments(prev => ({ ...prev, [ticketId]: commentsData as unknown as Comment[] }));
+      } catch (error: any) {
+        console.error('Error fetching comments:', error);
+        toast({
+          title: 'Error fetching comments',
+          description: error.message || 'Failed to load comments',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoadingComments(false);
+      }
+    }
+  };
+  
+  const handleSubmitComment = async (ticketId: string) => {
+    if (!newComment.trim()) return;
     
     setSubmittingComment(true);
     try {
-      // Add comment using the add_ticket_comment function
-      const { data, error } = await supabase.rpc('add_ticket_comment', {
-        p_ticket_id: selectedTicket.id,
-        p_content: comment
+      const comment = await addTicketComment({
+        ticket_id: ticketId,
+        content: newComment
       });
       
-      if (error) throw error;
+      // Update comments in state
+      const updatedComment = {
+        ...comment,
+        commenter: {
+          full_name: user?.user_metadata?.full_name || 'You',
+          avatar_url: user?.user_metadata?.avatar_url
+        }
+      };
       
-      // If includeCustomer is true and there's a customer email, send email
-      if (includeCustomer && selectedTicket.customer_email) {
-        // In a real implementation, you would call an edge function to send the email
-        console.log('Would send email to:', selectedTicket.customer_email);
-        console.log('Email content:', comment);
-      }
+      setComments(prev => ({
+        ...prev,
+        [ticketId]: [...(prev[ticketId] || []), updatedComment as unknown as Comment]
+      }));
       
-      setComment('');
-      setIncludeCustomer(false);
-      
+      setNewComment('');
       toast({
         title: 'Comment added',
-        description: includeCustomer && selectedTicket.customer_email 
-          ? 'Comment added and sent to customer' 
-          : 'Comment added to ticket',
+        description: 'Your comment has been added to the ticket',
       });
-      
-      // Close the dialog
-      setDialogOpen(false);
     } catch (error: any) {
       console.error('Error adding comment:', error);
       toast({
-        title: 'Failed to add comment',
-        description: error.message || 'An unexpected error occurred',
+        title: 'Error adding comment',
+        description: error.message || 'Failed to add comment',
         variant: 'destructive',
       });
     } finally {
@@ -221,238 +221,188 @@ const TicketList = ({ filter = 'all', refreshTrigger = 0 }: TicketListProps) => 
     }
   };
   
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  };
-  
   if (loading) {
     return (
-      <div className="w-full p-8 text-center">
-        <RefreshCw className="h-6 w-6 animate-spin mx-auto text-primary" />
-        <p className="mt-2 text-muted-foreground">Loading tickets...</p>
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
   
   if (tickets.length === 0) {
     return (
-      <div className="w-full p-8 text-center border rounded-md">
-        <AlertCircle className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-        <h3 className="text-lg font-medium mb-1">No tickets found</h3>
-        <p className="text-sm text-muted-foreground">
-          {filter === 'mine' 
-            ? "You haven't created any tickets yet." 
-            : filter === 'assigned' 
-              ? "You don't have any tickets assigned to you."
-              : "No tickets match the current filter."}
-        </p>
+      <div className="text-center p-8 text-muted-foreground">
+        No tickets found for the selected filter.
       </div>
     );
   }
   
   return (
-    <div className="space-y-2">
-      {tickets.map((ticket) => (
-        <Card key={ticket.id} className="p-4 hover:bg-accent/5 transition-colors">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-medium text-sm sm:text-base">{ticket.subject}</h3>
-                <Badge variant="secondary" className={priorityStyles[ticket.priority]?.color || ""}>
+    <div className="space-y-4">
+      {tickets.map(ticket => (
+        <Card key={ticket.id} className="p-4">
+          <div className="flex flex-col space-y-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="font-medium text-lg">{ticket.subject}</h3>
+                  <Badge variant="outline" className="text-xs">
+                    {ticket.id.slice(0, 8)}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {new Date(ticket.created_at).toLocaleString()}
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Badge 
+                  variant="secondary"
+                  className={priorityStyles[ticket.priority].color}
+                >
                   {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
                 </Badge>
-                <Badge variant="secondary" className={statusStyles[ticket.status]?.color || ""}>
-                  {statusStyles[ticket.status]?.icon}
+                
+                <Badge 
+                  variant="secondary"
+                  className={statusStyles[ticket.status].color}
+                >
+                  {statusStyles[ticket.status].icon}
                   {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
                 </Badge>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'open')}>
+                      Mark as Open
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'pending')}>
+                      Mark as Pending
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'closed')}>
+                      Mark as Closed
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAssignToMe(ticket.id)}>
+                      Assign to Me
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              
-              <div className="text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 mb-2">
-                <span>ID: {ticket.id.slice(0, 8)}</span>
-                <span>Created: {formatDate(ticket.created_at)}</span>
-                {ticket.creator_details?.full_name && (
-                  <span>By: {ticket.creator_details.full_name}</span>
-                )}
-                {ticket.assignee_details?.full_name && (
-                  <span>Assigned to: {ticket.assignee_details.full_name}</span>
-                )}
-                {ticket.customer_email && (
-                  <span>Customer: {ticket.customer_email}</span>
-                )}
-              </div>
-              
-              <Dialog open={dialogOpen && selectedTicket?.id === ticket.id} onOpenChange={(open) => {
-                setDialogOpen(open);
-                if (!open) setSelectedTicket(null);
-              }}>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="px-2 h-7"
-                    onClick={() => setSelectedTicket(ticket)}
-                  >
-                    <MessageSquare className="h-3.5 w-3.5 mr-1" />
-                    <span className="text-xs">View Details</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Ticket Details</DialogTitle>
-                    <DialogDescription>
-                      View and respond to ticket #{ticket.id.slice(0, 8)}
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <div className="space-y-4 mt-2">
-                    <div>
-                      <h3 className="font-medium text-lg">{ticket.subject}</h3>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        <Badge variant="secondary" className={priorityStyles[ticket.priority]?.color || ""}>
-                          {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)} Priority
-                        </Badge>
-                        <Badge variant="secondary" className={statusStyles[ticket.status]?.color || ""}>
-                          {statusStyles[ticket.status]?.icon}
-                          {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
-                        </Badge>
-                        <Badge variant="outline">
-                          {ticket.type.charAt(0).toUpperCase() + ticket.type.slice(1)}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Created by</p>
-                        <p>{ticket.creator_details?.full_name || 'Unknown'}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Created at</p>
-                        <p>{formatDate(ticket.created_at)}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Assigned to</p>
-                        <p>{ticket.assignee_details?.full_name || 'Unassigned'}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Last updated</p>
-                        <p>{formatDate(ticket.updated_at)}</p>
-                      </div>
-                      {ticket.customer_email && (
-                        <div className="col-span-2">
-                          <p className="text-muted-foreground">Customer email</p>
-                          <p>{ticket.customer_email}</p>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-1">Description</h4>
-                      <div className="bg-muted p-3 rounded-md whitespace-pre-wrap text-sm">
-                        {ticket.description}
-                      </div>
-                    </div>
-                    
-                    <div className="pt-2">
-                      <h4 className="font-medium mb-2">Add Response</h4>
-                      <Textarea
-                        value={comment}
-                        onChange={e => setComment(e.target.value)}
-                        placeholder="Enter your comment or response..."
-                        className="min-h-[100px] mb-2"
-                      />
-                      
-                      {ticket.customer_email && (
-                        <div className="flex items-center space-x-2 mb-4">
-                          <Checkbox
-                            id="send-to-customer"
-                            checked={includeCustomer}
-                            onCheckedChange={(checked) => 
-                              setIncludeCustomer(checked as boolean)
-                            }
-                          />
-                          <label
-                            htmlFor="send-to-customer"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Send email to customer
-                          </label>
-                        </div>
-                      )}
-                      
-                      <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={addComment} 
-                          disabled={!comment.trim() || submittingComment}
-                        >
-                          {submittingComment ? 'Sending...' : 'Add Response'}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
             </div>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreVertical className="h-4 w-4" />
+            <div>
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-1">
+                  <User className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    From: {ticket.creator?.full_name || 'Unknown'}
+                  </span>
+                </div>
+                
+                {ticket.assigned_to && (
+                  <div className="flex items-center space-x-1">
+                    <User className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      Assigned: {ticket.assignee?.full_name || 'Unknown'}
+                    </span>
+                  </div>
+                )}
+                
+                {ticket.customer_email && (
+                  <div className="flex items-center space-x-1">
+                    <span className="text-xs text-muted-foreground">
+                      Customer: {ticket.customer_email}
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              <p className="text-sm">{ticket.description}</p>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center gap-1"
+                onClick={() => toggleExpandTicket(ticket.id)}
+              >
+                <MessageSquare className="h-4 w-4" />
+                {expandedTicket === ticket.id ? 'Hide Comments' : 'Show Comments'}
+              </Button>
+              
+              {!ticket.assigned_to && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleAssignToMe(ticket.id)}
+                >
+                  Assign to Me
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                
-                {ticket.status !== 'resolved' && (
-                  <DropdownMenuItem onClick={() => updateTicketStatus(ticket.id, 'resolved')}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Mark as Resolved
-                  </DropdownMenuItem>
-                )}
-                
-                {ticket.status !== 'closed' && (
-                  <DropdownMenuItem onClick={() => updateTicketStatus(ticket.id, 'closed')}>
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Close Ticket
-                  </DropdownMenuItem>
-                )}
-                
-                {ticket.status !== 'pending' && (
-                  <DropdownMenuItem onClick={() => updateTicketStatus(ticket.id, 'pending')}>
-                    <PauseCircle className="h-4 w-4 mr-2" />
-                    Mark as Pending
-                  </DropdownMenuItem>
-                )}
-                
-                {ticket.status !== 'open' && (
-                  <DropdownMenuItem onClick={() => updateTicketStatus(ticket.id, 'open')}>
-                    <Clock className="h-4 w-4 mr-2" />
-                    Reopen Ticket
-                  </DropdownMenuItem>
-                )}
-                
-                {!ticket.assigned_to && (
-                  <DropdownMenuItem onClick={() => assignToMe(ticket.id)}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Assign to Me
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              )}
+            </div>
+            
+            {expandedTicket === ticket.id && (
+              <div className="mt-4 space-y-4">
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-medium mb-2">Comments</h4>
+                  
+                  {loadingComments ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    </div>
+                  ) : comments[ticket.id]?.length > 0 ? (
+                    <div className="space-y-3">
+                      {comments[ticket.id].map(comment => (
+                        <div key={comment.id} className="bg-muted p-3 rounded-md">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="text-sm font-medium">
+                              {comment.commenter?.full_name || 'Unknown User'}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {new Date(comment.created_at).toLocaleString()}
+                            </div>
+                          </div>
+                          <p className="text-sm">{comment.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-2">
+                      No comments yet
+                    </p>
+                  )}
+                  
+                  <div className="mt-4">
+                    <Textarea
+                      placeholder="Add a comment..."
+                      value={newComment}
+                      onChange={e => setNewComment(e.target.value)}
+                      className="mb-2"
+                    />
+                    <Button 
+                      size="sm"
+                      disabled={!newComment.trim() || submittingComment}
+                      onClick={() => handleSubmitComment(ticket.id)}
+                    >
+                      {submittingComment ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        'Add Comment'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </Card>
       ))}

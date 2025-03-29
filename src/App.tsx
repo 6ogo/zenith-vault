@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
@@ -8,7 +9,7 @@ import Service from './pages/Service';
 import Integrations from './pages/Integrations';
 import Settings from './pages/Settings';
 import Login from './pages/auth/Login';
-import Signup from './pages/auth/Signup';
+import SignUp from './pages/auth/SignUp';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
@@ -18,7 +19,7 @@ import SalesManagement from './pages/features/SalesManagement';
 import MarketingAutomation from './pages/features/MarketingAutomation';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/ThemeProvider"
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from './contexts/AuthContext';
 import { DataModeProvider } from './contexts/DataModeContext';
 
@@ -52,7 +53,7 @@ const App = () => {
               <Route path="/features/sales-management" element={<SalesManagement />} />
               <Route path="/features/marketing-automation" element={<MarketingAutomation />} />
               <Route path="/auth/login" element={<Login />} />
-              <Route path="/auth/signup" element={<Signup />} />
+              <Route path="/auth/signup" element={<SignUp />} />
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/auth/verify-email" element={<VerifyEmail />} />

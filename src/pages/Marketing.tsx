@@ -2,26 +2,15 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AdPlatformIntegration } from "@/components/marketing/AdPlatformIntegration";
+import AdPlatformIntegration, { MarketingPlatform, PlatformStatus } from "@/components/marketing/AdPlatformIntegration";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DataModeToggle } from "@/components/dashboard/DataModeToggle";
+import DataModeToggle from "@/components/dashboard/DataModeToggle";
 import { useDataMode } from "@/contexts/DataModeContext";
-
-// Fix type definitions
-type PlatformStatus = "connected" | "disconnected";
-
-interface MarketingPlatform {
-  name: string;
-  logo: string;
-  description: string;
-  status: PlatformStatus;
-}
 
 const Marketing = () => {
   const { isRealData } = useDataMode();
   const [activeTab, setActiveTab] = useState("campaigns");
   
-  // Fixed type for adPlatforms
   const [adPlatforms, setAdPlatforms] = useState<MarketingPlatform[]>([
     {
       name: "Google Ads",
@@ -50,11 +39,10 @@ const Marketing = () => {
   ]);
 
   const handleConnect = (platformName: string) => {
-    // Fixed the type issue by handling the state update properly
     setAdPlatforms(platforms => 
       platforms.map(platform => 
         platform.name === platformName 
-          ? { ...platform, status: "connected" as PlatformStatus }
+          ? { ...platform, status: platform.status === "connected" ? "disconnected" : "connected" as PlatformStatus }
           : platform
       )
     );
@@ -69,7 +57,7 @@ const Marketing = () => {
             Create and manage marketing campaigns across multiple platforms
           </p>
         </div>
-        <DataModeToggle />
+        <DataModeToggle isRealData={isRealData} onToggle={val => setIsRealData(val)} />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -204,7 +192,7 @@ const Marketing = () => {
                 logo={platform.logo}
                 description={platform.description}
                 status={platform.status}
-                onConnect={() => handleConnect(platform.name)}
+                onConnect={handleConnect}
               />
             ))}
           </div>

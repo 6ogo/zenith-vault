@@ -6,26 +6,31 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from '@/hooks/use-toast';
 
-interface AdPlatformData {
+export type PlatformStatus = 'connected' | 'disconnected';
+
+export interface MarketingPlatform {
   name: string;
   logo: string;
   description: string;
-  status: 'connected' | 'disconnected';
+  status: PlatformStatus;
 }
 
 interface AdPlatformIntegrationProps {
-  platform: AdPlatformData;
-  onConnect: (platformName: string, credentials: any) => void;
-  onDisconnect: (platformName: string) => void;
+  name: string;
+  logo: string;
+  description: string;
+  status: PlatformStatus;
+  onConnect: (platformName: string) => void;
 }
 
 const AdPlatformIntegration = ({
-  platform,
-  onConnect,
-  onDisconnect
+  name,
+  logo,
+  description,
+  status,
+  onConnect
 }: AdPlatformIntegrationProps) => {
   const [showConnectForm, setShowConnectForm] = useState(false);
   const [apiKey, setApiKey] = useState('');
@@ -43,13 +48,7 @@ const AdPlatformIntegration = ({
       return;
     }
     
-    const credentials = {
-      apiKey,
-      apiSecret,
-      accountId
-    };
-    
-    onConnect(platform.name, credentials);
+    onConnect(name);
     setShowConnectForm(false);
     setApiKey('');
     setApiSecret('');
@@ -62,29 +61,29 @@ const AdPlatformIntegration = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <img 
-              src={platform.logo} 
-              alt={`${platform.name} logo`} 
+              src={logo} 
+              alt={`${name} logo`} 
               className="w-6 h-6"
               onError={(e) => {
                 // If image fails to load, show first letter of platform name
-                e.currentTarget.outerHTML = `<div class="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">${platform.name.charAt(0)}</div>`;
+                e.currentTarget.outerHTML = `<div class="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">${name.charAt(0)}</div>`;
               }}
             />
-            <CardTitle className="text-lg">{platform.name}</CardTitle>
+            <CardTitle className="text-lg">{name}</CardTitle>
           </div>
-          <Badge variant={platform.status === 'connected' ? 'success' : 'outline'}>
-            {platform.status === 'connected' ? 'Connected' : 'Disconnected'}
+          <Badge variant={status === 'connected' ? 'default' : 'outline'}>
+            {status === 'connected' ? 'Connected' : 'Disconnected'}
           </Badge>
         </div>
-        <CardDescription>{platform.description}</CardDescription>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {platform.status === 'connected' && (
+          {status === 'connected' && (
             <div className="flex items-center justify-between">
-              <Label htmlFor={`${platform.name.toLowerCase()}-active`}>Active</Label>
+              <Label htmlFor={`${name.toLowerCase()}-active`}>Active</Label>
               <Switch 
-                id={`${platform.name.toLowerCase()}-active`} 
+                id={`${name.toLowerCase()}-active`} 
                 defaultChecked={true} 
               />
             </div>
@@ -93,40 +92,40 @@ const AdPlatformIntegration = ({
           {showConnectForm && (
             <div className="space-y-3 pt-2">
               <div>
-                <Label htmlFor={`${platform.name.toLowerCase()}-api-key`}>API Key</Label>
+                <Label htmlFor={`${name.toLowerCase()}-api-key`}>API Key</Label>
                 <Input 
-                  id={`${platform.name.toLowerCase()}-api-key`}
+                  id={`${name.toLowerCase()}-api-key`}
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder={`${platform.name} API Key`}
+                  placeholder={`${name} API Key`}
                   type="password"
                 />
               </div>
               
-              {platform.name !== 'Google Ads' && (
+              {name !== 'Google Ads' && (
                 <div>
-                  <Label htmlFor={`${platform.name.toLowerCase()}-api-secret`}>API Secret</Label>
+                  <Label htmlFor={`${name.toLowerCase()}-api-secret`}>API Secret</Label>
                   <Input 
-                    id={`${platform.name.toLowerCase()}-api-secret`}
+                    id={`${name.toLowerCase()}-api-secret`}
                     value={apiSecret}
                     onChange={(e) => setApiSecret(e.target.value)}
-                    placeholder={`${platform.name} API Secret`}
+                    placeholder={`${name} API Secret`}
                     type="password"
                   />
                 </div>
               )}
               
               <div>
-                <Label htmlFor={`${platform.name.toLowerCase()}-account-id`}>
-                  {platform.name === 'Google Ads' ? 'Customer ID' : 
-                   platform.name === 'Meta Ads' ? 'Ad Account ID' : 
+                <Label htmlFor={`${name.toLowerCase()}-account-id`}>
+                  {name === 'Google Ads' ? 'Customer ID' : 
+                   name === 'Meta Ads' ? 'Ad Account ID' : 
                    'Account ID'}
                 </Label>
                 <Input 
-                  id={`${platform.name.toLowerCase()}-account-id`}
+                  id={`${name.toLowerCase()}-account-id`}
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
-                  placeholder={platform.name === 'Google Ads' ? '123-456-7890' : 'Enter your account ID'}
+                  placeholder={name === 'Google Ads' ? '123-456-7890' : 'Enter your account ID'}
                 />
               </div>
               
@@ -146,8 +145,8 @@ const AdPlatformIntegration = ({
         </div>
       </CardContent>
       <CardFooter>
-        {platform.status === 'connected' ? (
-          <Button variant="destructive" onClick={() => onDisconnect(platform.name)} className="w-full">
+        {status === 'connected' ? (
+          <Button variant="destructive" onClick={() => onConnect(name)} className="w-full">
             Disconnect
           </Button>
         ) : (
@@ -155,7 +154,7 @@ const AdPlatformIntegration = ({
             onClick={() => showConnectForm ? handleConnect() : setShowConnectForm(true)} 
             className="w-full"
           >
-            {showConnectForm ? 'Connect' : `Connect ${platform.name}`}
+            {showConnectForm ? 'Connect' : `Connect ${name}`}
           </Button>
         )}
       </CardFooter>

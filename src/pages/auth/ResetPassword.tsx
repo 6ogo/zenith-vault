@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -18,7 +17,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { ZenithLogo } from '@/components/common/ZenithLogo';
+import ZenithLogo from '@/components/common/ZenithLogo';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
