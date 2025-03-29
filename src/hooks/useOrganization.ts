@@ -90,14 +90,18 @@ export function useOrganization(): UseOrganizationReturn {
       
       setCurrentOrganization(orgData);
       
-      // Get all members of this organization with their profiles
+      // Get all members of this organization along with their profile information
       const { data: membersData, error: membersError } = await supabase
         .from('organization_members')
         .select(`
-          *,
+          id,
+          user_id,
+          organization_id,
+          role,
+          status,
+          joined_at,
           profiles:user_id (
             full_name,
-            avatar_url,
             id
           )
         `)
@@ -115,13 +119,11 @@ export function useOrganization(): UseOrganizationReturn {
           id: member.id,
           user_id: member.user_id,
           organization_id: member.organization_id,
-          // Cast role string to OrganizationRole to ensure type safety
-          role: member.role as OrganizationRole,
-          // Cast status string to MemberStatus to ensure type safety
-          status: member.status as MemberStatus,
+          role: member.role as OrganizationRole, // Explicitly cast to ensure type safety
+          status: member.status as MemberStatus, // Explicitly cast to ensure type safety
           joined_at: member.joined_at,
           full_name: profile?.full_name || 'Unknown User',
-          email: profile?.email || 'No email'
+          email: user?.email || 'No email'
         };
       });
       
@@ -132,10 +134,14 @@ export function useOrganization(): UseOrganizationReturn {
         const { data: pendingData, error: pendingError } = await supabase
           .from('organization_members')
           .select(`
-            *,
+            id,
+            user_id,
+            organization_id,
+            role,
+            status,
+            joined_at,
             profiles:user_id (
               full_name,
-              avatar_url,
               id
             )
           `)
@@ -153,7 +159,7 @@ export function useOrganization(): UseOrganizationReturn {
           return {
             id: member.id,
             name: profile?.full_name || 'Unknown User',
-            email: profile?.email || 'No email',
+            email: user?.email || 'No email',
             organization: orgData.name,
             role: member.role,
             requestedAt: member.joined_at

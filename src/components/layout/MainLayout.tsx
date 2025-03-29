@@ -56,9 +56,25 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           
         if (settingsError && settingsError.code === 'PGRST116') {
           // Create default settings if they don't exist
+          const defaultNotificationPreferences = {
+            emailNotifications: true,
+            salesAlerts: true,
+            marketingUpdates: true,
+            customerServiceAlerts: true
+          };
+          
+          const defaultInterfacePreferences = {
+            darkMode: true,
+            reducedMotion: false
+          };
+          
           const { error: createSettingsError } = await supabase
             .from('user_settings')
-            .insert({ user_id: user.id });
+            .insert({ 
+              user_id: user.id,
+              notification_preferences: defaultNotificationPreferences,
+              interface_preferences: defaultInterfacePreferences
+            });
             
           if (createSettingsError) {
             console.error('Error creating default settings:', createSettingsError);

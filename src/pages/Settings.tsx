@@ -36,24 +36,37 @@ const Settings = () => {
   
   // Initialize state from settings when they load
   useEffect(() => {
-    if (settings) {
+    if (settings && settings.notification_preferences) {
       setNotifications(settings.notification_preferences);
+    }
+    
+    if (settings && settings.interface_preferences) {
       setInterfacePrefs(settings.interface_preferences);
     }
   }, [settings]);
   
   const handleNotificationChange = (key: keyof NotificationPreferences) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    const updatedPreferences = {
+      ...notifications,
+      [key]: !notifications[key]
+    };
+    
+    setNotifications(updatedPreferences);
+    
+    // Save to database immediately on toggle
+    updateNotificationPreferences({ [key]: !notifications[key] });
   };
   
   const handleInterfaceChange = (key: keyof InterfacePreferences) => {
-    setInterfacePrefs(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    const updatedPreferences = {
+      ...interfacePrefs,
+      [key]: !interfacePrefs[key]
+    };
+    
+    setInterfacePrefs(updatedPreferences);
+    
+    // Save to database immediately on toggle
+    updateInterfacePreferences({ [key]: !interfacePrefs[key] });
   };
   
   const saveNotificationSettings = async () => {

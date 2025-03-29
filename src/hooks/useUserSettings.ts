@@ -37,21 +37,35 @@ export function useUserSettings() {
     try {
       setLoading(true);
       
-      // Get user settings using a direct query instead of RPC
+      // Get user settings using the RPC function
       const { data, error } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+        .rpc('get_user_settings', {
+          p_user_id: user.id
+        });
       
       if (error) {
         console.error('Error fetching user settings:', error);
         
-        // Try creating default settings if they don't exist
+        // Define default settings
+        const defaultNotificationPreferences = {
+          emailNotifications: true,
+          salesAlerts: true,
+          marketingUpdates: true,
+          customerServiceAlerts: true
+        };
+        
+        const defaultInterfacePreferences = {
+          darkMode: true,
+          reducedMotion: false
+        };
+        
+        // Create default settings in the database
         const { data: newSettings, error: createError } = await supabase
           .from('user_settings')
           .insert({
-            user_id: user.id
+            user_id: user.id,
+            notification_preferences: defaultNotificationPreferences,
+            interface_preferences: defaultInterfacePreferences
           })
           .select()
           .single();
@@ -72,12 +86,12 @@ export function useUserSettings() {
         return typedSettings;
       }
       
-      if (data) {
+      if (data && data.length > 0) {
         // Convert JSON data to proper typed structure
         const typedSettings: UserSettings = {
-          ...data,
-          notification_preferences: data.notification_preferences as unknown as NotificationPreferences,
-          interface_preferences: data.interface_preferences as unknown as InterfacePreferences
+          ...data[0],
+          notification_preferences: data[0].notification_preferences as unknown as NotificationPreferences,
+          interface_preferences: data[0].interface_preferences as unknown as InterfacePreferences
         };
         
         setSettings(typedSettings);
@@ -99,21 +113,18 @@ export function useUserSettings() {
     try {
       setLoading(true);
       
-      // Update notification preferences with direct query instead of RPC
+      // Merge with existing preferences
       const mergedPreferences = {
         ...settings.notification_preferences,
         ...preferences
       };
       
+      // Update notification preferences using the RPC function
       const { data, error } = await supabase
-        .from('user_settings')
-        .update({
-          notification_preferences: mergedPreferences,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .select()
-        .single();
+        .rpc('update_user_notification_preferences', {
+          p_user_id: user.id,
+          p_preferences: mergedPreferences
+        });
       
       if (error) {
         console.error('Error updating notification preferences:', error);
@@ -126,16 +137,18 @@ export function useUserSettings() {
       }
       
       // Update local state with typed data
-      setSettings(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          notification_preferences: {
-            ...prev.notification_preferences,
-            ...preferences
-          }
-        };
-      });
+      if (data && data.length > 0) {
+        setSettings(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            notification_preferences: {
+              ...mergedPreferences
+            },
+            updated_at: data[0].updated_at
+          };
+        });
+      }
       
       toast({
         title: 'Preferences Updated',
@@ -162,21 +175,18 @@ export function useUserSettings() {
     try {
       setLoading(true);
       
-      // Update interface preferences with direct query instead of RPC
+      // Merge with existing preferences
       const mergedPreferences = {
         ...settings.interface_preferences,
         ...preferences
       };
       
+      // Update interface preferences using the RPC function
       const { data, error } = await supabase
-        .from('user_settings')
-        .update({
-          interface_preferences: mergedPreferences,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .select()
-        .single();
+        .rpc('update_user_interface_preferences', {
+          p_user_id: user.id,
+          p_preferences: mergedPreferences
+        });
       
       if (error) {
         console.error('Error updating interface preferences:', error);
@@ -189,16 +199,18 @@ export function useUserSettings() {
       }
       
       // Update local state
-      setSettings(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          interface_preferences: {
-            ...prev.interface_preferences,
-            ...preferences
-          }
-        };
-      });
+      if (data && data.length > 0) {
+        setSettings(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            interface_preferences: {
+              ...mergedPreferences
+            },
+            updated_at: data[0].updated_at
+          };
+        });
+      }
       
       toast({
         title: 'Preferences Updated',
@@ -223,6 +235,8 @@ export function useUserSettings() {
   useEffect(() => {
     if (user) {
       fetchUserSettings();
+    } else {
+      setSettings(null);
     }
   }, [user, fetchUserSettings]);
   
