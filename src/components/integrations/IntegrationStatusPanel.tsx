@@ -55,40 +55,32 @@ const IntegrationStatusPanel = () => {
     setIsLoading(true);
     try {
       if (isRealData) {
-        // Check if the integrations table exists in the database
-        const { data: tablesData, error: tablesError } = await supabase
-          .from('pg_tables')
-          .select('tablename')
-          .eq('schemaname', 'public')
-          .eq('tablename', 'integrations');
-
-        // If the table doesn't exist yet, return an empty array
-        if (tablesError || !tablesData || tablesData.length === 0) {
-          console.log('Integrations table does not exist yet');
-          setIntegrations([]);
-          setIsLoading(false);
-          return;
-        }
-
-        // If the table exists, fetch the integrations
-        const { data, error } = await supabase
-          .from('integrations')
-          .select('*');
-          
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          // Map the data to the expected format
-          const formattedIntegrations = data.map((item) => ({
-            id: item.id,
-            name: item.provider,
-            provider: item.provider,
-            category: item.provider_type || getCategoryFromProvider(item.provider),
-            status: item.status as "connected" | "disconnected" | "error",
-            lastSync: item.last_sync ? new Date(item.last_sync).toLocaleDateString() : null
-          }));
-          setIntegrations(formattedIntegrations);
-        } else {
+        // Try to fetch data directly from the integrations table
+        try {
+          const { data, error } = await supabase
+            .from('integrations')
+            .select('*');
+            
+          if (error) {
+            // If there's an error (like table doesn't exist), return empty array
+            console.log('Error fetching integrations:', error);
+            setIntegrations([]);
+          } else if (data && data.length > 0) {
+            // Map the data to the expected format
+            const formattedIntegrations = data.map((item) => ({
+              id: item.id,
+              name: item.provider,
+              provider: item.provider,
+              category: item.provider_type || getCategoryFromProvider(item.provider),
+              status: item.status as "connected" | "disconnected" | "error",
+              lastSync: item.last_sync ? new Date(item.last_sync).toLocaleDateString() : null
+            }));
+            setIntegrations(formattedIntegrations);
+          } else {
+            setIntegrations([]);
+          }
+        } catch (error) {
+          console.error("Error accessing integrations table:", error);
           setIntegrations([]);
         }
       } else {
@@ -114,7 +106,42 @@ const IntegrationStatusPanel = () => {
     if (lowerProvider.includes('crm') || lowerProvider.includes('salesforce') || lowerProvider.includes('hubspot')) return 'crm';
     if (lowerProvider.includes('stripe') || lowerProvider.includes('pay')) return 'payments';
     if (lowerProvider.includes('erp') || lowerProvider.includes('sap') || lowerProvider.includes('netsuite')) return 'erp';
+    if (lowerProvider.includes('postgres') || lowerProvider.includes('mysql') || lowerProvider.includes('mongo')) return 'database';
     return 'other';
+  };
+
+  // Helper function to get the logo based on provider
+  const getProviderLogo = (provider: string): string => {
+    const lowerProvider = provider.toLowerCase();
+    
+    const logoMap: Record<string, string> = {
+      'mailchimp': '/logos/mailchimp.png',
+      'sendgrid': '/logos/sendgrid.png',
+      'constantcontact': '/logos/constantcontact.png',
+      'salesforce': '/logos/salesforce.png',
+      'hubspot': '/logos/hubspot.jpeg',
+      'zoho': '/logos/zohocrm.png',
+      'sap': '/logos/sap.png',
+      'netsuite': '/logos/netsuite.png',
+      'dynamics': '/logos/microsoftdynamics.webp',
+      'postgresql': '/logos/postgres.svg',
+      'postgres': '/logos/postgres.svg',
+      'mysql': '/logos/mysql.jpg',
+      'mongodb': '/logos/mongoDB.webp',
+      'stripe': '/logos/stripe.png',
+      'aws-s3': '/logos/amazonS3.png',
+      'google-analytics': '/logos/googleanalytics.jpg',
+      'twilio': '/logos/twilio.jpg'
+    };
+    
+    for (const key in logoMap) {
+      if (lowerProvider.includes(key)) {
+        return logoMap[key];
+      }
+    }
+    
+    // Default to custom logo if none matched
+    return '/logos/custom.png';
   };
 
   // Load integrations on component mount
@@ -155,6 +182,36 @@ const IntegrationStatusPanel = () => {
     }
   };
 
+  // Helper function to get emoji or icon based on category
+  const getCategoryIcon = (integration: IntegrationStatus) => {
+    return (
+      <div className="rounded-md border p-2 h-10 w-10 flex items-center justify-center overflow-hidden">
+        <img 
+          src={getProviderLogo(integration.provider)}
+          alt={integration.provider}
+          className="h-6 w-6 object-contain" 
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            // Fallback to category emojis
+            if (integration.category === "crm") {
+              target.outerHTML = "👥";
+            } else if (integration.category === "marketing") {
+              target.outerHTML = "📧";
+            } else if (integration.category === "payments") {
+              target.outerHTML = "💳";
+            } else if (integration.category === "erp") {
+              target.outerHTML = "🏢";
+            } else if (integration.category === "database") {
+              target.outerHTML = "💾";
+            } else {
+              target.outerHTML = "🔌";
+            }
+          }}
+        />
+      </div>
+    );
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -179,13 +236,7 @@ const IntegrationStatusPanel = () => {
                 className="flex items-center justify-between rounded-lg border p-3"
               >
                 <div className="flex items-center gap-3">
-                  <div className="rounded-md border p-2">
-                    {integration.category === "crm" && "👥"}
-                    {integration.category === "marketing" && "📧"}
-                    {integration.category === "payments" && "💳"}
-                    {integration.category === "erp" && "🏢"}
-                    {!["crm", "marketing", "payments", "erp"].includes(integration.category) && "🔌"}
-                  </div>
+                  {getCategoryIcon(integration)}
                   <div>
                     <div className="font-medium">{integration.name}</div>
                     <div className="text-sm text-muted-foreground">

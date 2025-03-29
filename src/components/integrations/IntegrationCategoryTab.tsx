@@ -86,6 +86,34 @@ const IntegrationCategoryTab = ({
     }
   };
 
+  // Helper function to get the correct logo URL
+  const getLogoUrl = (integration: Integration) => {
+    if (integration.isCustom) {
+      return '/logos/custom.png';
+    }
+    
+    const logoMap: Record<string, string> = {
+      'mailchimp': '/logos/mailchimp.png',
+      'sendgrid': '/logos/sendgrid.png',
+      'constantcontact': '/logos/constantcontact.png',
+      'salesforce': '/logos/salesforce.png',
+      'hubspot': '/logos/hubspot.jpeg',
+      'zoho': '/logos/zohocrm.png',
+      'sap': '/logos/sap.png',
+      'netsuite': '/logos/netsuite.png',
+      'dynamics': '/logos/microsoftdynamics.webp',
+      'postgres': '/logos/postgres.svg',
+      'mysql': '/logos/mysql.jpg',
+      'mongodb': '/logos/mongoDB.webp',
+      'stripe': '/logos/stripe.png',
+      'aws-s3': '/logos/amazonS3.png',
+      'google-analytics': '/logos/googleanalytics.jpg',
+      'twilio': '/logos/twilio.jpg'
+    };
+    
+    return logoMap[integration.id] || '/placeholder.svg';
+  };
+
   return (
     <div className="space-y-4">
       <Card className="p-4">
@@ -98,11 +126,11 @@ const IntegrationCategoryTab = ({
             <Card key={integration.id} className="border border-border">
               <CardHeader className="p-4 pb-2">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-background rounded-md h-10 w-10 flex items-center justify-center border">
+                  <div className="bg-background rounded-md h-10 w-10 flex items-center justify-center border overflow-hidden">
                     <img 
-                      src={integration.logoUrl} 
+                      src={getLogoUrl(integration)}
                       alt={integration.name} 
-                      className="h-6 w-6" 
+                      className="h-8 w-8 object-contain" 
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = '/placeholder.svg';
