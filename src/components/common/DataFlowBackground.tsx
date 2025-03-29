@@ -63,8 +63,8 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         vec3 accentColor = vec3(0.0, 0.8, 0.4);  // #00CC66 Bright Green
         vec3 bgColor = vec3(0.94, 0.94, 0.94);   // #F0F0F0 Light Gray
         
-        // Calculate grid size and position
-        float gridSize = 18.0; // Number of cells
+        // Calculate grid size and position - increased for smaller boxes
+        float gridSize = 36.0; // Increased from 18.0 for smaller boxes
         
         // Add dataflow movement
         vec2 offset = vec2(0.0, uTime * 0.1); // Data flows downward
@@ -78,7 +78,7 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         
         // Generate random values for this cell
         float rand = random(cell);
-        float randSize = random(cell + 0.7) * 0.3 + 0.1; // Box size varies
+        float randSize = random(cell + 0.7) * 0.25 + 0.05; // Box size varies - reduced for smaller boxes
         
         // Create data packet shapes with clear edges
         float boxWidth = randSize * 0.8;
@@ -90,10 +90,10 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         float pulseSpeed = rand * 2.0 + 0.5;
         float pulse = sin(uTime * pulseSpeed + rand * 10.0) * 0.5 + 0.5;
         
-        // Create data streams - increase likelihood of streams
-        float dataStream = step(0.65, random(floor(cell * 0.2))); // Increased from 0.75 to 0.65
-        float dataActivity = step(0.5, rand) * dataStream; // Increased activity from 0.6 to 0.5
-        float streamPulse = sin(uTime * 2.0 + vPosition.y * 10.0) * 0.5 + 0.5; // Coordinated pulses along streams
+        // Create data streams - increased grid density for more defined pattern
+        float dataStream = step(0.7, random(floor(cell * 0.15))); 
+        float dataActivity = step(0.5, rand) * dataStream;
+        float streamPulse = sin(uTime * 2.0 + vPosition.y * 10.0) * 0.5 + 0.5;
         
         // Color calculation - increase green presence
         vec3 baseColor = mix(primaryColor * 0.8, accentColor * 0.3, 0.2); // Add some green to base
@@ -107,8 +107,8 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         float activity = dataActivity * streamPulse;
         vec3 finalColor = mix(baseColor, activeColor, min(1.0, (activity + pulse * 0.4) * 0.9)); // Increased mix
         
-        // Add connecting lines between data blocks
-        float lineWidth = 0.02;
+        // Add connecting lines between data blocks - thinner for sharper look
+        float lineWidth = 0.015; // Reduced for sharper appearance
         float lineY = abs(cellPos.y);
         float lineX = abs(cellPos.x);
         float dataLine = 0.0;
@@ -120,14 +120,14 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         }
         
         // Add edge glow with more green
-        float edgeThickness = 0.03;
+        float edgeThickness = 0.025; // Reduced for sharper edges
         float edge = (1.0 - step(boxWidth - edgeThickness, abs(cellPos.x))) * 
                      (step(-boxWidth, cellPos.x) * step(cellPos.x, boxWidth)) +
                      (1.0 - step(boxHeight - edgeThickness, abs(cellPos.y))) * 
                      (step(-boxHeight, cellPos.y) * step(cellPos.y, boxHeight));
         edge = min(edge, 1.0);
         
-        float edgeBrightness = 0.8 + pulse * 0.5; // Increased brightness
+        float edgeBrightness = 0.9 + pulse * 0.5; // Increased brightness for more definition
         vec3 edgeColor = accentColor * edgeBrightness;
         vec3 lineColor = mix(accentColor * 0.8, accentColor, streamPulse); // More green in lines
         
@@ -135,8 +135,8 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         finalColor = mix(finalColor, edgeColor, edge * 0.9); // Increased edge intensity
         finalColor = mix(finalColor, lineColor, dataLine * 0.8); // Increased line intensity
         
-        // Only draw where the box or lines are - increased alpha
-        float alpha = max(box * (0.5 + activity * 0.5), dataLine * 0.4 * dataStream);
+        // Only draw where the box or lines are - increased alpha for better visibility
+        float alpha = max(box * (0.6 + activity * 0.5), dataLine * 0.5 * dataStream);
         
         outColor = vec4(finalColor, alpha);
     }
