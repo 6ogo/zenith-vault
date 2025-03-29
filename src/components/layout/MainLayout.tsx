@@ -24,7 +24,7 @@ const MainLayout = () => {
       <Header toggleSidebar={toggleSidebar} />
       
       {/* Content area */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1">
         {/* Mobile sidebar */}
         <div className={`fixed inset-0 z-30 transform md:hidden ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -40,14 +40,14 @@ const MainLayout = () => {
         
         {/* Desktop sidebar - sticky with top-0 */}
         <div className={`hidden md:block sticky top-0 h-screen z-20 transition-all duration-300 ${
-          sidebarCollapsed ? "w-16" : "w-60"
+          sidebarCollapsed ? "w-16" : "w-64"
         }`}>
           <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
         
         {/* Main content */}
-        <div className="flex-1 overflow-x-hidden">
-          <main className="p-4 md:p-6 w-full">
+        <div className="flex-1">
+          <main className="p-4 md:p-6 w-full overflow-x-auto">
             <Outlet />
           </main>
         </div>

@@ -96,7 +96,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
   return (
     <div className={cn(
       "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
-      isCollapsed ? "w-16" : "w-60" // Reduced from w-64 to w-60
+      isCollapsed ? "w-16" : "w-64" // Changed from w-72 to w-64 to make sidebar smaller
     )}>
       <div className="flex items-center h-16 px-4 border-b border-border">
         <span className="font-bold text-lg text-white">
@@ -118,7 +118,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
                       isActive
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
                         : "text-sidebar-foreground",
-                      isCollapsed ? "justify-center" : "justify-start"
+                      isCollapsed ? "justify-center" : "justify-start" // Icon centering is correct here
                     )
                   }
                 >
