@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
-import { Outlet } from "react-router-dom";
+
+import React, { useState, useRef, useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -7,7 +8,9 @@ import Footer from "./Footer";
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [footerHeight, setFooterHeight] = useState(0);
   const footerRef = useRef<HTMLElement | null>(null);
+  const location = useLocation();
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -16,10 +19,26 @@ const MainLayout = () => {
   const toggleSidebarCollapse = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
+
+  // Update footer height when it changes
+  useEffect(() => {
+    const updateFooterHeight = () => {
+      if (footerRef.current) {
+        setFooterHeight(footerRef.current.offsetHeight);
+      }
+    };
+
+    updateFooterHeight();
+    window.addEventListener("resize", updateFooterHeight);
+    
+    return () => {
+      window.removeEventListener("resize", updateFooterHeight);
+    };
+  }, []);
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Regular header - scrolls with content */}
+      {/* Header - not sticky */}
       <Header toggleSidebar={toggleSidebar} />
       
       {/* Content area */}
@@ -37,22 +56,28 @@ const MainLayout = () => {
           </div>
         </div>
         
-        {/* Desktop sidebar - sticky with top-0 */}
-        <div className={`hidden md:block sticky top-0 h-screen z-20 transition-all duration-300 ${
-          sidebarCollapsed ? "w-16" : "w-72"
-        }`}>
+        {/* Desktop sidebar - sticky with top-16 (header height) and stop at footer */}
+        <div 
+          className={`hidden md:block sticky top-16 h-[calc(100vh-4rem-${footerHeight}px)] z-20 transition-all duration-300 ${
+            sidebarCollapsed ? "w-16" : "w-72"
+          }`} 
+          style={{ 
+            height: `calc(100vh - 4rem - ${footerHeight}px)`,
+            maxHeight: `calc(100vh - 4rem - ${footerHeight}px)`
+          }}
+        >
           <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
         
-        {/* Main content */}
-        <div className="flex-1">
-          <main className="p-4 md:p-6 w-full overflow-x-auto">
+        {/* Main content - full width */}
+        <div className="flex-1 w-full">
+          <main className="p-4 md:p-6 w-full">
             <Outlet />
           </main>
         </div>
       </div>
       
-      {/* Footer - completely outside the content area */}
+      {/* Footer - full width outside the content area */}
       <Footer ref={footerRef} />
     </div>
   );

@@ -4,29 +4,38 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "react-router-dom";
+import { useDataMode } from "@/contexts/DataModeContext";
 
 interface DataModeToggleProps {
-  isRealData: boolean;
-  onToggle: (enabled: boolean) => void;
+  className?: string;
 }
 
-const DataModeToggle = ({ isRealData, onToggle }: DataModeToggleProps) => {
+const DataModeToggle = ({ className = "" }: DataModeToggleProps) => {
   const { toast } = useToast();
+  const location = useLocation();
+  const { isRealData, setIsRealData, isAllowedToToggle } = useDataMode();
+  const currentPage = location.pathname.split('/')[1] || 'dashboard';
+  
+  // Don't render on pages that don't support toggling
+  if (!isAllowedToToggle(currentPage)) {
+    return null;
+  }
   
   const handleToggle = (checked: boolean) => {
-    onToggle(checked);
+    setIsRealData(checked);
     
     toast({
       title: checked ? "Real data mode activated" : "Demo data mode activated",
       description: checked 
-        ? "Dashboard now shows real data from your connected systems." 
-        : "Dashboard now shows demo data for demonstration purposes.",
+        ? "Showing real data from your connected systems." 
+        : "Showing demo data for demonstration purposes.",
       duration: 3000,
     });
   };
   
   return (
-    <Card className="flex items-center justify-between px-4 py-2 mb-4">
+    <Card className={`flex items-center justify-between px-4 py-2 mb-4 ${className}`}>
       <div className="flex items-center space-x-4">
         <Label htmlFor="data-mode" className="text-sm font-medium cursor-pointer">
           Data Mode:
