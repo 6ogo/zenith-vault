@@ -19,6 +19,7 @@ import {
   Database,
   FileUp,
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -88,7 +89,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
 
   return (
     <div className={cn(
-      "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
+      "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300 sticky top-0",
       isCollapsed ? "w-16" : "w-72"
     )}>
       <div className="flex items-center h-16 px-4 border-b border-border">
@@ -96,31 +97,35 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
           {isCollapsed ? "AC" : "Admin Console"}
         </span>
       </div>
-      <div className="flex-grow p-4 overflow-y-auto sticky top-0">
-        <nav className="flex flex-col space-y-1">
-          {routes.map((route) => (
-            <NavLink
-              key={route.path}
-              to={route.path}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground",
-                  isCollapsed ? "justify-center" : "justify-start"
-                )
-              }
-            >
-              <route.icon className={cn(
-                "w-5 h-5", 
-                !isCollapsed && "mr-2"
-              )} />
-              {!isCollapsed && <span>{route.label}</span>}
-            </NavLink>
-          ))}
-        </nav>
-      </div>
+      
+      <ScrollArea className="flex-grow">
+        <div className="p-4">
+          <nav className="flex flex-col space-y-1">
+            {routes.map((route) => (
+              <NavLink
+                key={route.path}
+                to={route.path}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                    isActive
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground",
+                    isCollapsed ? "justify-center" : "justify-start"
+                  )
+                }
+              >
+                <route.icon className={cn(
+                  "w-5 h-5", 
+                  !isCollapsed && "mr-2"
+                )} />
+                {!isCollapsed && <span>{route.label}</span>}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      </ScrollArea>
+      
       <div className="sticky bottom-0 p-4 border-t border-sidebar-border bg-[#003366]">
         <button 
           onClick={onToggleCollapse}

@@ -39,7 +39,7 @@ const MainLayout = () => {
         </div>
         
         {/* Sidebar for desktop (fixed) */}
-        <div className={`hidden md:flex md:flex-shrink-0 transition-all duration-300 ${
+        <div className={`hidden md:flex h-screen md:flex-shrink-0 transition-all duration-300 ${
           sidebarCollapsed ? "md:w-16" : "md:w-72"
         }`}>
           <div className="flex flex-col w-full">
