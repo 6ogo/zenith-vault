@@ -12,29 +12,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({ siteKey, onVerify }) => {
   const scriptLoadedRef = useRef<boolean>(false);
 
   useEffect(() => {
-    // Load the Turnstile script if it's not already loaded
-    if (!window.turnstile) {
-      const script = document.createElement("script");
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-      script.async = true;
-      script.defer = true;
-      
-      script.onload = () => {
-        scriptLoadedRef.current = true;
-        renderWidget();
-      };
-      
-      document.body.appendChild(script);
-
-      return () => {
-        document.body.removeChild(script);
-      };
-    } else {
-      scriptLoadedRef.current = true;
-      renderWidget();
-    }
-
-    // Wait for turnstile to be available
+    // Define the renderWidget function first, before using it
     const renderWidget = () => {
       if (window.turnstile && containerRef.current && scriptLoadedRef.current) {
         // Only reset if the widget was previously rendered
@@ -62,6 +40,28 @@ export const Turnstile: React.FC<TurnstileProps> = ({ siteKey, onVerify }) => {
         setTimeout(renderWidget, 100);
       }
     };
+
+    // Load the Turnstile script if it's not already loaded
+    if (!window.turnstile) {
+      const script = document.createElement("script");
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      script.async = true;
+      script.defer = true;
+      
+      script.onload = () => {
+        scriptLoadedRef.current = true;
+        renderWidget();
+      };
+      
+      document.body.appendChild(script);
+
+      return () => {
+        document.body.removeChild(script);
+      };
+    } else {
+      scriptLoadedRef.current = true;
+      renderWidget();
+    }
 
     return () => {
       if (widgetIdRef.current !== null && window.turnstile) {
