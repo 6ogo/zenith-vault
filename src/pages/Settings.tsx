@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import AIConfigSection from "@/components/ai/AIConfigSection";
+import AISettingsPanel from "@/components/ai/AISettingsPanel";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -39,6 +39,8 @@ const Settings = () => {
     });
   };
 
+  const isAdmin = user?.user_metadata?.role === 'admin';
+
   return (
     <div className="space-y-6">
       <div>
@@ -49,11 +51,12 @@ const Settings = () => {
       </div>
       
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="w-full md:w-auto grid grid-cols-2 md:grid-cols-4 gap-1">
+        <TabsList className="w-full md:w-auto grid grid-cols-2 md:grid-cols-5 gap-1">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
+          {isAdmin && <TabsTrigger value="ai-settings">AI Settings</TabsTrigger>}
         </TabsList>
         
         <TabsContent value="profile" className="space-y-4 mt-4">
@@ -305,6 +308,12 @@ const Settings = () => {
             </CardContent>
           </Card>
         </TabsContent>
+        
+        {isAdmin && (
+          <TabsContent value="ai-settings" className="space-y-4 mt-4">
+            <AISettingsPanel />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

@@ -7,6 +7,7 @@ export interface AIRequestParams {
   model?: string;
   temperature?: number;
   maxTokens?: number;
+  organizationId?: string;
 }
 
 export interface AIResponse {
@@ -21,13 +22,18 @@ export interface AIResponse {
 
 export const generateWithAI = async (params: AIRequestParams): Promise<AIResponse> => {
   try {
+    // Get current user to retrieve organization ID if available
+    const { data: { user } } = await supabase.auth.getUser();
+    const organizationId = user?.user_metadata?.organization_id;
+    
     const { data, error } = await supabase.functions.invoke('groq-ai', {
       body: {
         prompt: params.prompt,
         feature: params.feature || 'general',
         model: params.model,
         temperature: params.temperature,
-        maxTokens: params.maxTokens
+        maxTokens: params.maxTokens,
+        organizationId: params.organizationId || organizationId
       }
     });
 

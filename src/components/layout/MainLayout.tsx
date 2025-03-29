@@ -39,7 +39,7 @@ const MainLayout = () => {
         </div>
         
         {/* Sidebar for desktop (fixed) */}
-        <div className={`hidden md:block fixed h-screen z-10 transition-all duration-300 ${
+        <div className={`hidden md:block fixed h-[calc(100vh-64px)] z-10 transition-all duration-300 ${
           sidebarCollapsed ? "w-16" : "w-72"
         }`}>
           <div className="flex flex-col w-full h-full">
@@ -53,13 +53,13 @@ const MainLayout = () => {
         }`}>
           <Header toggleSidebar={toggleSidebar} />
           
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 min-h-[calc(100vh-128px)]">
             <Outlet />
           </main>
+          
+          <Footer />
         </div>
       </div>
-      
-      <Footer />
     </div>
   );
 };
