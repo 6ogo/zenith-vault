@@ -10,6 +10,7 @@ type AuthContextType = {
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signInWithGoogle: () => Promise<{ error: any | null }>;
+  signInWithLinkedIn: () => Promise<{ error: any | null }>;
   signUp: (email: string, password: string, fullName: string, role: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any | null }>;
@@ -73,6 +74,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const signInWithLinkedIn = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+      return { error };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   const signUp = async (email: string, password: string, fullName: string, role: string) => {
     try {
       const { error } = await supabase.auth.signUp({
@@ -114,6 +129,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isLoading,
         signIn,
         signInWithGoogle,
+        signInWithLinkedIn,
         signUp,
         signOut,
         resetPassword,

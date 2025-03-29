@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, User, Lock, EyeOff, Eye } from "lucide-react";
+import { Mail, User, Lock, EyeOff, Eye, Linkedin } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "@/components/ui/separator";
 
@@ -18,10 +18,11 @@ const SignUp = () => {
   const [role, setRole] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [linkedinLoading, setLinkedinLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signUp, signInWithGoogle, user } = useAuth();
+  const { signUp, signInWithGoogle, signInWithLinkedIn, user } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -91,6 +92,27 @@ const SignUp = () => {
       });
     } finally {
       setGoogleLoading(false);
+    }
+  };
+
+  const handleLinkedInSignUp = async () => {
+    setLinkedinLoading(true);
+    
+    try {
+      const { error } = await signInWithLinkedIn();
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      console.error("LinkedIn signup error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to sign up with LinkedIn. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLinkedinLoading(false);
     }
   };
 
@@ -198,15 +220,28 @@ const SignUp = () => {
             </div>
           </div>
 
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="w-full" 
-            onClick={handleGoogleSignUp}
-            disabled={googleLoading}
-          >
-            {googleLoading ? "Connecting..." : "Sign up with Google"}
-          </Button>
+          <div className="flex flex-col space-y-3">
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full" 
+              onClick={handleGoogleSignUp}
+              disabled={googleLoading || linkedinLoading}
+            >
+              {googleLoading ? "Connecting..." : "Sign up with Google"}
+            </Button>
+            
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full flex items-center gap-2" 
+              onClick={handleLinkedInSignUp}
+              disabled={linkedinLoading || googleLoading}
+            >
+              <Linkedin className="h-4 w-4" />
+              {linkedinLoading ? "Connecting..." : "Sign up with LinkedIn"}
+            </Button>
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm">
