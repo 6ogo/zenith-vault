@@ -98,7 +98,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
         </span>
       </div>
       
-      <div className="flex flex-col flex-grow overflow-hidden">
+      <div className="flex flex-col flex-grow overflow-y-auto">
         <ScrollArea className="flex-grow">
           <div className="p-4">
             <nav className="flex flex-col space-y-1">

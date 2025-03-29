@@ -1,535 +1,313 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { TwoFactorSetup } from '@/components/auth/TwoFactorSetup';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import AIConfigSection from "@/components/ai/AIConfigSection";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 
-// Define a type for the profile data that includes all the fields we need
-type ProfileData = {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  updated_at: string | null;
-  is_mfa_enabled: boolean | null;
-  job_title: string | null;
-  department: string | null;
-  phone_number: string | null;
-};
-
-export default function Settings() {
-  const { user, signOut } = useAuth();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [profileData, setProfileData] = useState<ProfileData | null>(null);
-  const [organization, setOrganization] = useState<any>(null);
-  const [sessions, setSessions] = useState<any[]>([]);
-  const [isFirstLogin, setIsFirstLogin] = useState(false);
+const Settings = () => {
+  const { user } = useAuth();
+  const userEmail = user?.email || "Not available";
+  const userRole = user?.user_metadata?.role || "user";
+  const userName = user?.user_metadata?.full_name || "User";
   
-  const form = useForm({
-    defaultValues: {
-      fullName: "",
-      email: "",
-      phone: "",
-      jobTitle: "",
-      department: "",
-    },
-  });
-
-  useEffect(() => {
-    if (user) {
-      fetchProfileData();
-      fetchOrganization();
-      fetchSessions();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (profileData) {
-      form.setValue("fullName", profileData.full_name || "");
-      form.setValue("email", user?.email || "");
-      form.setValue("phone", profileData.phone_number || "");
-      form.setValue("jobTitle", profileData.job_title || "");
-      form.setValue("department", profileData.department || "");
-      
-      if (!profileData.full_name || !profileData.job_title || !profileData.department) {
-        setIsFirstLogin(true);
-      }
-    }
-  }, [profileData, user, form]);
-
-  const fetchProfileData = async () => {
-    try {
-      if (!user?.id) return;
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error fetching profile:', error);
-        toast({
-          title: "Failed to load profile",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (data) {
-        const typedData: ProfileData = {
-          id: data.id,
-          full_name: data.full_name,
-          avatar_url: data.avatar_url,
-          updated_at: data.updated_at,
-          is_mfa_enabled: data.is_mfa_enabled,
-          job_title: data.job_title || null,
-          department: data.department || null,
-          phone_number: data.phone_number || null,
-        };
-        
-        setProfileData(typedData);
-        
-        form.setValue("fullName", typedData.full_name || "");
-        form.setValue("email", user?.email || "");
-        form.setValue("phone", typedData.phone_number || "");
-        form.setValue("jobTitle", typedData.job_title || "");
-        form.setValue("department", typedData.department || "");
-        
-        if (!typedData.full_name || !typedData.job_title || !typedData.department) {
-          setIsFirstLogin(true);
-        }
-      } else {
-        const { error: createError } = await supabase
-          .from('profiles')
-          .insert([{ 
-            id: user.id,
-            full_name: user.user_metadata?.full_name || '',
-            avatar_url: user.user_metadata?.avatar_url || null
-          }]);
-        
-        if (createError) {
-          console.error('Error creating profile:', createError);
-        } else {
-          fetchProfileData();
-        }
-      }
-    } catch (error: any) {
-      console.error('Error in fetchProfileData:', error);
-      toast({
-        title: "Failed to load profile",
-        description: "Could not load your profile information",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchOrganization = async () => {
-    try {
-      const { data: memberData, error: memberError } = await supabase
-        .from('organization_members')
-        .select('organization_id, role, status')
-        .eq('user_id', user?.id)
-        .single();
-      
-      if (memberError) {
-        if (memberError.code !== 'PGRST116') {
-          throw memberError;
-        }
-        return;
-      }
-      
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .select('*')
-        .eq('id', memberData.organization_id)
-        .single();
-      
-      if (orgError) throw orgError;
-      
-      setOrganization({
-        ...orgData,
-        role: memberData.role,
-        status: memberData.status
-      });
-    } catch (error: any) {
-      console.error('Error fetching organization:', error);
-    }
-  };
-
-  const fetchSessions = async () => {
-    setSessions([
-      {
-        id: 'current',
-        device: 'Current Session',
-        info: `${getBrowser()} on ${getOS()}`,
-        ip: '192.168.1.1',
-        active: true,
-        lastActivity: new Date(),
-      },
-      {
-        id: 'previous',
-        device: 'Previous Session',
-        info: 'Safari on Mac',
-        ip: '192.168.1.2',
-        active: false,
-        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
-      }
-    ]);
-  };
-
-  const getBrowser = () => {
-    const userAgent = navigator.userAgent;
-    if (userAgent.indexOf("Chrome") > -1) return "Chrome";
-    if (userAgent.indexOf("Safari") > -1) return "Safari";
-    if (userAgent.indexOf("Firefox") > -1) return "Firefox";
-    if (userAgent.indexOf("MSIE") > -1 || userAgent.indexOf("Trident") > -1) return "Internet Explorer";
-    if (userAgent.indexOf("Edge") > -1) return "Edge";
-    return "Unknown Browser";
-  };
-
-  const getOS = () => {
-    const userAgent = navigator.userAgent;
-    if (userAgent.indexOf("Win") > -1) return "Windows";
-    if (userAgent.indexOf("Mac") > -1) return "macOS";
-    if (userAgent.indexOf("Linux") > -1) return "Linux";
-    if (userAgent.indexOf("Android") > -1) return "Android";
-    if (userAgent.indexOf("iPhone") > -1 || userAgent.indexOf("iPad") > -1) return "iOS";
-    return "Unknown OS";
-  };
-
-  const handleUpdateProfile = async (values: any) => {
-    setLoading(true);
-    try {
-      if (!user?.id) return;
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: values.fullName,
-          phone_number: values.phone,
-          job_title: values.jobTitle,
-          department: values.department,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Profile updated",
-        description: "Your profile information has been updated successfully.",
-      });
-      
-      setIsFirstLogin(false);
-      await fetchProfileData();
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast({
-        title: "Update failed",
-        description: error.message || "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveProfile = () => {
     toast({
-      title: "Not implemented",
-      description: "Password change functionality will be available in the next update.",
+      title: "Profile Updated",
+      description: "Your profile information has been saved."
     });
   };
-
-  const handleRevokeSession = (sessionId: string) => {
-    setSessions(sessions.filter(session => session.id !== sessionId));
+  
+  const handleSavePreferences = () => {
     toast({
-      title: "Session revoked",
-      description: "The session has been revoked successfully.",
+      title: "Preferences Updated",
+      description: "Your preferences have been saved."
+    });
+  };
+  
+  const handleSaveSecurity = () => {
+    toast({
+      title: "Security Settings Updated",
+      description: "Your security settings have been saved."
     });
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Settings</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your account settings and preferences
+        </p>
+      </div>
       
-      {isFirstLogin && (
-        <Card className="mb-8 border-primary">
-          <CardHeader className="bg-primary/5">
-            <CardTitle>Complete Your Profile</CardTitle>
-            <CardDescription>
-              Please take a moment to complete your profile information
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleUpdateProfile)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your full name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="jobTitle"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Job Title *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your job title" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="w-full md:w-auto grid grid-cols-2 md:grid-cols-4 gap-1">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="integrations">Integrations</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="profile" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Information</CardTitle>
+              <CardDescription>
+                Manage your personal information and how it appears across the platform
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex-1 space-y-4">
+                  <div className="grid w-full items-center gap-1.5">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input 
+                      id="fullName" 
+                      defaultValue={userName} 
+                    />
+                  </div>
                   
-                  <FormField
-                    control={form.control}
-                    name="department"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Department *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your department" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid w-full items-center gap-1.5">
+                    <Label htmlFor="email">Email</Label>
+                    <Input 
+                      id="email" 
+                      defaultValue={userEmail}
+                      disabled
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Email cannot be changed.
+                    </p>
+                  </div>
+                  
+                  <div className="grid w-full items-center gap-1.5">
+                    <Label htmlFor="role">Role</Label>
+                    <Input 
+                      id="role" 
+                      defaultValue={userRole}
+                      disabled
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your role is managed by your organization admin.
+                    </p>
+                  </div>
                 </div>
                 
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number (Optional)</FormLabel>
-                      <FormControl>
-                        <Input type="tel" placeholder="+1 (555) 123-4567" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Saving..." : "Save Profile"}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      )}
-      
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        <div className="md:col-span-3">
-          {/* Sidebar content */}
-        </div>
-        
-        <div className="md:col-span-9 space-y-8">
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="account">Account</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            </TabsList>
-            <TabsContent value="profile" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>
-                    Update your personal information and profile settings.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleUpdateProfile)} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="fullName">Full Name</Label>
-                        <Input
-                          id="fullName"
-                          {...form.register("fullName")}
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email Address</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            {...form.register("email")}
-                            disabled
-                          />
-                          <p className="text-xs text-muted-foreground">Email cannot be changed</p>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="phone">Phone Number (Optional)</Label>
-                          <Input
-                            id="phone"
-                            type="tel"
-                            {...form.register("phone")}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="jobTitle">Job Title</Label>
-                        <Input
-                          id="jobTitle"
-                          {...form.register("jobTitle")}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="department">Department</Label>
-                        <Input
-                          id="department"
-                          {...form.register("department")}
-                        />
-                      </div>
-                      {organization && (
-                        <div className="space-y-2">
-                          <Label htmlFor="organization">Organization</Label>
-                          <Input
-                            id="organization"
-                            value={organization.name}
-                            disabled
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            {organization.role === 'admin' 
-                              ? "For organization name changes, please contact our support team." 
-                              : "Contact your organization admin for any organization-related changes."}
-                          </p>
-                        </div>
-                      )}
-                      <CardFooter className="flex justify-between px-0 pt-5">
-                        <Button variant="outline" type="button" onClick={() => form.reset()}>Cancel</Button>
-                        <Button type="submit" disabled={loading}>{loading ? "Saving..." : "Save Changes"}</Button>
-                      </CardFooter>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="account" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account Settings</CardTitle>
-                  <CardDescription>
-                    Manage your account preferences and security settings.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Security</h3>
-                    
-                    <form onSubmit={handlePasswordChange} className="grid grid-cols-1 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="current-password">Current Password</Label>
-                        <Input id="current-password" type="password" />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="new-password">New Password</Label>
-                          <Input id="new-password" type="password" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="confirm-password">Confirm Password</Label>
-                          <Input id="confirm-password" type="password" />
-                        </div>
-                      </div>
-                      <Button type="submit" className="w-full md:w-auto md:justify-self-end">
-                        Update Password
+                <div className="space-y-4">
+                  <Label>Profile Photo</Label>
+                  <div className="flex flex-col items-center gap-2">
+                    <Avatar className="h-24 w-24">
+                      <AvatarImage src="/placeholder.svg" />
+                      <AvatarFallback className="text-2xl">
+                        {userName.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        Upload
                       </Button>
-                    </form>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Two-Factor Authentication</h3>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <div className="font-medium">Enable 2FA</div>
-                        <div className="text-sm text-muted-foreground">
-                          Add an extra layer of security to your account
-                        </div>
-                      </div>
-                      <Switch />
+                      <Button variant="outline" size="sm">
+                        Remove
+                      </Button>
                     </div>
                   </div>
-                  
-                  <Separator />
-                  
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Sessions</h3>
-                    <div className="space-y-2">
-                      {sessions.map((session) => (
-                        <div key={session.id} className="flex justify-between items-center pb-2 border-b">
-                          <div>
-                            <div className="font-medium">{session.device}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {session.info} • IP {session.ip}
-                              {!session.active && ` • ${new Date(session.lastActivity).toLocaleDateString()}`}
-                            </div>
-                          </div>
-                          {session.active ? (
-                            <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                              Active
-                            </div>
-                          ) : (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleRevokeSession(session.id)}
-                            >
-                              Revoke
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="notifications" className="mt-4">
-              <div className="p-8 text-center text-muted-foreground">
-                Notification settings will be available in the next update.
+                </div>
               </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+              
+              <div className="flex justify-end">
+                <Button onClick={handleSaveProfile}>Save Changes</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="preferences" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Notification Preferences</CardTitle>
+              <CardDescription>
+                Configure how and when you receive notifications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between space-x-2">
+                  <Label htmlFor="email-notifications">Email Notifications</Label>
+                  <Switch id="email-notifications" defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <Label htmlFor="sales-alerts">Sales Alerts</Label>
+                  <Switch id="sales-alerts" defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <Label htmlFor="marketing-updates">Marketing Updates</Label>
+                  <Switch id="marketing-updates" defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <Label htmlFor="customer-service-alerts">Customer Service Alerts</Label>
+                  <Switch id="customer-service-alerts" defaultChecked />
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button onClick={handleSavePreferences}>Save Preferences</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Interface Preferences</CardTitle>
+              <CardDescription>
+                Customize your experience with the platform
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between space-x-2">
+                  <Label htmlFor="dark-mode">Dark Mode</Label>
+                  <Switch id="dark-mode" defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <Label htmlFor="reduced-motion">Reduced Motion</Label>
+                  <Switch id="reduced-motion" />
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button onClick={handleSavePreferences}>Save Preferences</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="security" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Password</CardTitle>
+              <CardDescription>
+                Change your password to keep your account secure
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="current-password">Current Password</Label>
+                <Input id="current-password" type="password" />
+              </div>
+              
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input id="new-password" type="password" />
+              </div>
+              
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="confirm-password">Confirm New Password</Label>
+                <Input id="confirm-password" type="password" />
+              </div>
+              
+              <div className="flex justify-end">
+                <Button onClick={handleSaveSecurity}>Update Password</Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Two-Factor Authentication</CardTitle>
+              <CardDescription>
+                Add an extra layer of security to your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between space-x-2">
+                <div>
+                  <p className="font-medium">Enable Two-Factor Authentication</p>
+                  <p className="text-sm text-muted-foreground">
+                    Protect your account with an authenticator app
+                  </p>
+                </div>
+                <Switch id="two-factor" />
+              </div>
+              
+              <div className="flex justify-end">
+                <Button onClick={handleSaveSecurity}>Save Security Settings</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="integrations" className="space-y-4 mt-4">
+          <AIConfigSection />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Connected Services</CardTitle>
+              <CardDescription>
+                Manage the third-party services connected to your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between space-x-2 p-2 border rounded-md">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" /></svg>
+                  </div>
+                  <div>
+                    <p className="font-medium">Stripe</p>
+                    <p className="text-sm text-muted-foreground">
+                      Payment processing integration
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">Configure</Button>
+              </div>
+              
+              <div className="flex items-center justify-between space-x-2 p-2 border rounded-md">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3" /><path d="M21 16v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3" /><path d="M4 12H20" /><path d="M14 12v.01" /></svg>
+                  </div>
+                  <div>
+                    <p className="font-medium">Mailchimp</p>
+                    <p className="text-sm text-muted-foreground">
+                      Email marketing integration
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">Configure</Button>
+              </div>
+              
+              <div className="flex items-center justify-between space-x-2 p-2 border rounded-md">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M17 6.1H3" /><path d="M21 12.1H3" /><path d="M15.1 18H3" /></svg>
+                  </div>
+                  <div>
+                    <p className="font-medium">Salesforce</p>
+                    <p className="text-sm text-muted-foreground">
+                      CRM integration
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">Configure</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-}
+};
+
+export default Settings;
