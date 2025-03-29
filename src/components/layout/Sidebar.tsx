@@ -1,3 +1,4 @@
+// src/components/layout/Sidebar.tsx
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ import {
   FileText,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -97,14 +99,23 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
       "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
       isCollapsed ? "w-16" : "w-64"
     )}>
-      <div className={cn(
-        "flex items-center h-16 px-4 border-b border-border",
-        isCollapsed ? "justify-center" : "justify-start"
-      )}>
-        <span className="font-bold text-lg text-white">
-          {isCollapsed ? "AC" : "Admin Console"}
-        </span>
+      <div className="flex items-center h-16 px-4 border-b border-border justify-between">
+        <button
+          onClick={onToggleCollapse}
+          className="flex items-center justify-between w-full text-sm text-sidebar-foreground hover:text-white transition-colors"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-5 h-5 mx-auto" />
+          ) : (
+            <>
+              <span>Collapse</span>
+              <ChevronLeft className="w-5 h-5" />
+            </>
+          )}
+        </button>
       </div>
+
+      <Separator className="my-2" />
 
       <div className="flex flex-col flex-grow overflow-y-auto">
         <ScrollArea className="flex-grow">
@@ -125,7 +136,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
                   }
                 >
                   {isCollapsed ? (
-                    <route.icon className="w-5 h-5 mx-auto" />
+                    <route.icon className="w-5 h-5" />
                   ) : (
                     <>
                       <route.icon className="w-5 h-5" />
@@ -137,25 +148,6 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
             </nav>
           </div>
         </ScrollArea>
-      </div>
-
-      <div className="p-4 border-t border-sidebar-border bg-[#003366]">
-        <button
-          onClick={onToggleCollapse}
-          className={cn(
-            "flex items-center text-sm text-sidebar-foreground hover:text-white transition-colors w-full",
-            isCollapsed ? "justify-center" : "justify-between"
-          )}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-5 h-5 mx-auto" />
-          ) : (
-            <>
-              <span>Collapse</span>
-              <ChevronLeft className="w-5 h-5" />
-            </>
-          )}
-        </button>
       </div>
     </div>
   );
