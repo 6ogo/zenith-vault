@@ -29,7 +29,51 @@ serve(async (req) => {
       supabaseServiceRoleKey || ""
     );
     
-    const { prompt, model, temperature, maxTokens, feature, organizationId } = await req.json();
+    const { prompt, model, temperature, maxTokens, feature, organizationId, embedding_input } = await req.json();
+    
+    // Check if this is an embedding request
+    if (feature === "embedding") {
+      console.log("Generating embedding for text");
+      
+      const embeddingInput = embedding_input || prompt;
+      
+      if (!embeddingInput) {
+        throw new Error("No text provided for embedding generation");
+      }
+      
+      const response = await fetch('https://api.groq.com/openai/v1/embeddings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${groqApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "text-embedding-ada-002", // OpenAI-compatible embedding model
+          input: embeddingInput
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('GROQ API embedding error:', errorData);
+        throw new Error(`GROQ API embedding error: ${errorData.error?.message || 'Unknown error'}`);
+      }
+      
+      const data = await response.json();
+      console.log("Successfully generated embedding");
+      
+      return new Response(
+        JSON.stringify({
+          embedding: data.data[0].embedding,
+          model: "text-embedding-ada-002",
+          usage: data.usage
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      );
+    }
     
     // Try to get organization's AI settings if organization ID is provided
     let orgSettings = null;
@@ -66,6 +110,9 @@ serve(async (req) => {
         break;
       case 'marketing':
         systemPrompt = "You are a marketing assistant that helps with content generation and campaign optimization. Provide creative, audience-focused suggestions that align with marketing best practices.";
+        break;
+      case 'chatbot':
+        systemPrompt = "You are Zenith Assistant, an AI chatbot for Zenith Vault - an all-in-one digital business platform. Answer user questions based on the context provided. If you don't know the answer, say so politely and suggest contacting support. Keep answers concise and professional. Always maintain a helpful, friendly tone.";
         break;
       default:
         // Keep default system prompt

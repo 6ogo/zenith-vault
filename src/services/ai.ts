@@ -3,11 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface AIRequestParams {
   prompt: string;
-  feature?: 'sales' | 'customer_service' | 'marketing' | 'general' | 'reports';
+  feature?: 'sales' | 'customer_service' | 'marketing' | 'general' | 'reports' | 'chatbot' | 'embedding';
   model?: string;
   temperature?: number;
   maxTokens?: number;
   organizationId?: string;
+  embedding_input?: string;
 }
 
 export interface AIResponse {
@@ -18,6 +19,11 @@ export interface AIResponse {
     completion_tokens: number;
     total_tokens: number;
   };
+  sources?: {
+    title: string;
+    type: string;
+    similarity: number;
+  }[];
 }
 
 export const generateWithAI = async (params: AIRequestParams): Promise<AIResponse> => {
@@ -33,7 +39,8 @@ export const generateWithAI = async (params: AIRequestParams): Promise<AIRespons
         model: params.model,
         temperature: params.temperature,
         maxTokens: params.maxTokens,
-        organizationId
+        organizationId,
+        embedding_input: params.embedding_input
       }
     });
 
@@ -49,7 +56,122 @@ export const generateWithAI = async (params: AIRequestParams): Promise<AIRespons
   }
 }
 
-// Helper functions for specific features
+export const generateEmbedding = async (text: string): Promise<number[]> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('groq-ai', {
+      body: {
+        prompt: '',
+        feature: 'embedding',
+        embedding_input: text
+      }
+    });
+
+    if (error) {
+      console.error('Error generating embedding:', error);
+      throw new Error(error.message);
+    }
+
+    return data.embedding;
+  } catch (error) {
+    console.error('Error in generateEmbedding:', error);
+    throw error;
+  }
+}
+
+export interface KnowledgeBaseEntry {
+  title: string;
+  content: string;
+}
+
+export interface IngestKnowledgeBaseResponse {
+  success: boolean;
+  processed: number;
+  total: number;
+  errors?: string[];
+}
+
+export interface ChatbotQueryResponse {
+  response: string;
+  sources?: {
+    title: string;
+    type: string;
+    similarity: number;
+  }[];
+  model?: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
+export interface ChatbotQueryRequest {
+  question: string;
+  conversationId?: string;
+  messageHistory?: { role: 'user' | 'assistant', content: string }[];
+  organization_id?: string;
+  service_case_id?: string;
+}
+
+/**
+ * Add entries to the knowledge base
+ */
+export const ingestKnowledgeBase = async (
+  entries: { title: string; content: string }[],
+  type: 'faq' | 'documentation',
+  organization_id?: string
+): Promise<IngestKnowledgeBaseResponse> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('knowledge-ingestion', {
+      body: { entries, type, organization_id }
+    });
+    
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error('Error ingesting knowledge base entries:', error);
+    return {
+      success: false,
+      processed: 0,
+      total: entries.length,
+      errors: [error.message || 'Unknown error occurred']
+    };
+  }
+};
+
+/**
+ * Query the chatbot with a question
+ * This function handles both simple queries and full request objects
+ */
+export const queryChatbot = async (
+  requestOrParams: ChatbotQueryRequest | string | { question: string; conversationId?: string; messageHistory?: Array<{role: 'user' | 'assistant', content: string}>; organization_id?: string; service_case_id?: string; }
+): Promise<ChatbotQueryResponse> => {
+  try {
+    let requestBody: any;
+    
+    // Handle string input (just a question)
+    if (typeof requestOrParams === 'string') {
+      requestBody = { question: requestOrParams };
+    } 
+    // Handle full request object
+    else {
+      requestBody = requestOrParams;
+    }
+    
+    const { data, error } = await supabase.functions.invoke('chatbot-query', {
+      body: requestBody
+    });
+    
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error('Error querying chatbot:', error);
+    throw error;
+  }
+};
+
 export const generateSalesInsight = (prompt: string) => 
   generateWithAI({ prompt, feature: 'sales' });
 

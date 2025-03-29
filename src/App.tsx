@@ -1,102 +1,185 @@
 
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import Dashboard from './pages/Dashboard';
-import Sales from './pages/Sales';
-import Marketing from './pages/Marketing';
-import Service from './pages/Service';
-import Integrations from './pages/Integrations';
-import IntegrationDocumentation from './pages/IntegrationDocumentation'; // Keep the documentation page
-import Settings from './pages/Settings';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from "./components/ThemeProvider";
+import { Toaster } from "@/components/ui/toaster";
+
+import Index from './pages/Index';
+import About from './pages/About';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Contact from './pages/Contact';
+import FAQ from './pages/FAQ';
+
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
-import Profile from './pages/Profile';
-import CustomerService from './pages/features/CustomerService';
-import SalesManagement from './pages/features/SalesManagement';
-import MarketingAutomation from './pages/features/MarketingAutomation';
-import { Toaster } from "@/components/ui/toaster"
-import { ThemeProvider } from "@/components/ThemeProvider"
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useAuth } from './contexts/AuthContext';
-import { DataModeProvider } from './contexts/DataModeContext';
 import Callback from './pages/auth/Callback';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
-import NotFound from './pages/NotFound';
-import MainLayout from './components/layout/MainLayout';
-import Index from './pages/Index';
+
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import Organization from './pages/Organization';
+import Settings from './pages/Settings';
+import Sales from './pages/Sales';
 import Customers from './pages/Customers';
+import Service from './pages/Service';
+import Marketing from './pages/Marketing';
 import Analytics from './pages/Analytics';
-import Website from './pages/Website';
-import DataFiles from './pages/DataFiles';
-import Organization from "./pages/Organization";
 import Reports from './pages/Reports';
+import Integrations from './pages/Integrations';
+import IntegrationDocumentation from './pages/IntegrationDocumentation';
+import DataFiles from './pages/DataFiles';
+import Website from './pages/Website';
+import NotFound from './pages/NotFound';
+import ChatbotAdmin from './pages/ChatbotAdmin';
+import MainLayout from './components/layout/MainLayout';
 
 const App = () => {
-  const [loading, setLoading] = useState(true);
-  const [queryClient] = useState(() => new QueryClient());
-  
-  useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  }, []);
-
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="dark" storageKey="theme">
-          <Toaster />
-          <DataModeProvider>
-            <Routes>
-              {/* Auth routes */}
-              <Route path="/auth/login" element={<Login />} />
-              <Route path="/auth/signup" element={<SignUp />} />
-              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-              <Route path="/auth/reset-password" element={<ResetPassword />} />
-              <Route path="/auth/verify-email" element={<VerifyEmail />} />
-              <Route path="/auth/callback" element={<Callback />} />
-              
-              {/* Landing page */}
-              <Route path="/" element={<Index />} />
-              
-              {/* Public pages */}
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              
-              {/* Main application routes with layout */}
-              <Route element={<MainLayout />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/sales" element={<Sales />} />
-                <Route path="/marketing" element={<Marketing />} />
-                <Route path="/service" element={<Service />} />
-                <Route path="/customers" element={<Customers />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/website" element={<Website />} />
-                <Route path="/data" element={<DataFiles />} />
-                <Route path="/integrations" element={<Integrations />} />
-                <Route path="/integrations/documentation" element={<IntegrationDocumentation />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/features/customer-service" element={<CustomerService />} />
-                <Route path="/features/sales-management" element={<SalesManagement />} />
-                <Route path="/features/marketing-automation" element={<MarketingAutomation />} />
-                <Route path="/organization" element={<Organization />} />
-              </Route>
-              
-              {/* Fallback route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </DataModeProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </AuthProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="zenith-vault-theme">
+      <Toaster />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/faq" element={<FAQ />} />
+        
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/signup" element={<SignUp />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
+        <Route path="/auth/verify-email" element={<VerifyEmail />} />
+        <Route path="/auth/callback" element={<Callback />} />
+          
+        {/* Protected Routes */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <MainLayout>
+              <Dashboard />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <MainLayout>
+              <Profile />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/organization" 
+          element={
+            <MainLayout>
+              <Organization />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            <MainLayout>
+              <Settings />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/sales" 
+          element={
+            <MainLayout>
+              <Sales />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/customers" 
+          element={
+            <MainLayout>
+              <Customers />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/service" 
+          element={
+            <MainLayout>
+              <Service />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/marketing" 
+          element={
+            <MainLayout>
+              <Marketing />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/analytics" 
+          element={
+            <MainLayout>
+              <Analytics />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/reports" 
+          element={
+            <MainLayout>
+              <Reports />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/integrations" 
+          element={
+            <MainLayout>
+              <Integrations />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/integration-documentation" 
+          element={
+            <MainLayout>
+              <IntegrationDocumentation />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/data-files" 
+          element={
+            <MainLayout>
+              <DataFiles />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/website" 
+          element={
+            <MainLayout>
+              <Website />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/chatbot-admin" 
+          element={
+            <MainLayout>
+              <ChatbotAdmin />
+            </MainLayout>
+          } 
+        />
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </ThemeProvider>
   );
 };
 

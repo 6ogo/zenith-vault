@@ -1,185 +1,233 @@
 
-// src/components/layout/Sidebar.tsx
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import {
-  Home,
-  LayoutDashboard,
-  BarChart,
-  Users,
-  ShoppingCart,
-  LifeBuoy,
-  Megaphone,
-  Globe,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Gitlab,
   Building2,
-  Database,
-  FileUp,
-  FileText,
-} from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { useDataMode } from "@/contexts/DataModeContext";
-import { Badge } from "@/components/ui/badge";
+  UserCircle,
+  Settings,
+  BarChart3,
+  ListFilter,
+  Users,
+  HeadphonesIcon,
+  LineChart,
+  FileBarChart,
+  PuzzleIcon,
+  FolderIcon,
+  Globe,
+  MessageCircle
+} from 'lucide-react';
+import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
-  isCollapsed?: boolean;
-  onToggleCollapse?: () => void;
+  className?: string;
 }
 
-const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
-  const location = useLocation();
-  const { isRealData } = useDataMode();
-  const permanentRealData = localStorage.getItem('permanentRealData') === 'true';
+// MenuItem type definition
+type MenuItem = {
+  title: string;
+  icon: React.ReactNode;
+  path: string;
+  children?: MenuItem[];
+};
 
-  const routes = [
+const Sidebar: React.FC<SidebarProps> = ({ className }) => {
+  const [salesOpen, setSalesOpen] = useState(false);
+  const [marketingOpen, setMarketingOpen] = useState(false);
+  const [integrationsOpen, setIntegrationsOpen] = useState(false);
+
+  const menuItems: MenuItem[] = [
     {
-      path: "/dashboard",
-      icon: LayoutDashboard,
-      label: "Dashboard",
+      title: 'Dashboard',
+      icon: <BarChart3 className="h-5 w-5" />,
+      path: '/dashboard'
     },
     {
-      path: "/sales",
-      icon: BarChart,
-      label: "Sales",
+      title: 'Organization',
+      icon: <Building2 className="h-5 w-5" />,
+      path: '/organization'
     },
     {
-      path: "/customers",
-      icon: Users,
-      label: "Customers",
+      title: 'Sales',
+      icon: <LineChart className="h-5 w-5" />,
+      path: '/sales',
+      children: [
+        {
+          title: 'Overview',
+          icon: <LineChart className="h-4 w-4" />,
+          path: '/sales'
+        },
+        {
+          title: 'Customers',
+          icon: <Users className="h-4 w-4" />,
+          path: '/customers'
+        }
+      ]
     },
     {
-      path: "/service",
-      icon: LifeBuoy,
-      label: "Service",
+      title: 'Service',
+      icon: <HeadphonesIcon className="h-5 w-5" />,
+      path: '/service'
     },
     {
-      path: "/marketing",
-      icon: Megaphone,
-      label: "Marketing",
+      title: 'Marketing',
+      icon: <ListFilter className="h-5 w-5" />,
+      path: '/marketing',
+      children: [
+        {
+          title: 'Overview',
+          icon: <ListFilter className="h-4 w-4" />,
+          path: '/marketing'
+        },
+        {
+          title: 'Analytics',
+          icon: <BarChart3 className="h-4 w-4" />,
+          path: '/analytics'
+        }
+      ]
     },
     {
-      path: "/analytics",
-      icon: Globe,
-      label: "Analytics",
+      title: 'Reports',
+      icon: <FileBarChart className="h-5 w-5" />,
+      path: '/reports'
     },
     {
-      path: "/reports",
-      icon: FileText,
-      label: "Reports",
+      title: 'Integrations',
+      icon: <PuzzleIcon className="h-5 w-5" />,
+      path: '/integrations',
+      children: [
+        {
+          title: 'Overview',
+          icon: <PuzzleIcon className="h-4 w-4" />,
+          path: '/integrations'
+        },
+        {
+          title: 'Documentation',
+          icon: <FolderIcon className="h-4 w-4" />,
+          path: '/integration-documentation'
+        }
+      ]
     },
     {
-      path: "/website",
-      icon: Home,
-      label: "Website",
+      title: 'Data Files',
+      icon: <FolderIcon className="h-5 w-5" />,
+      path: '/data-files'
     },
     {
-      path: "/data",
-      icon: Database,
-      label: "Data Files",
+      title: 'Website',
+      icon: <Globe className="h-5 w-5" />,
+      path: '/website'
     },
     {
-      path: "/integrations",
-      icon: Gitlab,
-      label: "Integrations",
+      title: 'Chatbot',
+      icon: <MessageCircle className="h-5 w-5" />,
+      path: '/chatbot-admin'
     },
     {
-      path: "/organization",
-      icon: Building2,
-      label: "Organization",
+      title: 'Profile',
+      icon: <UserCircle className="h-5 w-5" />,
+      path: '/profile'
     },
     {
-      path: "/settings",
-      icon: Settings,
-      label: "Settings",
-    },
+      title: 'Settings',
+      icon: <Settings className="h-5 w-5" />,
+      path: '/settings'
+    }
   ];
 
-  const renderNavLink = (route: any) => {
-    if (route.group && route.items) {
+  const renderMenuItem = (item: MenuItem) => {
+    if (item.children) {
+      const isOpen = 
+        (item.title === 'Sales' && salesOpen) || 
+        (item.title === 'Marketing' && marketingOpen) || 
+        (item.title === 'Integrations' && integrationsOpen);
+      
+      const setOpen = (open: boolean) => {
+        if (item.title === 'Sales') setSalesOpen(open);
+        else if (item.title === 'Marketing') setMarketingOpen(open);
+        else if (item.title === 'Integrations') setIntegrationsOpen(open);
+      };
+      
       return (
-        <div key={route.group} className="space-y-1">
-          {!isCollapsed && (
-            <div className="px-3 py-1">
-              <span className="text-xs font-semibold text-sidebar-foreground/60">{route.group}</span>
-            </div>
-          )}
-          {route.items.map((item: any) => renderNavLink(item))}
-        </div>
-      );
-    }
-
-    return (
-      <NavLink
-        key={route.path}
-        to={route.path}
-        className={({ isActive }) =>
-          cn(
-            "flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
-            isActive
-              ? "bg-sidebar-accent text-sidebar-accent-foreground"
-              : "text-sidebar-foreground",
-            isCollapsed ? "justify-center" : "justify-start"
-          )
-        }
-      >
-        {isCollapsed ? (
-          <div className="flex items-center justify-center w-full">
-            <route.icon className="w-5 h-5" />
-          </div>
-        ) : (
-          <>
-            <route.icon className="w-5 h-5" />
-            <span className="ml-2">{route.label}</span>
-            {route.path === "/dashboard" && !permanentRealData && (
-              <Badge 
+        <Collapsible 
+          key={item.path} 
+          open={isOpen} 
+          onOpenChange={setOpen}
+          className="w-full"
+        >
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                "flex w-full items-center justify-between px-2 py-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-md transition-colors",
+                isOpen && "text-foreground bg-muted"
+              )}
+            >
+              <div className="flex items-center">
+                {item.icon}
+                <span className="ml-2">{item.title}</span>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className={cn(
-                  "ml-auto text-[10px] px-1", 
-                  isRealData ? "bg-green-500 hover:bg-green-500/80" : "bg-blue-500 hover:bg-blue-500/80"
+                  "h-4 w-4 transition-transform duration-200",
+                  isOpen ? "rotate-180 transform" : ""
                 )}
               >
-                {isRealData ? "REAL" : "DEMO"}
-              </Badge>
-            )}
-          </>
-        )}
-      </NavLink>
-    );
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pl-4 space-y-1 mt-1">
+            {item.children.map(child => (
+              <NavLink
+                key={child.path}
+                to={child.path}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center px-2 py-2 text-sm rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
+                    isActive && "text-foreground bg-muted"
+                  )
+                }
+              >
+                {child.icon}
+                <span className="ml-2">{child.title}</span>
+              </NavLink>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      );
+    } else {
+      return (
+        <NavLink
+          key={item.path}
+          to={item.path}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center px-2 py-2 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
+              isActive && "text-foreground bg-muted"
+            )
+          }
+        >
+          {item.icon}
+          <span className="ml-2">{item.title}</span>
+        </NavLink>
+      );
+    }
   };
 
   return (
-    <div className={cn(
-      "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64"
-    )}>
-      <div className="flex items-center h-12 px-4 border-b border-border justify-between">
-        <button
-          onClick={onToggleCollapse}
-          className="flex items-center justify-between w-full text-sm text-sidebar-foreground hover:text-white transition-colors"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-5 h-5 mx-auto" />
-          ) : (
-            <>
-              <span>Collapse</span>
-              <ChevronLeft className="w-5 h-5" />
-            </>
-          )}
-        </button>
-      </div>
-      <div className="flex flex-col flex-grow overflow-y-auto">
-        <ScrollArea className="flex-grow">
-          <div className="p-2">
-            <nav className="flex flex-col space-y-1">
-              {routes.map((route) => renderNavLink(route))}
-            </nav>
-          </div>
-        </ScrollArea>
-      </div>
+    <div className={cn("flex flex-col space-y-1 p-2", className)}>
+      {menuItems.map(renderMenuItem)}
     </div>
   );
 };
