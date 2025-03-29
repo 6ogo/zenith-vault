@@ -80,7 +80,7 @@ const Marketing = () => {
             <CardContent>
               {isRealData ? (
                 <div className="p-8 text-center">
-                  <p className="text-muted-foreground">Connect your marketing platforms to see real campaign data</p>
+                  <p className="text-muted-foreground">No active marketing campaigns found. Connect your marketing platforms to see real campaign data.</p>
                   <Button className="mt-4" onClick={() => setActiveTab('integrations')}>
                     Connect Platforms
                   </Button>
@@ -145,7 +145,7 @@ const Marketing = () => {
             <CardContent>
               {isRealData ? (
                 <div className="p-8 text-center">
-                  <p className="text-muted-foreground">Connect your marketing platforms to see real audience data</p>
+                  <p className="text-muted-foreground">No audience segments found. Connect your marketing platforms to see real audience data.</p>
                   <Button className="mt-4" onClick={() => setActiveTab('integrations')}>
                     Connect Platforms
                   </Button>
@@ -170,7 +170,7 @@ const Marketing = () => {
             <CardContent>
               {isRealData ? (
                 <div className="p-8 text-center">
-                  <p className="text-muted-foreground">Connect your marketing platforms to see real content data</p>
+                  <p className="text-muted-foreground">No content found. Connect your marketing platforms to see real content data.</p>
                   <Button className="mt-4" onClick={() => setActiveTab('integrations')}>
                     Connect Platforms
                   </Button>

@@ -29,6 +29,9 @@ import NotFound from './pages/NotFound';
 import MainLayout from './components/layout/MainLayout';
 import Index from './pages/Index';
 import Customers from './pages/Customers';
+import Analytics from './pages/Analytics';
+import Website from './pages/Website';
+import DataFiles from './pages/DataFiles';
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -70,6 +73,9 @@ const App = () => {
                 <Route path="/marketing" element={<Marketing />} />
                 <Route path="/service" element={<Service />} />
                 <Route path="/customers" element={<Customers />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/website" element={<Website />} />
+                <Route path="/data" element={<DataFiles />} />
                 <Route path="/integrations" element={<Integrations />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/profile" element={<Profile />} />

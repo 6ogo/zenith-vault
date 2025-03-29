@@ -1,97 +1,85 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-} from "recharts";
-
-const data = [
-  { name: "Very Satisfied", value: 58, color: "#22c55e" },
-  { name: "Satisfied", value: 27, color: "#3b82f6" },
-  { name: "Neutral", value: 10, color: "#f59e0b" },
-  { name: "Unsatisfied", value: 5, color: "#ef4444" },
-];
-
-const COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444"];
+import { useDataMode } from "@/contexts/DataModeContext";
 
 const CustomerSatisfaction = () => {
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 1.3;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text
-        x={x}
-        y={y}
-        fill={data[index].color}
-        textAnchor={x > cx ? "start" : "end"}
-        dominantBaseline="central"
-        fontSize="12"
-        fontWeight="500"
-      >
-        {`${name}: ${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
+  const { isRealData } = useDataMode();
+  
+  // Demo data
+  const satisfactionData = {
+    rating: 87,
+    responses: 412,
+    breakdown: [
+      { label: "Very Satisfied", percentage: 58, count: 239 },
+      { label: "Satisfied", percentage: 29, count: 120 },
+      { label: "Neutral", percentage: 8, count: 33 },
+      { label: "Dissatisfied", percentage: 3, count: 12 },
+      { label: "Very Dissatisfied", percentage: 2, count: 8 },
+    ],
   };
+  
+  if (isRealData) {
+    return null; // Don't render the component in real data mode if no data is available
+  }
 
   return (
     <Card className="dashboard-card">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold">
-          Customer Satisfaction
-        </CardTitle>
+      <CardHeader>
+        <CardTitle>Customer Satisfaction</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[280px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                fill="#8884d8"
-                paddingAngle={2}
-                dataKey="value"
-                labelLine={true}
-                label={renderCustomizedLabel}
-              >
-                {data.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS[index % COLORS.length]} 
-                  />
-                ))}
-              </Pie>
-              <Tooltip 
-                formatter={(value) => [`${value}%`, "Percentage"]}
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "0.375rem",
-                  boxShadow: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
-                }}
+        <div className="flex justify-center items-center mb-6">
+          <div className="relative h-32 w-32 flex items-center justify-center">
+            <svg viewBox="0 0 36 36" className="h-32 w-32 transform -rotate-90">
+              <path
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke="#eee"
+                strokeWidth="3"
+                strokeDasharray="100, 100"
               />
-              <Legend 
-                layout="horizontal"
-                verticalAlign="bottom" 
-                align="center"
-                iconSize={10}
-                iconType="circle"
-                formatter={(value) => (
-                  <span className="text-xs">{value}</span>
-                )}
+              <path
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke="#4ade80"
+                strokeWidth="3"
+                strokeDasharray={`${satisfactionData.rating}, 100`}
               />
-            </PieChart>
-          </ResponsiveContainer>
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-3xl font-bold">{satisfactionData.rating}%</span>
+              <span className="text-xs text-muted-foreground">
+                {satisfactionData.responses} responses
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {satisfactionData.breakdown.map((item, i) => (
+            <div key={i} className="space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm">{item.label}</span>
+                <span className="text-sm font-medium">{item.percentage}% ({item.count})</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${
+                    i === 0
+                      ? "bg-green-500"
+                      : i === 1
+                      ? "bg-green-400"
+                      : i === 2
+                      ? "bg-yellow-400"
+                      : i === 3
+                      ? "bg-orange-400"
+                      : "bg-red-500"
+                  }`}
+                  style={{ width: `${item.percentage}%` }}
+                ></div>
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

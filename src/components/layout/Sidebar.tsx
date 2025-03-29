@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import {
@@ -12,8 +12,8 @@ import {
   Megaphone,
   Globe,
   Settings,
-  ToggleLeft,
-  ToggleRight,
+  ChevronLeft,
+  ChevronRight,
   Gitlab,
   Building2,
   Database,
@@ -22,9 +22,10 @@ import {
 
 interface SidebarProps {
   isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-const Sidebar = ({ isCollapsed }: SidebarProps) => {
+const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
   const location = useLocation();
 
   const routes = [
@@ -87,7 +88,7 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
 
   return (
     <div className={cn(
-      "flex flex-col w-full h-full bg-[#003366] border-r border-border",
+      "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
       isCollapsed ? "w-16" : "w-72"
     )}>
       <div className="flex items-center h-16 px-4 border-b border-border">
@@ -95,7 +96,7 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
           {isCollapsed ? "AC" : "Admin Console"}
         </span>
       </div>
-      <div className="flex-grow p-4">
+      <div className="flex-grow p-4 overflow-y-auto">
         <nav className="flex flex-col space-y-1">
           {routes.map((route) => (
             <NavLink
@@ -111,19 +112,26 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
                 )
               }
             >
-              <route.icon className="w-4 h-4 mr-2" />
+              <route.icon className={cn("w-4 h-4", isCollapsed ? "" : "mr-2")} />
               {!isCollapsed && <span>{route.label}</span>}
             </NavLink>
           ))}
         </nav>
       </div>
       <div className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-sidebar-foreground">
-            {isCollapsed ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4 mr-2" />}
-            {!isCollapsed && "Collapse"}
-          </span>
-        </div>
+        <button 
+          onClick={onToggleCollapse}
+          className="flex items-center justify-between w-full text-sm text-sidebar-foreground hover:text-white transition-colors"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-4 h-4 mx-auto" />
+          ) : (
+            <>
+              <span>Collapse</span>
+              <ChevronLeft className="w-4 h-4" />
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

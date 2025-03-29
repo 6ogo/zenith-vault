@@ -1,195 +1,164 @@
 
 import React, { useState } from "react";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue 
-} from "@/components/ui/select";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { BarChart3, LineChart, RefreshCcw, Activity, AlertCircle, PieChart } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import AnalyticsMetricCard from "@/components/analytics/AnalyticsMetricCard";
-import AnalyticsChart from "@/components/analytics/AnalyticsChart";
-import { useAnalyticsData } from "@/hooks/useAnalyticsData";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from "recharts";
+import { useDataMode } from "@/contexts/DataModeContext";
+import DataModeToggle from "@/components/dashboard/DataModeToggle";
+
+const demoData = [
+  { name: 'Jan', visits: 4000, conversions: 2400 },
+  { name: 'Feb', visits: 3000, conversions: 1398 },
+  { name: 'Mar', visits: 2000, conversions: 9800 },
+  { name: 'Apr', visits: 2780, conversions: 3908 },
+  { name: 'May', visits: 1890, conversions: 4800 },
+  { name: 'Jun', visits: 2390, conversions: 3800 },
+  { name: 'Jul', visits: 3490, conversions: 4300 },
+];
+
+const demoSources = [
+  { name: 'Direct', value: 40 },
+  { name: 'Organic', value: 30 },
+  { name: 'Social', value: 20 },
+  { name: 'Referral', value: 10 },
+];
 
 const Analytics = () => {
-  const [timeframe, setTimeframe] = useState("monthly");
-  const [refreshing, setRefreshing] = useState(false);
-  const { metrics, charts, isLoading, error } = useAnalyticsData();
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    
-    // Simulate refresh
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1500);
-  };
-
-  const getIconForMetric = (id: string) => {
-    switch (id) {
-      case 'total-sales':
-        return <BarChart3 className="h-5 w-5" />;
-      case 'conversion-rate':
-        return <LineChart className="h-5 w-5" />;
-      case 'customer-satisfaction':
-        return <PieChart className="h-5 w-5" />;
-      case 'active-users':
-        return <Activity className="h-5 w-5" />;
-      default:
-        return null;
-    }
-  };
+  const [activeTab, setActiveTab] = useState("overview");
+  const { isRealData, setIsRealData } = useDataMode();
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Monitor your business performance metrics in real-time
+          <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Visualize your business performance and customer insights
           </p>
         </div>
-        
-        <div className="flex items-center gap-3">
-          <Select value={timeframe} onValueChange={setTimeframe}>
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="Select timeframe" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-              <SelectItem value="quarterly">Quarterly</SelectItem>
-              <SelectItem value="yearly">Yearly</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button 
-            variant="outline"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
+        <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
       </div>
-      
-      {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {isLoading
-          ? Array.from({ length: 4 }).map((_, i) => (
-              <AnalyticsMetricCard 
-                key={i}
-                title=""
-                value=""
-                isLoading={true}
-              />
-            ))
-          : metrics.map((metric) => (
-              <AnalyticsMetricCard
-                key={metric.id}
-                title={metric.title}
-                value={metric.value}
-                change={metric.change}
-                icon={getIconForMetric(metric.id)}
-              />
-            ))
-        }
-      </div>
-      
-      <Tabs defaultValue="charts" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="charts">Charts</TabsTrigger>
-          <TabsTrigger value="real-time">Real-Time</TabsTrigger>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5 md:w-[600px]">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="traffic">Traffic</TabsTrigger>
+          <TabsTrigger value="sales">Sales</TabsTrigger>
+          <TabsTrigger value="marketing">Marketing</TabsTrigger>
+          <TabsTrigger value="custom">Custom</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="charts" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {isLoading
-              ? Array.from({ length: 2 }).map((_, i) => (
-                  <AnalyticsChart
-                    key={i}
-                    title=""
-                    data={[]}
-                    dataKeys={{ xAxis: '', yAxis: [], colors: [] }}
-                    isLoading={true}
-                  />
-                ))
-              : charts.slice(0, 2).map((chart) => (
-                  <AnalyticsChart
-                    key={chart.id}
-                    title={chart.title}
-                    description={chart.description}
-                    data={chart.data}
-                    dataKeys={chart.dataKeys}
-                    type={chart.type}
-                    valueFormatter={chart.valueFormatter}
-                  />
-                ))
-            }
-          </div>
-          
-          <div className="grid grid-cols-1 gap-6">
-            {isLoading
-              ? <AnalyticsChart
-                  title=""
-                  data={[]}
-                  dataKeys={{ xAxis: '', yAxis: [], colors: [] }}
-                  isLoading={true}
-                />
-              : charts.slice(2, 3).map((chart) => (
-                  <AnalyticsChart
-                    key={chart.id}
-                    title={chart.title}
-                    description={chart.description}
-                    data={chart.data}
-                    dataKeys={chart.dataKeys}
-                    type={chart.type}
-                    valueFormatter={chart.valueFormatter}
-                  />
-                ))
-            }
-          </div>
+        <TabsContent value="overview" className="mt-6">
+          {isRealData ? (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground">No real analytics data available. Connect your data sources in Integrations.</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Website Traffic</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={demoData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="visits" stroke="#8884d8" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Traffic Sources</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={demoSources}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      />
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Conversions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={demoData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="conversions" fill="#82ca9d" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
         
-        <TabsContent value="real-time">
-          <div className="space-y-6">
-            <AnalyticsChart
-              title="Real-Time User Activity"
-              description="Live tracking of user actions in the last 30 minutes"
-              data={[
-                { time: "Now", users: 42, actions: 78 },
-                { time: "-5m", users: 39, actions: 68 },
-                { time: "-10m", users: 35, actions: 52 },
-                { time: "-15m", users: 31, actions: 44 },
-                { time: "-20m", users: 28, actions: 36 },
-                { time: "-25m", users: 26, actions: 29 },
-                { time: "-30m", users: 24, actions: 25 },
-              ]}
-              dataKeys={{
-                xAxis: "time",
-                yAxis: ["users", "actions"],
-                colors: ["#003366", "#00CC66"]
-              }}
-              type="line"
-            />
+        <TabsContent value="traffic" className="mt-6">
+          {isRealData ? (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground">No real traffic data available. Connect your analytics platforms.</p>
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground">Detailed traffic analysis will be available here.</p>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="sales" className="mt-6">
+          {isRealData ? (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground">No real sales analytics available. Connect your CRM or sales platforms.</p>
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground">Sales performance analytics will be available here.</p>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="marketing" className="mt-6">
+          {isRealData ? (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground">No real marketing data available. Connect your marketing platforms.</p>
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground">Marketing campaign performance will be available here.</p>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="custom" className="mt-6">
+          <div className="p-8 text-center">
+            <p className="text-muted-foreground">
+              {isRealData 
+                ? "Upload and analyze your custom data here. Connect data sources or upload files in the Data Files section."
+                : "Create custom reports and visualizations from your uploaded data files."}
+            </p>
           </div>
         </TabsContent>
       </Tabs>

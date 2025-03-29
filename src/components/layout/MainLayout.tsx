@@ -7,9 +7,14 @@ import Footer from "./Footer";
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+  
+  const toggleSidebarCollapse = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
   
   return (
@@ -23,7 +28,7 @@ const MainLayout = () => {
         >
           <div className="relative h-full w-72 max-w-xs">
             <div className="h-full">
-              <Sidebar />
+              <Sidebar isCollapsed={false} onToggleCollapse={toggleSidebarCollapse} />
             </div>
             {/* Close sidebar when clicking outside */}
             <div
@@ -34,9 +39,11 @@ const MainLayout = () => {
         </div>
         
         {/* Sidebar for desktop (fixed) */}
-        <div className="hidden md:flex md:w-72 md:flex-shrink-0">
+        <div className={`hidden md:flex md:flex-shrink-0 transition-all duration-300 ${
+          sidebarCollapsed ? "md:w-16" : "md:w-72"
+        }`}>
           <div className="flex flex-col w-full">
-            <Sidebar />
+            <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
           </div>
         </div>
         

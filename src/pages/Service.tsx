@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import CreateTicketForm from "@/components/service/CreateTicketForm";
 import TicketList from "@/components/service/TicketList";
 import DataModeToggle from "@/components/dashboard/DataModeToggle";
+import ServiceSolvedCasesPieChart from "@/components/service/ServiceSolvedCasesPieChart";
 
 const tickets = [
   {
@@ -58,6 +59,20 @@ const tickets = [
   },
 ];
 
+// Demo data for the solved cases pie chart
+const demoSolvedCases = [
+  { name: "John Doe", value: 32, color: "#8884d8" },
+  { name: "Jane Smith", value: 24, color: "#82ca9d" },
+  { name: "Mark Johnson", value: 18, color: "#ffc658" },
+  { name: "Sarah Williams", value: 12, color: "#ff8042" },
+];
+
+// Demo data for the ticket types pie chart
+const demoTicketTypes = [
+  { name: "Organization", value: 35, color: "#0088FE" },
+  { name: "Customer", value: 65, color: "#00C49F" },
+];
+
 const statusStyles = {
   open: { color: "bg-blue-100 text-blue-800", icon: <Clock className="h-3 w-3 mr-1" /> },
   pending: { color: "bg-yellow-100 text-yellow-800", icon: <Clock className="h-3 w-3 mr-1" /> },
@@ -92,25 +107,26 @@ const Service = () => {
           </p>
         </div>
         
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="font-medium">
-              <Plus className="h-4 w-4 mr-1" /> New Ticket
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Create New Support Ticket</DialogTitle>
-              <DialogDescription>
-                Fill out the form to create a new support ticket. Include as much detail as possible.
-              </DialogDescription>
-            </DialogHeader>
-            <CreateTicketForm onSuccess={handleTicketCreated} />
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-3">
+          <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="font-medium">
+                <Plus className="h-4 w-4 mr-1" /> New Ticket
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Create New Support Ticket</DialogTitle>
+                <DialogDescription>
+                  Fill out the form to create a new support ticket. Include as much detail as possible.
+                </DialogDescription>
+              </DialogHeader>
+              <CreateTicketForm onSuccess={handleTicketCreated} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
-      
-      <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="dashboard-card">
@@ -121,7 +137,7 @@ const Service = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-3">
-            <div className="text-2xl font-semibold">12</div>
+            <div className="text-2xl font-semibold">{isRealData ? "0" : "12"}</div>
           </CardContent>
         </Card>
         
@@ -133,7 +149,7 @@ const Service = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-3">
-            <div className="text-2xl font-semibold">5</div>
+            <div className="text-2xl font-semibold">{isRealData ? "0" : "5"}</div>
           </CardContent>
         </Card>
         
@@ -145,7 +161,7 @@ const Service = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-3">
-            <div className="text-2xl font-semibold">2</div>
+            <div className="text-2xl font-semibold">{isRealData ? "0" : "2"}</div>
           </CardContent>
         </Card>
         
@@ -157,10 +173,18 @@ const Service = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-3">
-            <div className="text-2xl font-semibold">98</div>
+            <div className="text-2xl font-semibold">{isRealData ? "0" : "98"}</div>
           </CardContent>
         </Card>
       </div>
+      
+      {/* Charts for ticket analysis */}
+      {!isRealData && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ServiceSolvedCasesPieChart data={demoSolvedCases} />
+          <ServiceSolvedCasesPieChart data={demoTicketTypes} title="Ticket Types" />
+        </div>
+      )}
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5 lg:w-[500px]">
@@ -173,7 +197,14 @@ const Service = () => {
         
         <TabsContent value="all" className="mt-4">
           {isRealData ? (
-            <TicketList filter="all" refreshTrigger={refreshTrigger} />
+            <Card className="dashboard-card p-6">
+              <div className="text-center">
+                <p className="text-muted-foreground">No tickets found. Create your first ticket to get started.</p>
+                <Button className="mt-4" onClick={() => setDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-1" /> New Ticket
+                </Button>
+              </div>
+            </Card>
           ) : (
             <Card className="dashboard-card">
               <div className="overflow-hidden">
@@ -238,7 +269,11 @@ const Service = () => {
         
         <TabsContent value="open" className="mt-4">
           {isRealData ? (
-            <TicketList filter="open" refreshTrigger={refreshTrigger} />
+            <Card className="dashboard-card p-6">
+              <div className="text-center">
+                <p className="text-muted-foreground">No open tickets found.</p>
+              </div>
+            </Card>
           ) : (
             <div className="p-8 text-center text-muted-foreground">
               Open tickets will be filtered here in the next update.
@@ -248,7 +283,11 @@ const Service = () => {
         
         <TabsContent value="pending" className="mt-4">
           {isRealData ? (
-            <TicketList filter="pending" refreshTrigger={refreshTrigger} />
+            <Card className="dashboard-card p-6">
+              <div className="text-center">
+                <p className="text-muted-foreground">No pending tickets found.</p>
+              </div>
+            </Card>
           ) : (
             <div className="p-8 text-center text-muted-foreground">
               Pending tickets will be filtered here in the next update.
@@ -258,7 +297,11 @@ const Service = () => {
         
         <TabsContent value="closed" className="mt-4">
           {isRealData ? (
-            <TicketList filter="closed" refreshTrigger={refreshTrigger} />
+            <Card className="dashboard-card p-6">
+              <div className="text-center">
+                <p className="text-muted-foreground">No closed tickets found.</p>
+              </div>
+            </Card>
           ) : (
             <div className="p-8 text-center text-muted-foreground">
               Closed tickets will be filtered here in the next update.
@@ -268,7 +311,11 @@ const Service = () => {
         
         <TabsContent value="mine" className="mt-4">
           {isRealData ? (
-            <TicketList filter="mine" refreshTrigger={refreshTrigger} />
+            <Card className="dashboard-card p-6">
+              <div className="text-center">
+                <p className="text-muted-foreground">No tickets assigned to you found.</p>
+              </div>
+            </Card>
           ) : (
             <div className="p-8 text-center text-muted-foreground">
               Your assigned tickets will be shown here in the next update.
