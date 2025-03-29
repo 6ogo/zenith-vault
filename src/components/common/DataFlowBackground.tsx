@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 
 interface DataFlowBackgroundProps {
@@ -89,9 +88,9 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
                     step(-boxHeight, cellPos.y) * step(cellPos.y, boxHeight);
         
         // Mouse interaction - creates a wave of activity
-        vec2 mouseCell = uMouse * 0.5 + 0.5; // Convert to 0-1 range
-        mouseCell = mouseCell * gridSize;
-        float mouseDist = distance(cell, mouseCell) / 5.0;
+        // Map mouse coordinates directly to grid cells without the 0.5 + 0.5 adjustment
+        vec2 mouseCell = uMouse * gridSize;
+        float mouseDist = distance(cell, mouseCell) / 3.5; // Reduced divisor for wider impact
         float mouseInfluence = max(0.0, 1.0 - mouseDist);
         mouseInfluence = mouseInfluence * (0.5 + 0.5 * sin(uTime * 3.0 - mouseDist * 5.0)); // Pulsing wave
         
@@ -99,22 +98,22 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
         float pulseSpeed = rand * 2.0 + 0.5;
         float pulse = sin(uTime * pulseSpeed + rand * 10.0) * 0.5 + 0.5;
         
-        // Create data streams - some cells are part of data paths
-        float dataStream = step(0.75, random(floor(cell * 0.2))); // Group cells into streams
-        float dataActivity = step(0.6, rand) * dataStream; // Only some cells in streams are active
+        // Create data streams - increase likelihood of streams
+        float dataStream = step(0.65, random(floor(cell * 0.2))); // Increased from 0.75 to 0.65
+        float dataActivity = step(0.5, rand) * dataStream; // Increased activity from 0.6 to 0.5
         float streamPulse = sin(uTime * 2.0 + vPosition.y * 10.0) * 0.5 + 0.5; // Coordinated pulses along streams
         
-        // Color calculation - use company colors
-        vec3 baseColor = primaryColor * 0.8; // Darker version of primary color
+        // Color calculation - increase green presence
+        vec3 baseColor = mix(primaryColor * 0.8, accentColor * 0.3, 0.2); // Add some green to base
         vec3 activeColor = mix(
             primaryColor,
             accentColor,
-            rand * 0.7
+            rand * 0.9 + 0.1 // Increased from rand * 0.7 to ensure more green
         );
         
-        // Apply different colors based on data activity
+        // Apply different colors based on data activity - boost green influence
         float activity = max(dataActivity * streamPulse, mouseInfluence);
-        vec3 finalColor = mix(baseColor, activeColor, (activity + pulse * 0.3) * 0.8);
+        vec3 finalColor = mix(baseColor, activeColor, min(1.0, (activity + pulse * 0.4) * 0.9)); // Increased mix
         
         // Add connecting lines between data blocks
         float lineWidth = 0.02;
@@ -128,7 +127,7 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
             if (lineX < lineWidth && abs(cellPos.y) < 0.4) dataLine = 1.0; // Vertical lines
         }
         
-        // Add edge glow
+        // Add edge glow with more green
         float edgeThickness = 0.03;
         float edge = (1.0 - step(boxWidth - edgeThickness, abs(cellPos.x))) * 
                      (step(-boxWidth, cellPos.x) * step(cellPos.x, boxWidth)) +
@@ -136,16 +135,16 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
                      (step(-boxHeight, cellPos.y) * step(cellPos.y, boxHeight));
         edge = min(edge, 1.0);
         
-        float edgeBrightness = 0.7 + mouseInfluence * 0.3 + pulse * 0.4;
+        float edgeBrightness = 0.8 + mouseInfluence * 0.3 + pulse * 0.5; // Increased brightness
         vec3 edgeColor = accentColor * edgeBrightness;
-        vec3 lineColor = mix(accentColor * 0.7, accentColor, streamPulse);
+        vec3 lineColor = mix(accentColor * 0.8, accentColor, streamPulse); // More green in lines
         
         // Combine box fill, edge and lines
-        finalColor = mix(finalColor, edgeColor, edge * 0.8);
-        finalColor = mix(finalColor, lineColor, dataLine * 0.7);
+        finalColor = mix(finalColor, edgeColor, edge * 0.9); // Increased edge intensity
+        finalColor = mix(finalColor, lineColor, dataLine * 0.8); // Increased line intensity
         
-        // Only draw where the box or lines are
-        float alpha = max(box * (0.4 + activity * 0.4 + mouseInfluence * 0.3), dataLine * 0.3 * dataStream);
+        // Only draw where the box or lines are - increased alpha
+        float alpha = max(box * (0.5 + activity * 0.5 + mouseInfluence * 0.4), dataLine * 0.4 * dataStream);
         
         outColor = vec4(finalColor, alpha);
     }
@@ -257,9 +256,10 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
     const handleMouseMove = (e: MouseEvent) => {
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
+      // Keep the normalized coordinates but no need to adjust y coordinate sign
       mouseRef.current = {
         x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        y: -(((e.clientY - rect.top) / rect.height) * 2 - 1)
+        y: ((e.clientY - rect.top) / rect.height) * 2 - 1 // Removed the negative sign
       };
     };
 
