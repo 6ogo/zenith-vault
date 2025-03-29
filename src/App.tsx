@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -34,7 +35,7 @@ import Website from './pages/Website';
 import NotFound from './pages/NotFound';
 import ChatbotAdmin from './pages/ChatbotAdmin';
 import MainLayout from './components/layout/MainLayout';
-import RolesManagement from './pages/Organization/RolesManagement';
+import RolesManagement from './pages/organization/RolesManagement';
 
 const App = () => {
   return (

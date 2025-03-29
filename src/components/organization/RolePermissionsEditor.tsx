@@ -1,231 +1,176 @@
 
-import React, { useState, useEffect } from 'react';
-import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import React from 'react';
 import { Badge } from "@/components/ui/badge";
-import { Permission, DEFAULT_FEATURES } from '@/types/organization';
-import { useToast } from '@/hooks/use-toast';
-import { Info } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShieldAlert } from "lucide-react";
+import { Permission } from '@/types/organization';
 
-// Direct API calls for permissions since the type system doesn't recognize our new tables
-async function fetchRolePermissions(roleId: string): Promise<Permission[]> {
-  try {
-    const response = await fetch(`https://edpshrimlntytiezfthj.supabase.co/rest/v1/rpc/get_role_permissions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkcHNocmltbG50eXRpZXpmdGhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyMDQxNjIsImV4cCI6MjA1ODc4MDE2Mn0.YMBUAdv8jakBDWq2mymDyWvpW6ZKvDZcFav4HKJbowM',
-        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-      },
-      body: JSON.stringify({ role_id: roleId })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch permissions');
-    }
-    
-    return await response.json() as Permission[];
-  } catch (error) {
-    console.error('Error fetching permissions:', error);
-    return [];
-  }
-}
+// Helper function to convert feature names to display friendly format
+const formatFeatureName = (feature: string): string => {
+  return feature
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
 
-async function saveRolePermissions(roleId: string, permissions: Permission[]): Promise<boolean> {
-  try {
-    const response = await fetch(`https://edpshrimlntytiezfthj.supabase.co/rest/v1/rpc/update_role_permissions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkcHNocmltbG50eXRpZXpmdGhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyMDQxNjIsImV4cCI6MjA1ODc4MDE2Mn0.YMBUAdv8jakBDWq2mymDyWvpW6ZKvDZcFav4HKJbowM',
-        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-      },
-      body: JSON.stringify({
-        role_id: roleId,
-        permissions: permissions
-      })
-    });
-    
-    return response.ok;
-  } catch (error) {
-    console.error('Error saving permissions:', error);
-    return false;
-  }
-}
+// Helper function to get a description for each feature
+const getFeatureDescription = (feature: string): string => {
+  const descriptions: Record<string, string> = {
+    dashboard: 'Access to the main dashboard and overview data.',
+    sales: 'Access to sales data, leads, and pipeline management.',
+    customers: 'Access to customer information and management.',
+    service: 'Access to service tickets and customer support features.',
+    marketing: 'Access to marketing campaigns and analytics.',
+    analytics: 'Access to detailed analytics and data insights.',
+    reports: 'Access to reports and export functionality.',
+    integrations: 'Access to third-party integrations and configuration.',
+    website: 'Access to website builder and management tools.',
+    organization: 'Access to organization settings and member management.',
+    chatbot: 'Access to configure and manage AI chatbots.',
+    settings: 'Access to user settings and preferences.'
+  };
+
+  return descriptions[feature] || 'Access to this feature.';
+};
 
 interface RolePermissionsEditorProps {
-  roleId: string;
+  permissions: Permission[];
   isSystemRole: boolean;
-  onPermissionsUpdated?: () => void;
+  onChange: (permissions: Permission[]) => void;
+  onSave: () => void;
 }
 
-const RolePermissionsEditor: React.FC<RolePermissionsEditorProps> = ({ 
-  roleId, 
-  isSystemRole, 
-  onPermissionsUpdated 
+const RolePermissionsEditor: React.FC<RolePermissionsEditorProps> = ({
+  permissions,
+  isSystemRole,
+  onChange,
+  onSave
 }) => {
-  const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const { toast } = useToast();
-
-  // Load permissions for the role
-  useEffect(() => {
-    const loadPermissions = async () => {
-      if (!roleId) return;
-      
-      try {
-        setLoading(true);
-        const fetchedPermissions = await fetchRolePermissions(roleId);
-        
-        // If no permissions are returned for existing features, create default ones
-        if (fetchedPermissions.length === 0) {
-          const defaultPermissions = DEFAULT_FEATURES.map(feature => ({
-            role_id: roleId,
-            feature,
-            can_read: false,
-            can_write: false,
-            is_hidden: true
-          }));
-          setPermissions(defaultPermissions);
-        } else {
-          setPermissions(fetchedPermissions);
-        }
-      } catch (error) {
-        console.error('Error loading permissions:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load role permissions',
-          variant: 'destructive'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPermissions();
-  }, [roleId, toast]);
-
-  // Update a specific permission
-  const updatePermission = (feature: string, field: 'can_read' | 'can_write' | 'is_hidden', value: boolean) => {
-    setPermissions(prev => 
-      prev.map(perm => 
-        perm.feature === feature 
-          ? { ...perm, [field]: value } 
-          : perm
-      )
-    );
-  };
-
-  // Save all permissions
-  const savePermissions = async () => {
-    if (!roleId) return;
+  const handleTogglePermission = (
+    index: number,
+    field: 'can_read' | 'can_write' | 'is_hidden',
+    value: boolean
+  ) => {
+    if (isSystemRole) return; // Don't allow changes to system roles
     
-    try {
-      setSaving(true);
-      const success = await saveRolePermissions(roleId, permissions);
-      
-      if (success) {
-        toast({
-          title: 'Success',
-          description: 'Role permissions saved successfully'
-        });
-        if (onPermissionsUpdated) {
-          onPermissionsUpdated();
-        }
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Failed to save permissions',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      console.error('Error saving permissions:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save permissions',
-        variant: 'destructive'
-      });
-    } finally {
-      setSaving(false);
+    const updatedPermissions = [...permissions];
+    updatedPermissions[index] = {
+      ...updatedPermissions[index],
+      [field]: value
+    };
+    
+    // If setting is_hidden to true, also set can_read and can_write to false
+    if (field === 'is_hidden' && value === true) {
+      updatedPermissions[index].can_read = false;
+      updatedPermissions[index].can_write = false;
     }
+    
+    // If setting can_write to true, also set can_read to true
+    if (field === 'can_write' && value === true) {
+      updatedPermissions[index].can_read = true;
+    }
+    
+    // If setting can_read to false, also set can_write to false
+    if (field === 'can_read' && value === false) {
+      updatedPermissions[index].can_write = false;
+    }
+    
+    // If setting is_hidden to false, at least set can_read to true
+    if (field === 'is_hidden' && value === false) {
+      updatedPermissions[index].can_read = true;
+    }
+    
+    onChange(updatedPermissions);
   };
-
-  if (loading) {
-    return <div className="text-center py-6">Loading permissions...</div>;
-  }
-
+  
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {isSystemRole && (
         <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>System Role</AlertTitle>
+          <ShieldAlert className="h-4 w-4" />
+          <AlertTitle>System Role Permissions</AlertTitle>
           <AlertDescription>
-            This is a system role. While you can modify its permissions, we recommend caution as these roles are designed with specific access patterns.
+            This is a system role with predefined permissions. You cannot modify system role permissions.
           </AlertDescription>
         </Alert>
       )}
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Feature Permissions</CardTitle>
-          <CardDescription>
-            Configure access rights for each feature in the application
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4 mb-4 font-medium border-b pb-2">
-            <div>Feature</div>
-            <div className="text-center">Access Level</div>
-            <div className="text-center">Visibility</div>
-          </div>
-          
-          {permissions.map((permission) => (
-            <div key={permission.feature} className="grid grid-cols-3 gap-4 items-center py-3 border-b">
-              <div className="font-medium capitalize">{permission.feature}</div>
-              <div className="flex justify-center space-x-4">
-                <div className="flex flex-col items-center">
-                  <span className="text-xs text-muted-foreground mb-1">Read</span>
-                  <Switch 
-                    checked={permission.can_read} 
-                    onCheckedChange={(checked) => updatePermission(permission.feature, 'can_read', checked)} 
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[250px]">Feature</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead className="text-center w-[100px]">Can View</TableHead>
+              <TableHead className="text-center w-[100px]">Can Edit</TableHead>
+              <TableHead className="text-center w-[100px]">Hidden</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {permissions.map((permission, index) => (
+              <TableRow key={`${permission.role_id}-${permission.feature}`}>
+                <TableCell className="font-medium">
+                  {formatFeatureName(permission.feature)}
+                  {permission.feature === 'dashboard' && (
+                    <Badge className="ml-2" variant="outline">
+                      Required
+                    </Badge>
+                  )}
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {getFeatureDescription(permission.feature)}
+                </TableCell>
+                <TableCell className="text-center">
+                  <Switch
+                    checked={permission.can_read}
+                    onCheckedChange={(checked) => 
+                      handleTogglePermission(index, 'can_read', checked)
+                    }
+                    disabled={isSystemRole || permission.feature === 'dashboard'}
                   />
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-xs text-muted-foreground mb-1">Write</span>
-                  <Switch 
-                    checked={permission.can_write} 
-                    onCheckedChange={(checked) => updatePermission(permission.feature, 'can_write', checked)} 
-                    disabled={!permission.can_read}
+                </TableCell>
+                <TableCell className="text-center">
+                  <Switch
+                    checked={permission.can_write}
+                    onCheckedChange={(checked) => 
+                      handleTogglePermission(index, 'can_write', checked)
+                    }
+                    disabled={
+                      isSystemRole || 
+                      !permission.can_read || 
+                      permission.is_hidden
+                    }
                   />
-                </div>
-              </div>
-              <div className="flex justify-center">
-                {permission.is_hidden ? (
-                  <Badge variant="destructive">Hidden</Badge>
-                ) : (
-                  <Badge variant="success">Visible</Badge>
-                )}
-                <Switch 
-                  className="ml-2"
-                  checked={!permission.is_hidden} 
-                  onCheckedChange={(checked) => updatePermission(permission.feature, 'is_hidden', !checked)} 
-                />
-              </div>
-            </div>
-          ))}
-          
-          <div className="mt-6 flex justify-end">
-            <Button onClick={savePermissions} disabled={saving}>
-              {saving ? 'Saving...' : 'Save Permissions'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Switch
+                    checked={permission.is_hidden}
+                    onCheckedChange={(checked) => 
+                      handleTogglePermission(index, 'is_hidden', checked)
+                    }
+                    disabled={
+                      isSystemRole || 
+                      permission.feature === 'dashboard'
+                    }
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      
+      <div className="flex justify-end">
+        <Button 
+          onClick={onSave}
+          disabled={isSystemRole}
+        >
+          Save Permissions
+        </Button>
+      </div>
     </div>
   );
 };

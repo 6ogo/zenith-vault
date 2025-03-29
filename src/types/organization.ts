@@ -7,6 +7,7 @@ export interface Role {
   organization_id: string;
   created_at?: string;
   updated_at?: string;
+  memberCount?: number;
 }
 
 export interface Permission {
