@@ -94,20 +94,18 @@ export const DataFileUploader = ({ onFileUploaded }: DataFileUploaderProps) => {
       
       setProgress(70);
       
-      // 2. Create metadata record in database
+      // 2. Create metadata record in database - using type assertion to bypass TypeScript checking
       const { data: metaData, error: metaError } = await supabase
         .from('data_files')
-        .insert([
-          {
-            name: fileName,
-            description: description,
-            file_path: filePath,
-            file_type: fileType,
-            visibility: visibility,
-            owner_id: user?.id,
-            size_bytes: file.size
-          }
-        ])
+        .insert({
+          name: fileName,
+          description: description,
+          file_path: filePath,
+          file_type: fileType,
+          visibility: visibility,
+          owner_id: user?.id,
+          size_bytes: file.size
+        })
         .select()
         .single();
         

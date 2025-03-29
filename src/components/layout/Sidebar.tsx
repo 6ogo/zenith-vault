@@ -87,7 +87,7 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
 
   return (
     <div className={cn(
-      "flex flex-col w-full h-full bg-sidebar border-r border-border",
+      "flex flex-col w-full h-full bg-[#003366] border-r border-border",
       isCollapsed ? "w-16" : "w-72"
     )}>
       <div className="flex items-center h-16 px-4 border-b border-border">

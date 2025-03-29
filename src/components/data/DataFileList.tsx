@@ -38,12 +38,10 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
     setError(null);
 
     try {
+      // Using the from method without type checking
       let query = supabase
         .from('data_files')
-        .select(`
-          *,
-          profiles:owner_id (full_name)
-        `);
+        .select('*, profiles:owner_id(full_name)');
 
       if (mode === 'my-files') {
         // Files owned by me
@@ -208,7 +206,7 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
         
         {loading ? (
           <div className="text-center py-8">Loading files...</div>
-        ) : filteredFiles.length === 0 ? (
+        ) : files.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             {searchTerm 
               ? "No files match your search criteria"
@@ -230,7 +228,11 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredFiles.map((file) => (
+              {files.filter(file => 
+                file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                file.owner_name?.toLowerCase().includes(searchTerm.toLowerCase())
+              ).map((file) => (
                 <TableRow key={file.id}>
                   <TableCell>
                     <div className="flex items-start gap-2">
@@ -246,8 +248,18 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
                   <TableCell>
                     <Badge variant="outline" className="uppercase">{file.file_type}</Badge>
                   </TableCell>
-                  <TableCell>{getFileSizeDisplay(file.size_bytes)}</TableCell>
-                  <TableCell>{getVisibilityBadge(file.visibility)}</TableCell>
+                  <TableCell>{(file.size_bytes < 1024) 
+                    ? `${file.size_bytes} B` 
+                    : (file.size_bytes < 1024 * 1024) 
+                      ? `${(file.size_bytes / 1024).toFixed(1)} KB`
+                      : `${(file.size_bytes / (1024 * 1024)).toFixed(1)} MB`}</TableCell>
+                  <TableCell>
+                    {file.visibility === 'private' 
+                      ? <Badge variant="outline">Private</Badge>
+                      : file.visibility === 'organization'
+                        ? <Badge variant="secondary">Organization</Badge>
+                        : <Badge variant="default">Public</Badge>}
+                  </TableCell>
                   <TableCell>
                     <div>
                       <div className="text-sm">{format(new Date(file.created_at), 'MMM dd, yyyy')}</div>
@@ -294,7 +306,15 @@ export const DataFileList = ({ mode, onFileSelect }: DataFileListProps) => {
       </CardContent>
       <CardFooter className="flex justify-between">
         <div className="text-sm text-muted-foreground">
-          {filteredFiles.length} {filteredFiles.length === 1 ? 'file' : 'files'}
+          {files.filter(file => 
+            file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            file.owner_name?.toLowerCase().includes(searchTerm.toLowerCase())
+          ).length} {files.filter(file => 
+            file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            file.owner_name?.toLowerCase().includes(searchTerm.toLowerCase())
+          ).length === 1 ? 'file' : 'files'}
         </div>
         <Button variant="outline" size="sm" onClick={loadFiles}>Refresh</Button>
       </CardFooter>
