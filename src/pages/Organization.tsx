@@ -177,9 +177,9 @@ const Organization = () => {
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [isAddRoleDialogOpen, setIsAddRoleDialogOpen] = useState(false);
   const [isAddAppDialogOpen, setIsAddAppDialogOpen] = useState(false);
-  
+
   // Filtered members based on search
-  const filteredMembers = membersData.filter(member => 
+  const filteredMembers = membersData.filter(member =>
     member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     member.role.toLowerCase().includes(searchQuery.toLowerCase())
@@ -210,7 +210,7 @@ const Organization = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-full">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Organization Settings</h1>
@@ -698,7 +698,7 @@ const Organization = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </div >
   );
 };
 
