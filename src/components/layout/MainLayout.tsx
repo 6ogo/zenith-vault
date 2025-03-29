@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
@@ -8,11 +7,6 @@ import Footer from "./Footer";
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const [footerHeight, setFooterHeight] = useState(0);
-  const [scrollPosition, setScrollPosition] = useState(0);
-  
-  const headerRef = useRef<HTMLElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
   const location = useLocation();
   
@@ -23,40 +17,25 @@ const MainLayout = () => {
   const toggleSidebarCollapse = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
-
-  useEffect(() => {
-    const updateElementHeights = () => {
-      if (headerRef.current) {
-        setHeaderHeight(headerRef.current.offsetHeight);
-      }
-      if (footerRef.current) {
-        setFooterHeight(footerRef.current.offsetHeight);
-      }
-    };
-
-    updateElementHeights();
-    window.addEventListener('resize', updateElementHeights);
-    
-    const handleScroll = () => {
-      setScrollPosition(window.scrollY);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      window.removeEventListener('resize', updateElementHeights);
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  
+  // Define styling for the sidebar to ensure consistent behavior across all pages
+  const getSidebarStyle = () => {
+    return {
+      position: "sticky",
+      top: 0,
+      height: "100vh",
+      overflowY: "auto"
+    } as React.CSSProperties;
+  };
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Non-fixed header at the top */}
-      <Header ref={headerRef} toggleSidebar={toggleSidebar} />
+      {/* Regular header - scrolls with content */}
+      <Header toggleSidebar={toggleSidebar} />
       
-      {/* Content area with sidebar and main content */}
-      <div className="flex flex-1 relative">
-        {/* Mobile sidebar - absolute positioning with backdrop */}
+      {/* Content area */}
+      <div className="flex flex-1">
+        {/* Mobile sidebar */}
         <div className={`fixed inset-0 z-30 transform md:hidden ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300 ease-in-out`}>
@@ -64,40 +43,30 @@ const MainLayout = () => {
             <div className="h-full">
               <Sidebar isCollapsed={false} onToggleCollapse={toggleSidebarCollapse} />
             </div>
-            <div 
-              className="absolute inset-0 -right-10 w-screen bg-black/50"
-              onClick={toggleSidebar}
-            ></div>
+            <div className="absolute inset-0 -right-10 w-screen bg-black/50"
+              onClick={toggleSidebar}></div>
           </div>
         </div>
         
-        {/* Desktop sidebar - fixed positioning that respects header and footer */}
+        {/* Desktop sidebar - sticky with top-0 */}
         <div 
-          className={`hidden md:block fixed left-0 z-20 transition-all duration-300 ${
+          style={getSidebarStyle()}
+          className={`hidden md:block z-20 transition-all duration-300 ${
             sidebarCollapsed ? "w-16" : "w-64"
           }`}
-          style={{ 
-            top: `${headerHeight}px`, 
-            height: `calc(100vh - ${headerHeight}px)`,
-            maxHeight: `calc(100vh - ${headerHeight}px - ${footerHeight}px + ${Math.min(scrollPosition, footerHeight)}px)`,
-          }}
         >
-          <div className="h-full overflow-y-auto custom-scrollbar">
-            <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
-          </div>
+          <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
         
-        {/* Main content with margin to account for sidebar */}
+        {/* Main content */}
         <div className="flex-1">
-          <main className={`p-4 md:p-6 w-full transition-all duration-300 ${
-            sidebarCollapsed ? "md:ml-16" : "md:ml-64"
-          }`}>
+          <main className="p-4 md:p-6 w-full overflow-x-auto">
             <Outlet />
           </main>
         </div>
       </div>
       
-      {/* Footer */}
+      {/* Footer - completely outside the content area */}
       <Footer ref={footerRef} />
     </div>
   );

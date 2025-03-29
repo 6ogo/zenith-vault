@@ -96,12 +96,9 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
   return (
     <div className={cn(
       "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64"
+      isCollapsed ? "w-16" : "w-64" // Changed from w-72 to w-64 to make sidebar smaller
     )}>
-      <div className={cn(
-        "flex items-center h-16 px-4 border-b border-border",
-        isCollapsed ? "justify-center" : "justify-start"
-      )}>
+      <div className="flex items-center h-16 px-4 border-b border-border">
         <span className="font-bold text-lg text-white">
           {isCollapsed ? "AC" : "Admin Console"}
         </span>
@@ -112,6 +109,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
           <div className="p-4">
             <nav className="flex flex-col space-y-1">
               {routes.map((route) => (
+                // Update the NavLink JSX structure starting around line 100
                 <NavLink
                   key={route.path}
                   to={route.path}
@@ -125,8 +123,14 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
                     )
                   }
                 >
-                  <route.icon className={cn("w-5 h-5", isCollapsed && "mx-auto")} />
-                  {!isCollapsed && <span className="ml-2">{route.label}</span>}
+                  {isCollapsed ? (
+                    <route.icon className="w-5 h-5" />
+                  ) : (
+                    <>
+                      <route.icon className="w-5 h-5" />
+                      <span className="ml-2">{route.label}</span>
+                    </>
+                  )}
                 </NavLink>
               ))}
             </nav>
@@ -137,13 +141,10 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
       <div className="p-4 border-t border-sidebar-border bg-[#003366]">
         <button
           onClick={onToggleCollapse}
-          className={cn(
-            "flex items-center text-sm text-sidebar-foreground hover:text-white transition-colors w-full",
-            isCollapsed ? "justify-center" : "justify-between"
-          )}
+          className="flex items-center justify-between w-full text-sm text-sidebar-foreground hover:text-white transition-colors"
         >
           {isCollapsed ? (
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-5 h-5 mx-auto" />
           ) : (
             <>
               <span>Collapse</span>
