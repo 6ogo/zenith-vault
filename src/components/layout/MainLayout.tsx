@@ -1,6 +1,5 @@
-
-import React, { useState, useRef } from "react";
-import { Outlet } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -9,6 +8,7 @@ const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const footerRef = useRef<HTMLElement | null>(null);
+  const location = useLocation();
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -16,6 +16,16 @@ const MainLayout = () => {
   
   const toggleSidebarCollapse = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+  
+  // Define styling for the sidebar to ensure consistent behavior across all pages
+  const getSidebarStyle = () => {
+    return {
+      position: "sticky",
+      top: 0,
+      height: "100vh",
+      overflowY: "auto"
+    } as React.CSSProperties;
   };
   
   return (
@@ -39,9 +49,12 @@ const MainLayout = () => {
         </div>
         
         {/* Desktop sidebar - sticky with top-0 */}
-        <div className={`hidden md:block sticky top-0 h-screen z-20 transition-all duration-300 ${
-          sidebarCollapsed ? "w-16" : "w-64"
-        }`}>
+        <div 
+          style={getSidebarStyle()}
+          className={`hidden md:block z-20 transition-all duration-300 ${
+            sidebarCollapsed ? "w-16" : "w-64"
+          }`}
+        >
           <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
         
