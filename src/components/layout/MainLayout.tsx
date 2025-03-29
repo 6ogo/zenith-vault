@@ -9,6 +9,7 @@ const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const footerRef = useRef<HTMLElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
   const location = useLocation();
   
   const toggleSidebar = () => {
@@ -22,17 +23,17 @@ const MainLayout = () => {
   // Define styling for the sidebar to ensure consistent behavior across all pages
   const getSidebarStyle = () => {
     return {
-      position: "sticky",
-      top: 0,
-      height: "100vh",
+      position: "fixed",
+      top: "64px", // height of header (h-16)
+      height: "calc(100vh - 64px)",
       overflowY: "auto"
     } as React.CSSProperties;
   };
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Regular header - scrolls with content */}
-      <Header toggleSidebar={toggleSidebar} />
+      {/* Regular header - fixed at top */}
+      <Header ref={headerRef} toggleSidebar={toggleSidebar} className="sticky top-0 z-40" />
       
       {/* Content area */}
       <div className="flex flex-1 overflow-x-hidden">
@@ -49,7 +50,7 @@ const MainLayout = () => {
           </div>
         </div>
         
-        {/* Desktop sidebar - sticky with top-0 */}
+        {/* Desktop sidebar - fixed with top adjusted to header height */}
         <div 
           style={getSidebarStyle()}
           className={`hidden md:block z-20 transition-all duration-300 ${
@@ -59,9 +60,11 @@ const MainLayout = () => {
           <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
         
-        {/* Main content - add overflow-x-hidden to prevent horizontal scroll */}
+        {/* Main content with padding to account for fixed sidebar */}
         <div className="flex-1 overflow-x-hidden">
-          <main className="p-4 md:p-6 w-full overflow-x-auto">
+          <main className={`p-4 md:p-6 w-full overflow-x-auto ${
+            sidebarCollapsed ? "md:ml-16" : "md:ml-64"
+          }`}>
             <Outlet />
           </main>
         </div>

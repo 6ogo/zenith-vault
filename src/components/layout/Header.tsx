@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +19,7 @@ interface HeaderProps {
   className?: string;
 }
 
-const Header = ({ toggleSidebar, className }: HeaderProps) => {
+const Header = forwardRef<HTMLElement, HeaderProps>(({ toggleSidebar, className }, ref) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
@@ -34,7 +34,10 @@ const Header = ({ toggleSidebar, className }: HeaderProps) => {
   };
 
   return (
-    <header className={`h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950 w-full z-40 ${className || ''}`}>
+    <header 
+      ref={ref}
+      className={`h-16 border-b px-4 sm:px-6 flex items-center justify-between dark:bg-gray-950 w-full z-40 ${className || ''}`}
+    >
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -105,6 +108,8 @@ const Header = ({ toggleSidebar, className }: HeaderProps) => {
       </div>
     </header>
   );
-};
+});
+
+Header.displayName = "Header";
 
 export default Header;

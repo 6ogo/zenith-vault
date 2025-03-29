@@ -96,7 +96,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
   return (
     <div className={cn(
       "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64" // Changed from w-72 to w-64 to make sidebar smaller
+      isCollapsed ? "w-16" : "w-64"
     )}>
       <div className="flex items-center h-16 px-4 border-b border-border">
         <span className="font-bold text-lg text-white">
