@@ -18,7 +18,7 @@ type AuthContextType = {
   isMfaRequired: boolean;
   isVerifying2FA: boolean;
   signUp: (details: SignUpDetails) => Promise<any>;
-  signIn: (email: string, password: string) => Promise<any>;
+  signIn: (email: string, password: string, captchaToken?: string) => Promise<any>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<any>;
   updateProfile: (details: any) => Promise<any>;
@@ -133,12 +133,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, captchaToken?: string) => {
     setIsLoading(true);
     try {
+      // Include the captcha token in the authentication request
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: captchaToken ? {
+          captchaToken
+        } : undefined
       });
 
       if (error) {

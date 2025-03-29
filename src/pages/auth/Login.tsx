@@ -18,6 +18,10 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Turnstile } from '@/components/auth/Turnstile';
+
+// Cloudflare Turnstile site key - replace with your actual site key
+const TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -31,6 +35,7 @@ const loginSchema = z.object({
 export default function Login() {
   const { signIn, signInWithGoogle, signInWithLinkedIn, isLoading, isVerifying2FA } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast()
 
@@ -46,11 +51,24 @@ export default function Login() {
     setShowPassword(!showPassword);
   };
 
+  const handleTurnstileVerify = (token: string) => {
+    setTurnstileToken(token);
+  };
+
   const handleSubmit = async (values: z.infer<typeof loginSchema>) => {
     if (isLoading) return;
 
+    if (!turnstileToken) {
+      toast({
+        title: "Captcha verification required",
+        description: "Please complete the captcha verification",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      await signIn(values.email, values.password);
+      await signIn(values.email, values.password, turnstileToken);
       navigate("/dashboard");
     } catch (error: any) {
       toast({
@@ -114,7 +132,14 @@ export default function Login() {
                 </p>
               )}
             </div>
-            <Button disabled={isLoading} type="submit">
+            
+            {/* Turnstile Captcha Component */}
+            <Turnstile 
+              siteKey={TURNSTILE_SITE_KEY} 
+              onVerify={handleTurnstileVerify} 
+            />
+            
+            <Button disabled={isLoading || !turnstileToken} type="submit">
               {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
