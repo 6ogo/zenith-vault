@@ -18,33 +18,22 @@ const MainLayout = () => {
   const toggleSidebarCollapse = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
-
-  useEffect(() => {
-    const updateElementHeights = () => {
-      if (footerRef.current) {
-        setFooterHeight(footerRef.current.offsetHeight);
-      }
-      if (headerRef.current) {
-        setHeaderHeight(headerRef.current.offsetHeight);
-      }
-    };
-
-    updateElementHeights();
-    window.addEventListener('resize', updateElementHeights);
-    
-    return () => {
-      window.removeEventListener('resize', updateElementHeights);
-    };
-  }, []);
+  
+  // Add smooth transition to main content
+  const getSidebarStyle = () => {
+    return {
+      position: "sticky",
+      top: 0,
+      height: "100vh",
+      overflowY: "auto"
+    } as React.CSSProperties;
+  };
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Fixed header at the top */}
-      <Header ref={headerRef} toggleSidebar={toggleSidebar} className="fixed top-0 left-0 w-full z-40" />
+      <Header toggleSidebar={toggleSidebar} />
       
-      {/* Content area with appropriate padding to account for fixed header */}
-      <div className="flex flex-1 relative" style={{ marginTop: `${headerHeight}px` }}>
-        {/* Mobile sidebar - absolute positioning */}
+      <div className="flex flex-1">
         <div className={`fixed inset-0 z-30 transform md:hidden ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300 ease-in-out`}>
@@ -57,7 +46,6 @@ const MainLayout = () => {
           </div>
         </div>
         
-        {/* Desktop sidebar - fixed positioning */}
         <div 
           style={getSidebarStyle()}
           className={`hidden md:block z-20 transition-all duration-300 ${
@@ -67,17 +55,13 @@ const MainLayout = () => {
           <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
         </div>
         
-        {/* Main content with margin to account for sidebar */}
         <div className="flex-1">
-          <main className={`p-4 md:p-6 w-full transition-all duration-300 ${
-            sidebarCollapsed ? "md:ml-16" : "md:ml-64"
-          }`}>
+          <main className="p-4 md:p-6 w-full overflow-x-auto transition-all duration-300" style={{ marginTop: "0" }}>
             <Outlet />
           </main>
         </div>
       </div>
       
-      {/* Footer */}
       <Footer ref={footerRef} />
     </div>
   );
