@@ -59,27 +59,27 @@ const Integrations = () => {
                   {
                     id: 'mailchimp', 
                     name: 'Mailchimp', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/mailchimp.png',
                     description: "Connect your Mailchimp account to automate marketing campaigns and analyze audience engagement.",
                     docsUrl: "https://mailchimp.com/developer/"
                   },
                   {
                     id: 'sendgrid', 
                     name: 'SendGrid', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/sendgrid.png',
                     description: "Integrate with SendGrid to manage transactional and marketing emails with detailed analytics.",
                     docsUrl: "https://docs.sendgrid.com/"
                   },
                   {
                     id: 'constantcontact', 
                     name: 'Constant Contact', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/constantcontact.png',
                     description: "Connect Constant Contact to enhance your email marketing with engagement tracking."
                   },
                   {
                     id: 'custom-email', 
                     name: 'Custom Email API', 
-                    logoUrl: '/placeholder.svg', 
+                    logoUrl: '/logos/custom.png', 
                     isCustom: true,
                     description: "Configure a custom email integration using SMTP or API-based system."
                   }
@@ -95,27 +95,27 @@ const Integrations = () => {
                   {
                     id: 'salesforce', 
                     name: 'Salesforce', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/salesforce.png',
                     description: "Connect Salesforce to sync customer data, sales pipelines, and opportunities.",
                     docsUrl: "https://developer.salesforce.com/docs"
                   },
                   {
                     id: 'hubspot', 
                     name: 'HubSpot', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/hubspot.jpeg',
                     description: "Integrate with HubSpot to manage marketing, sales, and customer service data.",
                     docsUrl: "https://developers.hubspot.com/"
                   },
                   {
                     id: 'zoho', 
                     name: 'Zoho CRM', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/zohocrm.png',
                     description: "Connect Zoho CRM to manage your sales pipeline and customer relationships."
                   },
                   {
                     id: 'custom-crm', 
                     name: 'Custom CRM API', 
-                    logoUrl: '/placeholder.svg', 
+                    logoUrl: '/logos/custom.png', 
                     isCustom: true,
                     description: "Configure a custom CRM integration with your existing system."
                   }
@@ -131,26 +131,26 @@ const Integrations = () => {
                   {
                     id: 'sap', 
                     name: 'SAP', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/sap.png',
                     description: "Integrate with SAP to connect your enterprise resource planning data.",
                     docsUrl: "https://developers.sap.com/"
                   },
                   {
                     id: 'netsuite', 
                     name: 'NetSuite', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/netsuite.png',
                     description: "Connect Oracle NetSuite to manage financial and business operations data."
                   },
                   {
                     id: 'dynamics', 
                     name: 'Microsoft Dynamics', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/microsoftdynamics.webp',
                     description: "Integrate Microsoft Dynamics to connect business applications and analytics."
                   },
                   {
                     id: 'custom-erp', 
                     name: 'Custom ERP API', 
-                    logoUrl: '/placeholder.svg', 
+                    logoUrl: '/logos/custom.png', 
                     isCustom: true,
                     description: "Configure a custom ERP integration with your existing business systems."
                   }
@@ -166,26 +166,26 @@ const Integrations = () => {
                   {
                     id: 'postgres', 
                     name: 'PostgreSQL', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/postgres.svg',
                     description: "Connect to PostgreSQL databases to import and synchronize your data.",
                     docsUrl: "https://www.postgresql.org/docs/"
                   },
                   {
                     id: 'mysql', 
                     name: 'MySQL', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/mysql.jpg',
                     description: "Connect to MySQL databases to streamline data integration."
                   },
                   {
                     id: 'mongodb', 
                     name: 'MongoDB', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/mongoDB.webp',
                     description: "Integrate with MongoDB to connect document-based data sources."
                   },
                   {
                     id: 'custom-db', 
                     name: 'Custom Database', 
-                    logoUrl: '/placeholder.svg', 
+                    logoUrl: '/logos/custom.png', 
                     isCustom: true,
                     description: "Configure a custom database connection with tailored data mapping."
                   }
@@ -201,32 +201,32 @@ const Integrations = () => {
                   {
                     id: 'stripe', 
                     name: 'Stripe', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/stripe.png',
                     description: "Connect Stripe to manage payment processing and subscription services.",
                     docsUrl: "https://stripe.com/docs/api"
                   },
                   {
                     id: 'aws-s3', 
                     name: 'AWS S3', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/amazonS3.png',
                     description: "Integrate with Amazon S3 for secure cloud storage and file management."
                   },
                   {
                     id: 'google-analytics', 
                     name: 'Google Analytics', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/googleanalytics.jpg',
                     description: "Connect Google Analytics to import website traffic and user behavior data."
                   },
                   {
                     id: 'twilio', 
                     name: 'Twilio', 
-                    logoUrl: '/placeholder.svg',
+                    logoUrl: '/logos/twilio.jpg',
                     description: "Integrate Twilio for SMS, voice, and messaging communications."
                   },
                   {
                     id: 'custom-service', 
                     name: 'Custom Service', 
-                    logoUrl: '/placeholder.svg', 
+                    logoUrl: '/logos/custom.png', 
                     isCustom: true,
                     description: "Configure a custom integration with your specialized business services."
                   }

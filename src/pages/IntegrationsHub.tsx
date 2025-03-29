@@ -55,10 +55,10 @@ const IntegrationsHub = () => {
                 category="Email Marketing" 
                 description="Connect your email marketing platforms to automate campaigns and analyze engagement metrics."
                 integrations={[
-                  {id: 'mailchimp', name: 'Mailchimp', logoUrl: '/placeholder.svg'},
-                  {id: 'sendgrid', name: 'SendGrid', logoUrl: '/placeholder.svg'},
-                  {id: 'constantcontact', name: 'Constant Contact', logoUrl: '/placeholder.svg'},
-                  {id: 'custom-email', name: 'Custom Email API', logoUrl: '/placeholder.svg', isCustom: true}
+                  {id: 'mailchimp', name: 'Mailchimp', logoUrl: '/logos/mailchimp.png'},
+                  {id: 'sendgrid', name: 'SendGrid', logoUrl: '/logos/sendgrid.png'},
+                  {id: 'constantcontact', name: 'Constant Contact', logoUrl: '/logos/constantcontact.png'},
+                  {id: 'custom-email', name: 'Custom Email API', logoUrl: '/logos/custom.png', isCustom: true}
                 ]}
               />
             </TabsContent>
@@ -68,10 +68,10 @@ const IntegrationsHub = () => {
                 category="CRM Systems" 
                 description="Integrate with CRM platforms to synchronize customer data and enable AI-powered insights."
                 integrations={[
-                  {id: 'salesforce', name: 'Salesforce', logoUrl: '/placeholder.svg'},
-                  {id: 'hubspot', name: 'HubSpot', logoUrl: '/placeholder.svg'},
-                  {id: 'zoho', name: 'Zoho CRM', logoUrl: '/placeholder.svg'},
-                  {id: 'custom-crm', name: 'Custom CRM API', logoUrl: '/placeholder.svg', isCustom: true}
+                  {id: 'salesforce', name: 'Salesforce', logoUrl: '/logos/salesforce.png'},
+                  {id: 'hubspot', name: 'HubSpot', logoUrl: '/logos/hubspot.jpeg'},
+                  {id: 'zoho', name: 'Zoho CRM', logoUrl: '/logos/zohocrm.png'},
+                  {id: 'custom-crm', name: 'Custom CRM API', logoUrl: '/logos/custom.png', isCustom: true}
                 ]}
               />
             </TabsContent>
@@ -81,10 +81,10 @@ const IntegrationsHub = () => {
                 category="ERP Solutions" 
                 description="Connect with ERP systems to streamline operations and enable data-driven decision making."
                 integrations={[
-                  {id: 'sap', name: 'SAP', logoUrl: '/placeholder.svg'},
-                  {id: 'netsuite', name: 'NetSuite', logoUrl: '/placeholder.svg'},
-                  {id: 'dynamics', name: 'Microsoft Dynamics', logoUrl: '/placeholder.svg'},
-                  {id: 'custom-erp', name: 'Custom ERP API', logoUrl: '/placeholder.svg', isCustom: true}
+                  {id: 'sap', name: 'SAP', logoUrl: '/logos/sap.png'},
+                  {id: 'netsuite', name: 'NetSuite', logoUrl: '/logos/netsuite.png'},
+                  {id: 'dynamics', name: 'Microsoft Dynamics', logoUrl: '/logos/microsoftdynamics.webp'},
+                  {id: 'custom-erp', name: 'Custom ERP API', logoUrl: '/logos/custom.png', isCustom: true}
                 ]}
               />
             </TabsContent>
@@ -94,10 +94,10 @@ const IntegrationsHub = () => {
                 category="Database Connections" 
                 description="Connect to external databases to import, export, and synchronize critical business data."
                 integrations={[
-                  {id: 'postgres', name: 'PostgreSQL', logoUrl: '/placeholder.svg'},
-                  {id: 'mysql', name: 'MySQL', logoUrl: '/placeholder.svg'},
-                  {id: 'mongodb', name: 'MongoDB', logoUrl: '/placeholder.svg'},
-                  {id: 'custom-db', name: 'Custom Database', logoUrl: '/placeholder.svg', isCustom: true}
+                  {id: 'postgres', name: 'PostgreSQL', logoUrl: '/logos/postgres.svg'},
+                  {id: 'mysql', name: 'MySQL', logoUrl: '/logos/mysql.jpg'},
+                  {id: 'mongodb', name: 'MongoDB', logoUrl: '/logos/mongoDB.webp'},
+                  {id: 'custom-db', name: 'Custom Database', logoUrl: '/logos/custom.png', isCustom: true}
                 ]}
               />
             </TabsContent>
@@ -107,11 +107,11 @@ const IntegrationsHub = () => {
                 category="Additional Services" 
                 description="Connect to storage, analytics, payment, and communication services."
                 integrations={[
-                  {id: 'stripe', name: 'Stripe', logoUrl: '/placeholder.svg'},
-                  {id: 'aws-s3', name: 'AWS S3', logoUrl: '/placeholder.svg'},
-                  {id: 'google-analytics', name: 'Google Analytics', logoUrl: '/placeholder.svg'},
-                  {id: 'twilio', name: 'Twilio', logoUrl: '/placeholder.svg'},
-                  {id: 'custom-service', name: 'Custom Service', logoUrl: '/placeholder.svg', isCustom: true}
+                  {id: 'stripe', name: 'Stripe', logoUrl: '/logos/stripe.png'},
+                  {id: 'aws-s3', name: 'AWS S3', logoUrl: '/logos/amazonS3.png'},
+                  {id: 'google-analytics', name: 'Google Analytics', logoUrl: '/logos/googleanalytics.jpg'},
+                  {id: 'twilio', name: 'Twilio', logoUrl: '/logos/twilio.jpg'},
+                  {id: 'custom-service', name: 'Custom Service', logoUrl: '/logos/custom.png', isCustom: true}
                 ]}
               />
             </TabsContent>
