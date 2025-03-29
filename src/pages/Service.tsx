@@ -16,7 +16,6 @@ import { useDataMode } from "@/contexts/DataModeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import CreateTicketForm from "@/components/service/CreateTicketForm";
 import TicketList from "@/components/service/TicketList";
-import DataModeToggle from "@/components/dashboard/DataModeToggle";
 import ServiceSolvedCasesPieChart from "@/components/service/ServiceSolvedCasesPieChart";
 
 const tickets = [
@@ -105,7 +104,6 @@ const Service = () => {
         </div>
         
         <div className="flex gap-3">
-          <DataModeToggle />
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="font-medium">

@@ -3,7 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from "recharts";
 import { useDataMode } from "@/contexts/DataModeContext";
-import DataModeToggle from "@/components/dashboard/DataModeToggle";
 
 const demoData = [
   { name: 'Jan', visits: 4000, conversions: 2400 },
@@ -35,7 +34,6 @@ const Analytics = () => {
             Visualize your business performance and customer insights
           </p>
         </div>
-        <DataModeToggle />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

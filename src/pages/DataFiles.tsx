@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/separator";
 import { FileUp, FileText, Database, Trash2, Eye, FileDown, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useDataMode } from "@/contexts/DataModeContext";
-import DataModeToggle from "@/components/dashboard/DataModeToggle";
 
 const DataFiles = () => {
   const { user } = useAuth();
@@ -51,7 +50,6 @@ const DataFiles = () => {
             Upload, manage, and visualize your data files
           </p>
         </div>
-        <DataModeToggle />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
