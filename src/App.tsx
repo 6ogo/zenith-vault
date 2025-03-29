@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
@@ -8,12 +9,12 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { DataModeProvider } from '@/contexts/DataModeContext';
 import LoadingScreen from '@/components/LoadingScreen';
 import Index from '@/pages/Index';
-import SignUp from '@/pages/SignUp';
-import Login from '@/pages/Login';
-import ForgotPassword from '@/pages/ForgotPassword';
-import ResetPassword from '@/pages/ResetPassword';
-import VerifyEmail from '@/pages/VerifyEmail';
-import Callback from '@/pages/Callback';
+import SignUp from '@/pages/auth/SignUp';
+import Login from '@/pages/auth/Login';
+import ForgotPassword from '@/pages/auth/ForgotPassword';
+import ResetPassword from '@/pages/auth/ResetPassword';
+import VerifyEmail from '@/pages/auth/VerifyEmail';
+import Callback from '@/pages/auth/Callback';
 import Dashboard from '@/pages/Dashboard';
 import Sales from '@/pages/Sales';
 import Customers from '@/pages/Customers';
@@ -43,12 +44,12 @@ const App = () => {
               <Suspense fallback={<LoadingScreen />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/verify-email" element={<VerifyEmail />} />
-                  <Route path="/callback" element={<Callback />} />
+                  <Route path="/auth/signup" element={<SignUp />} />
+                  <Route path="/auth/login" element={<Login />} />
+                  <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/auth/reset-password" element={<ResetPassword />} />
+                  <Route path="/auth/verify-email" element={<VerifyEmail />} />
+                  <Route path="/auth/callback" element={<Callback />} />
                   
                   {/* Add Documentation route */}
                   <Route path="/documentation" element={

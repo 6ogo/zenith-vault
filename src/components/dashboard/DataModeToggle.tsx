@@ -9,12 +9,18 @@ import { useDataMode } from "@/contexts/DataModeContext";
 
 interface DataModeToggleProps {
   className?: string;
+  // Add these props to support both usage patterns
+  isRealData?: boolean;
+  onToggle?: (value: boolean) => void;
 }
 
-const DataModeToggle = ({ className = "" }: DataModeToggleProps) => {
+const DataModeToggle = ({ className = "", isRealData: externalIsRealData, onToggle }: DataModeToggleProps) => {
   const { toast } = useToast();
   const location = useLocation();
-  const { isRealData, setIsRealData, isAllowedToToggle } = useDataMode();
+  const { isRealData: contextIsRealData, setIsRealData, isAllowedToToggle } = useDataMode();
+  
+  // Use either the prop or context value
+  const isRealData = externalIsRealData !== undefined ? externalIsRealData : contextIsRealData;
   const currentPage = location.pathname.split('/')[1] || 'dashboard';
   
   // Don't render on pages that don't support toggling
@@ -23,7 +29,12 @@ const DataModeToggle = ({ className = "" }: DataModeToggleProps) => {
   }
   
   const handleToggle = (checked: boolean) => {
-    setIsRealData(checked);
+    // Call the prop handler if provided, otherwise use context
+    if (onToggle) {
+      onToggle(checked);
+    } else {
+      setIsRealData(checked);
+    }
     
     toast({
       title: checked ? "Real data mode activated" : "Demo data mode activated",
