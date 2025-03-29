@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { TwoFactorSetup } from '@/components/auth/TwoFactorSetup';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -29,12 +29,24 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
+// Define a type for the profile data that includes all the fields we need
+type ProfileData = {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  updated_at: string | null;
+  is_mfa_enabled: boolean | null;
+  job_title?: string | null;
+  department?: string | null;
+  phone_number?: string | null;
+};
+
 const Profile = () => {
   const { user, updateProfile, isMfaEnabled } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showMfaSetup, setShowMfaSetup] = useState(false);
-  const [profileData, setProfileData] = useState<any>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -64,7 +76,7 @@ const Profile = () => {
           return;
         }
         
-        setProfileData(data);
+        setProfileData(data as ProfileData);
         
         form.reset({
           fullName: data?.full_name || '',

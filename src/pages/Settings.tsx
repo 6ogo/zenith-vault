@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -21,11 +22,23 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+// Define a type for the profile data that includes all the fields we need
+type ProfileData = {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  updated_at: string | null;
+  is_mfa_enabled: boolean | null;
+  job_title?: string | null;
+  department?: string | null;
+  phone_number?: string | null;
+};
+
 export default function Settings() {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [profileData, setProfileData] = useState<any>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [organization, setOrganization] = useState<any>(null);
   const [sessions, setSessions] = useState<any[]>([]);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
@@ -83,7 +96,7 @@ export default function Settings() {
       }
       
       if (data) {
-        setProfileData(data);
+        setProfileData(data as ProfileData);
         
         form.setValue("fullName", data.full_name || "");
         form.setValue("email", user?.email || "");
