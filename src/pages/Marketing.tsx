@@ -2,13 +2,14 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import AdPlatformIntegration, { MarketingPlatform, PlatformStatus } from "@/components/marketing/AdPlatformIntegration";
+import AdPlatformIntegration from "@/components/marketing/AdPlatformIntegration";
+import { MarketingPlatform, PlatformStatus } from "@/components/marketing/AdPlatformIntegration";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DataModeToggle from "@/components/dashboard/DataModeToggle";
 import { useDataMode } from "@/contexts/DataModeContext";
 
 const Marketing = () => {
-  const { isRealData } = useDataMode();
+  const { isRealData, setIsRealData } = useDataMode();
   const [activeTab, setActiveTab] = useState("campaigns");
   
   const [adPlatforms, setAdPlatforms] = useState<MarketingPlatform[]>([
