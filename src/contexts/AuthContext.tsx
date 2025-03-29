@@ -84,11 +84,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
         setUser(session?.user || null);
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session?.user?.id);
       setUser(session?.user || null);
     });
 
@@ -155,10 +157,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(true);
     try {
       console.log("Starting Google OAuth flow");
+      
+      // Get the current URL for redirection after auth
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      console.log("Redirect URL:", redirectTo);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectTo,
+          queryParams: {
+            prompt: 'select_account', // Forces Google to show account selector
+          }
         },
       });
 
@@ -168,6 +178,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       console.log("Google sign in response:", data);
+      
+      // Google sign-in is complete when the callback URL is invoked
+      // No need to return to dashboard, as the callback will handle redirection
       return data;
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
@@ -181,10 +194,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(true);
     try {
       console.log("Starting LinkedIn OAuth flow");
+      
+      // Get the current URL for redirection after auth
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      console.log("Redirect URL:", redirectTo);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectTo,
         },
       });
 
@@ -194,6 +212,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       console.log("LinkedIn sign in response:", data);
+      
+      // No need to return to dashboard, as the callback will handle redirection
       return data;
     } catch (error: any) {
       console.error("Error signing in with LinkedIn:", error);

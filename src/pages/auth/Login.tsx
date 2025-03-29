@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { TwoFactorVerification } from '@/components/auth/TwoFactorVerification';
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Link, useNavigate } from 'react-router-dom';
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import {
   Card,
   CardContent,
@@ -18,6 +18,7 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -29,10 +30,18 @@ const loginSchema = z.object({
 });
 
 export default function Login() {
-  const { signIn, signInWithGoogle, signInWithLinkedIn, isLoading, isVerifying2FA } = useAuth();
+  const { signIn, signInWithGoogle, signInWithLinkedIn, isLoading, isVerifying2FA, isAuthenticated } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [socialAuthError, setSocialAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -50,7 +59,7 @@ export default function Login() {
     if (isLoading) return;
 
     try {
-      console.log("Attempting to sign in");
+      console.log("Attempting to sign in with email/password");
       await signIn(values.email, values.password);
       navigate("/dashboard");
     } catch (error: any) {
@@ -60,6 +69,28 @@ export default function Login() {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setSocialAuthError(null);
+    try {
+      await signInWithGoogle();
+      // No navigation here - will be handled by callback
+    } catch (error: any) {
+      console.error("Google login error:", error);
+      setSocialAuthError("Google login failed: " + error.message);
+    }
+  };
+
+  const handleLinkedInSignIn = async () => {
+    setSocialAuthError(null);
+    try {
+      await signInWithLinkedIn();
+      // No navigation here - will be handled by callback
+    } catch (error: any) {
+      console.error("LinkedIn login error:", error);
+      setSocialAuthError("LinkedIn login failed: " + error.message);
     }
   };
 
@@ -125,6 +156,14 @@ export default function Login() {
               {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
+          
+          {socialAuthError && (
+            <div className="p-3 rounded bg-red-50 border border-red-200 text-red-600 text-sm flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>{socialAuthError}</span>
+            </div>
+          )}
+          
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -136,8 +175,8 @@ export default function Login() {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Button onClick={() => signInWithGoogle()} variant="outline">Google</Button>
-            <Button onClick={() => signInWithLinkedIn()} variant="outline">LinkedIn</Button>
+            <Button onClick={handleGoogleSignIn} variant="outline" type="button" disabled={isLoading}>Google</Button>
+            <Button onClick={handleLinkedInSignIn} variant="outline" type="button" disabled={isLoading}>LinkedIn</Button>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-2">

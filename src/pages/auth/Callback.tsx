@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 export default function Callback() {
   const [error, setError] = useState<string | null>(null);
@@ -11,6 +12,7 @@ export default function Callback() {
     const handleAuthCallback = async () => {
       try {
         console.log("Processing auth callback");
+        // This gets the session from the URL fragment or cookie
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -21,7 +23,10 @@ export default function Callback() {
 
         if (data?.session) {
           console.log("Session found, redirecting to dashboard");
-          navigate('/dashboard');
+          // Add a small delay to ensure session is properly set
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 500);
         } else {
           console.log("No session found, redirecting to login");
           navigate('/auth/login');
@@ -60,7 +65,7 @@ export default function Callback() {
         <h1 className="text-xl font-bold text-center">Processing Login</h1>
         <p className="text-center">Please wait while we complete your authentication...</p>
         <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
       </div>
     </div>
