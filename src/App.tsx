@@ -26,6 +26,9 @@ import Callback from './pages/auth/Callback';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import NotFound from './pages/NotFound';
+import MainLayout from './components/layout/MainLayout';
+import Index from './pages/Index';
+import Customers from './pages/Customers';
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -45,25 +48,37 @@ const App = () => {
           <Toaster />
           <DataModeProvider>
             <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/sales" element={<Sales />} />
-              <Route path="/marketing" element={<Marketing />} />
-              <Route path="/service" element={<Service />} />
-              <Route path="/integrations" element={<Integrations />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/features/customer-service" element={<CustomerService />} />
-              <Route path="/features/sales-management" element={<SalesManagement />} />
-              <Route path="/features/marketing-automation" element={<MarketingAutomation />} />
+              {/* Auth routes */}
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/signup" element={<SignUp />} />
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/auth/verify-email" element={<VerifyEmail />} />
               <Route path="/auth/callback" element={<Callback />} />
+              
+              {/* Landing page */}
+              <Route path="/" element={<Index />} />
+              
+              {/* Public pages */}
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
+              
+              {/* Main application routes with layout */}
+              <Route element={<MainLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/sales" element={<Sales />} />
+                <Route path="/marketing" element={<Marketing />} />
+                <Route path="/service" element={<Service />} />
+                <Route path="/customers" element={<Customers />} />
+                <Route path="/integrations" element={<Integrations />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/features/customer-service" element={<CustomerService />} />
+                <Route path="/features/sales-management" element={<SalesManagement />} />
+                <Route path="/features/marketing-automation" element={<MarketingAutomation />} />
+              </Route>
+              
+              {/* Fallback route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </DataModeProvider>

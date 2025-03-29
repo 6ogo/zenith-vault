@@ -58,7 +58,7 @@ const Marketing = () => {
             Create and manage marketing campaigns across multiple platforms
           </p>
         </div>
-        <DataModeToggle isRealData={isRealData} onToggle={val => setIsRealData(val)} />
+        <DataModeToggle isRealData={isRealData} onToggle={setIsRealData} />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
