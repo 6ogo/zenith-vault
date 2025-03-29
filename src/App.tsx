@@ -7,6 +7,7 @@ import Sales from './pages/Sales';
 import Marketing from './pages/Marketing';
 import Service from './pages/Service';
 import Integrations from './pages/Integrations';
+import IntegrationDocumentation from './pages/IntegrationDocumentation'; // Keep the documentation page
 import Settings from './pages/Settings';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
@@ -80,6 +81,7 @@ const App = () => {
                 <Route path="/website" element={<Website />} />
                 <Route path="/data" element={<DataFiles />} />
                 <Route path="/integrations" element={<Integrations />} />
+                <Route path="/integrations/documentation" element={<IntegrationDocumentation />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/features/customer-service" element={<CustomerService />} />

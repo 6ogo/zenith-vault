@@ -94,6 +94,48 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
     },
   ];
 
+  const renderNavLink = (route: any) => {
+    if (route.group && route.items) {
+      return (
+        <div key={route.group} className="space-y-1">
+          {!isCollapsed && (
+            <div className="px-3 py-1">
+              <span className="text-xs font-semibold text-sidebar-foreground/60">{route.group}</span>
+            </div>
+          )}
+          {route.items.map((item: any) => renderNavLink(item))}
+        </div>
+      );
+    }
+
+    return (
+      <NavLink
+        key={route.path}
+        to={route.path}
+        className={({ isActive }) =>
+          cn(
+            "flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+            isActive
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground",
+            isCollapsed ? "justify-center" : "justify-start"
+          )
+        }
+      >
+        {isCollapsed ? (
+          <div className="flex items-center justify-center w-full">
+            <route.icon className="w-5 h-5" />
+          </div>
+        ) : (
+          <>
+            <route.icon className="w-5 h-5" />
+            <span className="ml-2">{route.label}</span>
+          </>
+        )}
+      </NavLink>
+    );
+  };
+
   return (
     <div className={cn(
       "flex flex-col h-full bg-[#003366] border-r border-border transition-all duration-300",
@@ -118,32 +160,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }: SidebarProps) => {
         <ScrollArea className="flex-grow">
           <div className="p-2">
             <nav className="flex flex-col space-y-1">
-              {routes.map((route) => (
-                <NavLink
-                  key={route.path}
-                  to={route.path}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
-                      isActive
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground",
-                      isCollapsed ? "justify-center" : "justify-start"
-                    )
-                  }
-                >
-                  {isCollapsed ? (
-                    <div className="flex items-center justify-center w-full">
-                      <route.icon className="w-5 h-5" />
-                    </div>
-                  ) : (
-                    <>
-                      <route.icon className="w-5 h-5" />
-                      <span className="ml-2">{route.label}</span>
-                    </>
-                  )}
-                </NavLink>
-              ))}
+              {routes.map((route) => renderNavLink(route))}
             </nav>
           </div>
         </ScrollArea>
