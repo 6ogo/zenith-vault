@@ -1,523 +1,225 @@
 
-import React, { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/AuthContext";
-import AIConfigSection from "@/components/ai/AIConfigSection";
-import AISettingsPanel from "@/components/ai/AISettingsPanel";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { useUserSettings, NotificationPreferences, InterfacePreferences } from '@/hooks/useUserSettings';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, Info } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Settings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [profileSettings, setProfileSettings] = useState({
-    fullName: "",
-    email: "",
-    role: ""
-  });
-  const [notificationSettings, setNotificationSettings] = useState({
+  const { 
+    settings, 
+    loading, 
+    updateNotificationPreferences, 
+    updateInterfacePreferences 
+  } = useUserSettings();
+  
+  // Local state for notification preferences
+  const [notifications, setNotifications] = useState<NotificationPreferences>({
     emailNotifications: true,
     salesAlerts: true,
     marketingUpdates: true,
     customerServiceAlerts: true
   });
-  const [interfaceSettings, setInterfaceSettings] = useState({
+  
+  // Local state for interface preferences
+  const [interfacePrefs, setInterfacePrefs] = useState<InterfacePreferences>({
     darkMode: true,
     reducedMotion: false
   });
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      if (!user) return;
-      
-      try {
-        // Fetch profile from Supabase
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-          
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-        } else {
-          setProfileSettings({
-            fullName: profileData.full_name || "",
-            email: user.email || "",
-            role: user.user_metadata?.role || "user"
-          });
-        }
-        
-        // Fetch user settings from Supabase
-        const { data: settingsData, error: settingsError } = await supabase
-          .from('user_settings')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-          
-        if (settingsError && settingsError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-          console.error('Error fetching settings:', settingsError);
-        } else if (settingsData) {
-          // Update notification settings if available
-          if (settingsData.notification_preferences) {
-            setNotificationSettings(settingsData.notification_preferences);
-          }
-          
-          // Update interface settings if available
-          if (settingsData.interface_preferences) {
-            setInterfaceSettings(settingsData.interface_preferences);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
-    
-    fetchSettings();
-  }, [user]);
-
-  const handleSaveProfile = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    try {
-      // Update profile in Supabase
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: profileSettings.fullName,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-        
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Profile Updated",
-        description: "Your profile information has been saved."
-      });
-    } catch (error: any) {
-      console.error('Error saving profile:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update profile",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSavePreferences = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    try {
-      // Check if user settings exist
-      const { data, error: checkError } = await supabase
-        .from('user_settings')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-        
-      if (checkError && checkError.code !== 'PGRST116') {
-        throw checkError;
-      }
-      
-      const settingsData = {
-        user_id: user.id,
-        notification_preferences: notificationSettings,
-        interface_preferences: interfaceSettings,
-        updated_at: new Date().toISOString()
-      };
-      
-      let error;
-      
-      if (data) {
-        // Update existing settings
-        const result = await supabase
-          .from('user_settings')
-          .update(settingsData)
-          .eq('user_id', user.id);
-          
-        error = result.error;
-      } else {
-        // Insert new settings
-        const result = await supabase
-          .from('user_settings')
-          .insert({
-            ...settingsData,
-            created_at: new Date().toISOString()
-          });
-          
-        error = result.error;
-      }
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Preferences Updated",
-        description: "Your preferences have been saved."
-      });
-    } catch (error: any) {
-      console.error('Error saving preferences:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update preferences",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSaveSecurity = async () => {
-    // Handle password update logic here
-    toast({
-      title: "Security Settings Updated",
-      description: "Your security settings have been saved."
-    });
-  };
-
-  const isAdmin = user?.user_metadata?.role === 'admin';
-  const userName = profileSettings.fullName || "User";
-
-  return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your account settings and preferences
-          </p>
-        </div>
-      </div>
   
-      <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="w-full md:w-auto grid grid-cols-2 md:grid-cols-5 gap-1">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="integrations">Integrations</TabsTrigger>
-          {isAdmin && <TabsTrigger value="ai-settings">AI Settings</TabsTrigger>}
-        </TabsList>
-
-        <TabsContent value="profile" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Manage your personal information and how it appears across the platform
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col md:flex-row gap-8">
-                <div className="flex-1 space-y-4">
-                  <div className="grid w-full items-center gap-1.5">
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      value={profileSettings.fullName}
-                      onChange={(e) => setProfileSettings({...profileSettings, fullName: e.target.value})}
-                    />
-                  </div>
-
-                  <div className="grid w-full items-center gap-1.5">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      value={profileSettings.email}
-                      disabled
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Email cannot be changed.
-                    </p>
-                  </div>
-
-                  <div className="grid w-full items-center gap-1.5">
-                    <Label htmlFor="role">Role</Label>
-                    <Input
-                      id="role"
-                      value={profileSettings.role}
-                      disabled
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your role is managed by your organization admin.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <Label>Profile Photo</Label>
-                  <div className="flex flex-col items-center gap-2">
-                    <Avatar className="h-24 w-24">
-                      <AvatarImage src="/placeholder.svg" />
-                      <AvatarFallback className="text-2xl">
-                        {userName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        Upload
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Remove
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button onClick={handleSaveProfile} disabled={isLoading}>
-                  {isLoading ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="preferences" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
-              <CardDescription>
-                Configure how and when you receive notifications
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="email-notifications">Email Notifications</Label>
-                  <Switch 
-                    id="email-notifications" 
-                    checked={notificationSettings.emailNotifications}
-                    onCheckedChange={(checked) => setNotificationSettings({
-                      ...notificationSettings,
-                      emailNotifications: checked
-                    })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="sales-alerts">Sales Alerts</Label>
-                  <Switch 
-                    id="sales-alerts" 
-                    checked={notificationSettings.salesAlerts}
-                    onCheckedChange={(checked) => setNotificationSettings({
-                      ...notificationSettings,
-                      salesAlerts: checked
-                    })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="marketing-updates">Marketing Updates</Label>
-                  <Switch 
-                    id="marketing-updates" 
-                    checked={notificationSettings.marketingUpdates}
-                    onCheckedChange={(checked) => setNotificationSettings({
-                      ...notificationSettings,
-                      marketingUpdates: checked
-                    })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="customer-service-alerts">Customer Service Alerts</Label>
-                  <Switch 
-                    id="customer-service-alerts" 
-                    checked={notificationSettings.customerServiceAlerts}
-                    onCheckedChange={(checked) => setNotificationSettings({
-                      ...notificationSettings,
-                      customerServiceAlerts: checked
-                    })}
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button onClick={handleSavePreferences} disabled={isLoading}>
-                    {isLoading ? 'Saving...' : 'Save Preferences'}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Interface Preferences</CardTitle>
-              <CardDescription>
-                Customize your experience with the platform
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <Switch 
-                    id="dark-mode" 
-                    checked={interfaceSettings.darkMode}
-                    onCheckedChange={(checked) => setInterfaceSettings({
-                      ...interfaceSettings,
-                      darkMode: checked
-                    })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="reduced-motion">Reduced Motion</Label>
-                  <Switch 
-                    id="reduced-motion" 
-                    checked={interfaceSettings.reducedMotion}
-                    onCheckedChange={(checked) => setInterfaceSettings({
-                      ...interfaceSettings,
-                      reducedMotion: checked
-                    })}
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button onClick={handleSavePreferences} disabled={isLoading}>
-                    {isLoading ? 'Saving...' : 'Save Preferences'}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="security" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Password</CardTitle>
-              <CardDescription>
-                Change your password to keep your account secure
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" />
-              </div>
-
-              <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" />
-              </div>
-
-              <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input id="confirm-password" type="password" />
-              </div>
-
-              <div className="flex justify-end">
-                <Button onClick={handleSaveSecurity}>Update Password</Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Two-Factor Authentication</CardTitle>
-              <CardDescription>
-                Add an extra layer of security to your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between space-x-2">
-                <div>
-                  <p className="font-medium">Enable Two-Factor Authentication</p>
-                  <p className="text-sm text-muted-foreground">
-                    Protect your account with an authenticator app
-                  </p>
-                </div>
-                <Switch id="two-factor" />
-              </div>
-
-              <div className="flex justify-end">
-                <Button onClick={handleSaveSecurity}>Save Security Settings</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="integrations" className="space-y-4 mt-4">
-          <AIConfigSection />
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Connected Services</CardTitle>
-              <CardDescription>
-                Manage the third-party services connected to your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between space-x-2 p-2 border rounded-md">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" /></svg>
-                  </div>
-                  <div>
-                    <p className="font-medium">Stripe</p>
-                    <p className="text-sm text-muted-foreground">
-                      Payment processing integration
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">Configure</Button>
-              </div>
-
-              <div className="flex items-center justify-between space-x-2 p-2 border rounded-md">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3" /><path d="M21 16v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3" /><path d="M4 12H20" /><path d="M14 12v.01" /></svg>
-                  </div>
-                  <div>
-                    <p className="font-medium">Mailchimp</p>
-                    <p className="text-sm text-muted-foreground">
-                      Email marketing integration
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">Configure</Button>
-              </div>
-
-              <div className="flex items-center justify-between space-x-2 p-2 border rounded-md">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M17 6.1H3" /><path d="M21 12.1H3" /><path d="M15.1 18H3" /></svg>
-                  </div>
-                  <div>
-                    <p className="font-medium">Salesforce</p>
-                    <p className="text-sm text-muted-foreground">
-                      CRM integration
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">Configure</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {isAdmin && (
-          <TabsContent value="ai-settings" className="space-y-4 mt-4">
-            <AISettingsPanel />
-          </TabsContent>
-        )}
-      </Tabs>
+  // Initialize state from settings when they load
+  useEffect(() => {
+    if (settings) {
+      setNotifications(settings.notification_preferences);
+      setInterfacePrefs(settings.interface_preferences);
+    }
+  }, [settings]);
+  
+  const handleNotificationChange = (key: keyof NotificationPreferences) => {
+    setNotifications(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+  
+  const handleInterfaceChange = (key: keyof InterfacePreferences) => {
+    setInterfacePrefs(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+  
+  const saveNotificationSettings = async () => {
+    const success = await updateNotificationPreferences(notifications);
+    if (success) {
+      toast({
+        title: "Notification settings saved",
+        description: "Your notification preferences have been updated."
+      });
+    }
+  };
+  
+  const saveInterfaceSettings = async () => {
+    const success = await updateInterfacePreferences(interfacePrefs);
+    if (success) {
+      toast({
+        title: "Interface settings saved",
+        description: "Your interface preferences have been updated."
+      });
+    }
+  };
+  
+  if (!user) {
+    return (
+      <div className="container mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Authentication required</AlertTitle>
+          <AlertDescription>
+            Please log in to access your settings.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground mt-2">
+          Manage your application preferences and notifications
+        </p>
+      </div>
+      
+      {loading && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Loading settings</AlertTitle>
+          <AlertDescription>
+            Please wait while we load your preferences...
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Notification Preferences</CardTitle>
+          <CardDescription>
+            Control which notifications you receive from the platform
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="emailNotifications">Email Notifications</Label>
+              <p className="text-sm text-muted-foreground">
+                Receive important updates via email
+              </p>
+            </div>
+            <Switch
+              id="emailNotifications"
+              checked={notifications.emailNotifications}
+              onCheckedChange={() => handleNotificationChange('emailNotifications')}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="salesAlerts">Sales Alerts</Label>
+              <p className="text-sm text-muted-foreground">
+                Get notified about new sales and opportunities
+              </p>
+            </div>
+            <Switch
+              id="salesAlerts"
+              checked={notifications.salesAlerts}
+              onCheckedChange={() => handleNotificationChange('salesAlerts')}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="marketingUpdates">Marketing Updates</Label>
+              <p className="text-sm text-muted-foreground">
+                Receive updates on marketing campaigns and analytics
+              </p>
+            </div>
+            <Switch
+              id="marketingUpdates"
+              checked={notifications.marketingUpdates}
+              onCheckedChange={() => handleNotificationChange('marketingUpdates')}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="customerServiceAlerts">Customer Service Alerts</Label>
+              <p className="text-sm text-muted-foreground">
+                Get notified about customer service tickets and inquiries
+              </p>
+            </div>
+            <Switch
+              id="customerServiceAlerts"
+              checked={notifications.customerServiceAlerts}
+              onCheckedChange={() => handleNotificationChange('customerServiceAlerts')}
+            />
+          </div>
+          
+          <Button onClick={saveNotificationSettings} disabled={loading}>
+            Save Notification Preferences
+          </Button>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Interface Preferences</CardTitle>
+          <CardDescription>
+            Customize your experience with the application
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="darkMode">Dark Mode</Label>
+              <p className="text-sm text-muted-foreground">
+                Use a darker color theme for the interface
+              </p>
+            </div>
+            <Switch
+              id="darkMode"
+              checked={interfacePrefs.darkMode}
+              onCheckedChange={() => handleInterfaceChange('darkMode')}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="reducedMotion">Reduced Motion</Label>
+              <p className="text-sm text-muted-foreground">
+                Minimize animations throughout the interface
+              </p>
+            </div>
+            <Switch
+              id="reducedMotion"
+              checked={interfacePrefs.reducedMotion}
+              onCheckedChange={() => handleInterfaceChange('reducedMotion')}
+            />
+          </div>
+          
+          <Button onClick={saveInterfaceSettings} disabled={loading}>
+            Save Interface Preferences
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

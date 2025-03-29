@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -94,8 +93,7 @@ export function useOrganization() {
           status,
           joined_at,
           profiles:user_id (
-            full_name,
-            avatar_url
+            full_name
           ),
           users:user_id (
             email
@@ -115,7 +113,7 @@ export function useOrganization() {
         name: member.profiles?.full_name || 'Unknown',
         email: member.users?.email || 'Unknown',
         role: member.role,
-        status: member.status,
+        status: member.status as 'active' | 'inactive' | 'pending',
         joined_at: member.joined_at
       }));
       

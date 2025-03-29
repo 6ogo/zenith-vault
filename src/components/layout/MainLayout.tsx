@@ -5,6 +5,8 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import { supabase } from '@/integrations/supabase/client';
 import ChatbotButton from "@/components/chat/ChatbotButton";
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -12,19 +14,22 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, updateProfile } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (currentUser) {
-        setUser(currentUser);
+    const setupUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
         
         // Check if user exists in profiles table, if not create it
         const { data, error } = await supabase
           .from('profiles')
           .select('id')
-          .eq('id', currentUser.id)
+          .eq('id', user.id)
           .single();
           
         if (error && error.code === 'PGRST116') { // No rows found error code
@@ -32,8 +37,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           const { error: insertError } = await supabase
             .from('profiles')
             .insert({
-              id: currentUser.id,
-              full_name: currentUser.user_metadata?.full_name || currentUser.email,
+              id: user.id,
+              full_name: user.user_metadata?.full_name || user.email,
               updated_at: new Date().toISOString()
             });
             
@@ -41,27 +46,55 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             console.error('Error creating profile:', insertError);
           }
         }
-      } else {
-        setUser(null);
+        
+        // Also check for user settings
+        const { data: settingsData, error: settingsError } = await supabase
+          .rpc('get_user_settings', { p_user_id: user.id });
+          
+        if (settingsError || !settingsData) {
+          // Create default settings if they don't exist
+          const { error: createSettingsError } = await supabase
+            .from('user_settings')
+            .insert({ user_id: user.id });
+            
+          if (createSettingsError) {
+            console.error('Error creating default settings:', createSettingsError);
+          }
+        }
+      } catch (error) {
+        console.error('Error in setupUserProfile:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchUser();
+    setupUserProfile();
 
-    supabase.auth.onAuthStateChange((event, session) => {
+    const authListener = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
-        setUser(null);
         navigate('/auth/login');
-      } else if (session) {
-        setUser(session.user);
+      } else if (event === 'SIGNED_IN' && session) {
+        setupUserProfile();
       }
     });
-  }, [navigate]);
+
+    return () => {
+      authListener.data.subscription.unsubscribe();
+    };
+  }, [user, navigate, updateProfile]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    navigate('/auth/login');
+    try {
+      await supabase.auth.signOut();
+      navigate('/auth/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to sign out. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
