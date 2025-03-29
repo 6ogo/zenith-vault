@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 
 interface DataFlowBackgroundProps {
@@ -13,7 +12,6 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Set canvas size to match container
     const resizeCanvas = () => {
       if (canvas) {
         canvas.width = canvas.offsetWidth;
@@ -27,14 +25,12 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     
-    // Initialize WebGL context
     const gl = canvas.getContext('webgl2');
     if (!gl) {
       console.error('WebGL 2 not supported');
       return;
     }
 
-    // Vertex shader - simple pass-through
     const vss = `#version 300 es
     in vec2 position;
     out vec2 vPosition;
@@ -45,104 +41,103 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
     }
     `;
 
-    // Fragment shader - creates animated data flow boxes without mouse interaction
     const fss = `#version 300 es
-    precision mediump float;
+    precision highp float;
     out vec4 outColor;
     in vec2 vPosition;
     uniform float uTime;
 
-    // Simple pseudo-random function
     float random(vec2 st) {
         return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
     }
 
+    // Improved smoothing function
+    float smoothStep(float edge0, float edge1, float x) {
+        float t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+        return t * t * (3.0 - 2.0 * t);
+    }
+
     void main() {
-        // Color scheme from company branding
-        vec3 primaryColor = vec3(0.0, 0.2, 0.4); // #003366 Deep Blue
-        vec3 accentColor = vec3(0.0, 0.8, 0.4);  // #00CC66 Bright Green
-        vec3 bgColor = vec3(0.94, 0.94, 0.94);   // #F0F0F0 Light Gray
+        // Refined color scheme
+        vec3 primaryColor = vec3(0.0, 0.2, 0.4);    // Deep Blue
+        vec3 accentColor = vec3(0.0, 0.8, 0.4);     // Bright Green
+        vec3 bgColor = vec3(0.94, 0.94, 0.94);      // Light Gray
         
-        // Calculate grid size and position - increased for smaller boxes
-        float gridSize = 36.0; // Increased from 18.0 for smaller boxes
+        // Refined grid size for clearer visuals
+        float gridSize = 24.0;
         
-        // Add dataflow movement
-        vec2 offset = vec2(0.0, uTime * 0.1); // Data flows downward
-        
-        // Add some horizontal drift for certain data blocks
-        float horizontalDrift = sin(uTime * 0.2) * 0.05;
-        offset.x += horizontalDrift * sin(vPosition.y * 5.0);
+        // Smoother movement
+        float timeScale = 0.08;
+        vec2 offset = vec2(0.0, uTime * timeScale);
+        float horizontalDrift = sin(uTime * 0.15) * 0.03;
+        offset.x += horizontalDrift * sin(vPosition.y * 3.0);
         
         vec2 cell = floor((vPosition + offset) * gridSize);
         vec2 cellPos = fract((vPosition + offset) * gridSize) - 0.5;
         
-        // Generate random values for this cell
+        // Controlled randomization
         float rand = random(cell);
-        float randSize = random(cell + 0.7) * 0.25 + 0.05; // Box size varies - reduced for smaller boxes
+        float randSize = random(cell + 0.7) * 0.2 + 0.1;
         
-        // Create data packet shapes with clear edges
+        // Cleaner box shapes
         float boxWidth = randSize * 0.8;
-        float boxHeight = randSize * 0.7; // Slightly rectangular for data packet look
-        float box = step(-boxWidth, cellPos.x) * step(cellPos.x, boxWidth) * 
-                    step(-boxHeight, cellPos.y) * step(cellPos.y, boxHeight);
+        float boxHeight = randSize * 0.6;
+        float box = smoothStep(-boxWidth, -boxWidth + 0.01, cellPos.x) * 
+                   smoothStep(boxWidth - 0.01, boxWidth, -cellPos.x) *
+                   smoothStep(-boxHeight, -boxHeight + 0.01, cellPos.y) * 
+                   smoothStep(boxHeight - 0.01, boxHeight, -cellPos.y);
         
-        // Time-based animation with data packet pulses
-        float pulseSpeed = rand * 2.0 + 0.5;
-        float pulse = sin(uTime * pulseSpeed + rand * 10.0) * 0.5 + 0.5;
+        // Refined animation
+        float pulseSpeed = rand * 1.5 + 0.5;
+        float pulse = sin(uTime * pulseSpeed + rand * 6.28) * 0.5 + 0.5;
         
-        // Create data streams - increased grid density for more defined pattern
-        float dataStream = step(0.7, random(floor(cell * 0.15))); 
-        float dataActivity = step(0.5, rand) * dataStream;
-        float streamPulse = sin(uTime * 2.0 + vPosition.y * 10.0) * 0.5 + 0.5;
+        // More organized data streams
+        float dataStream = step(0.85, random(floor(cell * 0.2)));
+        float dataActivity = step(0.6, rand) * dataStream;
+        float streamPulse = sin(uTime * 1.5 + vPosition.y * 8.0) * 0.5 + 0.5;
         
-        // Color calculation - increase green presence
-        vec3 baseColor = mix(primaryColor * 0.8, accentColor * 0.3, 0.2); // Add some green to base
-        vec3 activeColor = mix(
-            primaryColor,
-            accentColor,
-            rand * 0.9 + 0.1 // Increased from rand * 0.7 to ensure more green
-        );
+        // Enhanced color blending
+        vec3 baseColor = mix(primaryColor, accentColor * 0.4, 0.15);
+        vec3 activeColor = mix(primaryColor, accentColor, rand * 0.6 + 0.2);
         
-        // Apply different colors based on data activity - boost green influence
         float activity = dataActivity * streamPulse;
-        vec3 finalColor = mix(baseColor, activeColor, min(1.0, (activity + pulse * 0.4) * 0.9)); // Increased mix
+        vec3 finalColor = mix(baseColor, activeColor, min(1.0, activity + pulse * 0.3));
         
-        // Add connecting lines between data blocks - thinner for sharper look
-        float lineWidth = 0.015; // Reduced for sharper appearance
+        // Refined connecting lines
+        float lineWidth = 0.01;
         float lineY = abs(cellPos.y);
         float lineX = abs(cellPos.x);
         float dataLine = 0.0;
         
-        // Only draw lines for cells that are part of data streams
         if (dataStream > 0.5) {
-            if (lineY < lineWidth && abs(cellPos.x) < 0.4) dataLine = 1.0; // Horizontal lines
-            if (lineX < lineWidth && abs(cellPos.y) < 0.4) dataLine = 1.0; // Vertical lines
+            float horizontalLine = smoothStep(lineWidth, 0.0, lineY) * step(abs(cellPos.x), 0.3);
+            float verticalLine = smoothStep(lineWidth, 0.0, lineX) * step(abs(cellPos.y), 0.3);
+            dataLine = max(horizontalLine, verticalLine);
         }
         
-        // Add edge glow with more green
-        float edgeThickness = 0.025; // Reduced for sharper edges
-        float edge = (1.0 - step(boxWidth - edgeThickness, abs(cellPos.x))) * 
-                     (step(-boxWidth, cellPos.x) * step(cellPos.x, boxWidth)) +
-                     (1.0 - step(boxHeight - edgeThickness, abs(cellPos.y))) * 
-                     (step(-boxHeight, cellPos.y) * step(cellPos.y, boxHeight));
+        // Enhanced edge glow
+        float edgeThickness = 0.015;
+        float edge = (1.0 - smoothStep(boxWidth - edgeThickness, boxWidth, abs(cellPos.x))) * 
+                    (step(-boxWidth, cellPos.x) * step(cellPos.x, boxWidth)) +
+                    (1.0 - smoothStep(boxHeight - edgeThickness, boxHeight, abs(cellPos.y))) * 
+                    (step(-boxHeight, cellPos.y) * step(cellPos.y, boxHeight));
         edge = min(edge, 1.0);
         
-        float edgeBrightness = 0.9 + pulse * 0.5; // Increased brightness for more definition
-        vec3 edgeColor = accentColor * edgeBrightness;
-        vec3 lineColor = mix(accentColor * 0.8, accentColor, streamPulse); // More green in lines
+        vec3 edgeColor = mix(accentColor, vec3(1.0), 0.3) * (0.8 + pulse * 0.4);
+        vec3 lineColor = mix(accentColor * 0.6, accentColor, streamPulse);
         
-        // Combine box fill, edge and lines
-        finalColor = mix(finalColor, edgeColor, edge * 0.9); // Increased edge intensity
-        finalColor = mix(finalColor, lineColor, dataLine * 0.8); // Increased line intensity
+        // Final color composition
+        finalColor = mix(finalColor, edgeColor, edge * 0.7);
+        finalColor = mix(finalColor, lineColor, dataLine * 0.6);
         
-        // Only draw where the box or lines are - increased alpha for better visibility
-        float alpha = max(box * (0.6 + activity * 0.5), dataLine * 0.5 * dataStream);
+        // Refined transparency
+        float alpha = max(box * (0.5 + activity * 0.4), dataLine * 0.3 * dataStream);
+        alpha *= 0.8; // Slightly reduce overall opacity
         
         outColor = vec4(finalColor, alpha);
     }
     `;
 
-    // Create shader helper function
     const createShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
       const shader = gl.createShader(type);
       if (!shader) return null;
@@ -159,7 +154,6 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
       return shader;
     };
 
-    // Create program helper function
     const createProgram = (gl: WebGL2RenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader) => {
       const program = gl.createProgram();
       if (!program) return null;
@@ -176,7 +170,6 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
       return program;
     };
 
-    // Compile shaders
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vss);
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fss);
     
@@ -185,46 +178,27 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
     const program = createProgram(gl, vertexShader, fragmentShader);
     if (!program) return;
 
-    // Get attribute and uniform locations
     const positionAttributeLocation = gl.getAttribLocation(program, "position");
     const timeUniformLocation = gl.getUniformLocation(program, "uTime");
 
-    // Create buffer for a full-screen quad
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     
-    // Two triangles that cover the entire clip space
-    const positions = [
-      -1, -1,  // bottom left
-      1, -1,   // bottom right
-      -1, 1,   // top left
-      1, 1     // top right
-    ];
-    
+    const positions = [-1, -1, 1, -1, -1, 1, 1, 1];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
-    // Set up vertex array object
     const vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
     gl.enableVertexAttribArray(positionAttributeLocation);
-    gl.vertexAttribPointer(
-      positionAttributeLocation,
-      2,          // 2 components per iteration
-      gl.FLOAT,   // the data is 32bit floats
-      false,      // don't normalize the data
-      0,          // 0 = move forward size * sizeof(type) each iteration
-      0           // start at the beginning of the buffer
-    );
+    gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
-    // Set up WebGL state
     resizeCanvas();
-    gl.clearColor(0.94, 0.94, 0.94, 0); // Transparent background
+    gl.clearColor(0.94, 0.94, 0.94, 0);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     const startTime = Date.now();
 
-    // Render function
     const render = () => {
       const currentTime = (Date.now() - startTime) / 1000;
       
@@ -239,7 +213,6 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
       animationRef.current = requestAnimationFrame(render);
     };
 
-    // Start the animation
     render();
 
     window.addEventListener('resize', resizeCanvas);
@@ -255,7 +228,7 @@ const DataFlowBackground: React.FC<DataFlowBackgroundProps> = ({ className = "" 
   return (
     <canvas
       ref={canvasRef}
-      className={`absolute top-0 left-0 w-full h-full -z-10 ${className}`}
+      className={`absolute top-0 left-0 w-full h-full -z-10 opacity-40 ${className}`}
       aria-hidden="true"
     />
   );
