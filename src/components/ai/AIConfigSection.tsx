@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
-import { Loader2 } from 'lucide-react';
+import { InfoIcon, Loader2 } from 'lucide-react';
 
 const AIConfigSection = () => {
   const { user } = useAuth();
@@ -56,7 +55,7 @@ const AIConfigSection = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <InfoCircledIcon className="h-5 w-5" />
+          <InfoIcon className="h-5 w-5" />
           AI Configuration
         </CardTitle>
         <CardDescription>
