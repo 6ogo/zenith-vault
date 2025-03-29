@@ -1,4 +1,3 @@
-
 import React, {
   createContext,
   useState,
@@ -18,7 +17,7 @@ type AuthContextType = {
   isMfaRequired: boolean;
   isVerifying2FA: boolean;
   signUp: (details: SignUpDetails) => Promise<any>;
-  signIn: (email: string, password: string, captchaToken?: string) => Promise<any>;
+  signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<any>;
   updateProfile: (details: any) => Promise<any>;
@@ -59,11 +58,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if MFA is enabled when the component mounts
     const checkMfaStatus = async () => {
       if (user) {
         try {
-          // Check MFA status directly from Supabase auth.mfa
           const { data, error } = await supabase.auth.mfa.listFactors();
           
           if (error) {
@@ -71,7 +68,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return;
           }
           
-          // Check if there are any verified TOTP factors
           const hasVerifiedTotpFactor = data.totp.some(factor => 
             factor.status === 'verified'
           );
@@ -87,14 +83,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   useEffect(() => {
-    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user || null);
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
     });
@@ -133,16 +127,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string, captchaToken?: string) => {
+  const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Include the captcha token in the authentication request
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
-        options: captchaToken ? {
-          captchaToken
-        } : undefined
+        password
       });
 
       if (error) {
@@ -242,7 +232,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateProfile = async (details: any) => {
     setIsLoading(true);
     try {
-      // Update user metadata instead of trying to update a non-existent profiles table
       const { data, error } = await supabase.auth.updateUser({
         data: {
           full_name: details.fullName,
@@ -265,7 +254,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const enableMfa = async () => {
     setIsLoading(true);
     try {
-      // Integrate with Supabase MFA
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp'
       });
@@ -275,7 +263,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       }
 
-      // Return QR code for authenticator app and the factor ID
       return { 
         qr: data.totp.qr_code, 
         factorId: data.id,
@@ -292,7 +279,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const verifyMfa = async (factorId: string, code: string) => {
     setIsLoading(true);
     try {
-      // Verify the MFA code
       const { error } = await supabase.auth.mfa.challengeAndVerify({
         factorId,
         code
@@ -303,7 +289,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       }
       
-      // Update the MFA enabled status in state
       setIsMfaEnabled(true);
       
       return { error: null };
@@ -318,7 +303,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const verify2FADuringLogin = async (otp: string) => {
     setIsLoading(true);
     try {
-      // First get the current MFA challenge
       const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
         factorId: 'totp'
       });
@@ -328,7 +312,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw challengeError;
       }
       
-      // Verify the challenge with the provided OTP
       const { data, error } = await supabase.auth.mfa.verify({
         factorId: 'totp',
         challengeId: challengeData.id,
@@ -352,12 +335,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Add or update the cancelMfaVerification method
   const cancelMfaVerification = useCallback(() => {
-    // Reset any MFA verification state
     setIsMfaRequired(false);
     setIsVerifying2FA(false);
-    // Navigate back to login if needed
     navigate('/auth/login');
   }, [navigate]);
 
