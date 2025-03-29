@@ -30,7 +30,7 @@ const loginSchema = z.object({
 });
 
 export default function Login() {
-  const { signIn, signInWithGoogle, signInWithLinkedIn, isLoading, isVerifying2FA, isAuthenticated } = useAuth();
+  const { signIn, signInWithGoogle, isLoading, isVerifying2FA, isAuthenticated } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [socialAuthError, setSocialAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -83,23 +83,6 @@ export default function Login() {
       setSocialAuthError("Google login failed: " + error.message);
       toast({
         title: "Google login failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleLinkedInSignIn = async () => {
-    setSocialAuthError(null);
-    try {
-      console.log("Attempting to sign in with LinkedIn");
-      await signInWithLinkedIn();
-      // No navigation here - will be handled by callback
-    } catch (error: any) {
-      console.error("LinkedIn login error:", error);
-      setSocialAuthError("LinkedIn login failed: " + error.message);
-      toast({
-        title: "LinkedIn login failed",
         description: error.message,
         variant: "destructive",
       });
@@ -186,9 +169,8 @@ export default function Login() {
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2">
             <Button onClick={handleGoogleSignIn} variant="outline" type="button" disabled={isLoading}>Google</Button>
-            <Button onClick={handleLinkedInSignIn} variant="outline" type="button" disabled={isLoading}>LinkedIn</Button>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-2">

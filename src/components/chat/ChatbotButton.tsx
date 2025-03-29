@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
-  DialogContent
+  DialogContent,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { MessageCircle } from "lucide-react";
 import ChatInterface from "./ChatInterface";
@@ -28,6 +29,7 @@ const ChatbotButton = ({ className }: ChatbotButtonProps) => {
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-4xl p-0 h-[90vh]">
+          <DialogTitle className="sr-only">Zenith Assistant Chat</DialogTitle>
           <ChatInterface />
         </DialogContent>
       </Dialog>

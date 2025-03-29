@@ -39,7 +39,7 @@ serve(async (req) => {
     
     console.log(`Processing question: "${question.substring(0, 50)}..."`);
     
-    // Generate embedding for the question using GROQ's embedding model
+    // Use GROQ's text-embeddings-model instead of LLaMA for embeddings
     const embeddingResponse = await fetch('https://api.groq.com/openai/v1/embeddings', {
       method: 'POST',
       headers: {
@@ -47,7 +47,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama3-70b-8192', // Using LLaMA 3 model for embeddings
+        model: 'text-embedding-3-small', // Using text-embedding model instead of llama
         input: question
       }),
     });

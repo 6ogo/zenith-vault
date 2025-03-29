@@ -1,3 +1,4 @@
+
 import React, {
   createContext,
   useState,
@@ -26,7 +27,6 @@ type AuthContextType = {
   verify2FADuringLogin: (otp: string) => Promise<any>;
   cancelMfaVerification: () => void;
   signInWithGoogle: () => Promise<any>;
-  signInWithLinkedIn: () => Promise<any>;
 };
 
 type SignUpDetails = {
@@ -184,39 +184,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return data;
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const signInWithLinkedIn = async () => {
-    setIsLoading(true);
-    try {
-      console.log("Starting LinkedIn OAuth flow");
-      
-      // Get the full current URL for redirection after auth
-      const redirectTo = `${window.location.origin}/auth/callback`;
-      console.log("Redirect URL:", redirectTo);
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'linkedin_oidc',
-        options: {
-          redirectTo: redirectTo,
-        },
-      });
-
-      if (error) {
-        console.error("Error initiating LinkedIn sign in:", error);
-        throw error;
-      }
-
-      console.log("LinkedIn sign in response:", data);
-      
-      // No need to return to dashboard, as the callback will handle redirection
-      return data;
-    } catch (error: any) {
-      console.error("Error signing in with LinkedIn:", error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -415,7 +382,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       verify2FADuringLogin,
       cancelMfaVerification,
       signInWithGoogle,
-      signInWithLinkedIn,
     }),
     [
       user,
@@ -434,7 +400,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       verify2FADuringLogin,
       cancelMfaVerification,
       signInWithGoogle,
-      signInWithLinkedIn,
     ]
   );
 
