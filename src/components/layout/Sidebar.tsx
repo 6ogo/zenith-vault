@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -15,6 +16,8 @@ import {
   ToggleRight,
   Gitlab,
   Building2,
+  Database,
+  FileUp,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -61,6 +64,11 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
       label: "Website",
     },
     {
+      path: "/data",
+      icon: Database,
+      label: "Data Files",
+    },
+    {
       path: "/integrations",
       icon: Gitlab,
       label: "Integrations",
@@ -79,11 +87,11 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
 
   return (
     <div className={cn(
-      "flex flex-col w-full h-full bg-secondary border-r border-border",
+      "flex flex-col w-full h-full bg-sidebar border-r border-border",
       isCollapsed ? "w-16" : "w-72"
     )}>
       <div className="flex items-center h-16 px-4 border-b border-border">
-        <span className="font-bold text-lg">
+        <span className="font-bold text-lg text-white">
           {isCollapsed ? "AC" : "Admin Console"}
         </span>
       </div>
@@ -95,10 +103,10 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
               to={route.path}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-muted hover:text-foreground transition-colors",
+                  "flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
                   isActive
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground",
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground",
                   isCollapsed ? "justify-center" : "justify-start"
                 )
               }
@@ -109,9 +117,9 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
           ))}
         </nav>
       </div>
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-sidebar-border">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-sidebar-foreground">
             {isCollapsed ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4 mr-2" />}
             {!isCollapsed && "Collapse"}
           </span>

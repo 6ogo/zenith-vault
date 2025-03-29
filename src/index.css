@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap');
 
 @tailwind base;
@@ -19,13 +18,13 @@
     --primary: 210 100% 20%; /* Deep Blue (#003366) */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 144 100% 40%; /* Bright Green (#00CC66) */
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 100% 20%; /* Changed from green to Deep Blue (#003366) */
+    --secondary-foreground: 210 40% 98%; /* Updated to match */
 
     --muted: 0 0% 94.1%; /* Light Gray (#F0F0F0) */
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 144 100% 40%; /* Bright Green (#00CC66) */
+    --accent: 144 100% 40%; /* Kept green for accent */
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -37,14 +36,14 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 210 100% 20%;
+    --sidebar-background: 210 100% 20%; /* Deep Blue (#003366) */
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 144 100% 40%;
+    --sidebar-primary: 210 100% 25%; /* Lighter Deep Blue for contrast */
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 33% 17%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 216 34% 17%;
-    --sidebar-ring: 144 100% 40%;
+    --sidebar-ring: 210 100% 30%; /* Adjusted ring color */
   }
 
   .dark {
@@ -60,7 +59,7 @@
     --primary: 210 100% 30%; /* Slightly brighter Deep Blue for dark mode */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 144 100% 45%; /* Slightly brighter Bright Green for dark mode */
+    --secondary: 210 100% 25%; /* Lighter Deep Blue for contrast */
     --secondary-foreground: 0 0% 100%;
 
     --muted: 217.2 32.6% 17.5%;
