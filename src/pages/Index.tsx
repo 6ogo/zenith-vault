@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import ZenithLogo from "@/components/common/ZenithLogo";
 import Footer from "@/components/layout/Footer";
+import DataFlowBackground from "@/components/common/DataFlowBackground";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -77,18 +78,21 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="py-16 md:py-20 px-4 md:px-8 flex-1">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col items-center text-center animate-fade-in">
+      <section className="py-16 md:py-20 px-4 md:px-8 flex-1 relative overflow-hidden">
+        <DataFlowBackground />
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="flex flex-col items-center text-center animate-fade-in backdrop-blur-sm bg-background/30 rounded-2xl p-8 shadow-sm">
             <div className="mb-6">
               <ZenithLogo width={80} height={80} className="mx-auto" />
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-primary dark:text-primary">Welcome to Zenith Vault</h1>
-            <p className="text-xl md:text-2xl font-medium text-secondary mb-6 dark:text-secondary">Secure, Streamline, Succeed</p>
-            <p className="text-lg md:text-xl max-w-3xl mb-10 text-muted-foreground dark:text-muted-foreground">
-              Transform Your Business with the Ultimate All-in-One Platform.
-              Manage your business securely and efficiently with AI-driven insights.
+            
+            {/* Switched paragraphs as requested */}
+            <p className="text-lg md:text-xl max-w-3xl mb-6 text-muted-foreground dark:text-muted-foreground">
+              Transform Your Business with the Platform. Manage your business securely and efficiently with AI-driven insights.
             </p>
+            <p className="text-xl md:text-2xl font-medium text-secondary mb-10 dark:text-secondary">Secure, Streamline, Succeed</p>
+            
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <Button 
                 size="lg"
